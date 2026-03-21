@@ -152,6 +152,8 @@ export const adminUsers = pgTable("admin_users", {
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   name: text("name").notNull(),
+  role: text("role").notNull().default("manager"),
+  permissions: text("permissions").notNull().default("[]"),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });

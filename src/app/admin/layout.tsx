@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Leaf, LayoutDashboard, Package, ShoppingBag, Tag, BarChart3, Users, LogOut, Menu, X, ChevronRight } from "lucide-react";
+import { Leaf, LayoutDashboard, Package, ShoppingBag, Tag, BarChart3, Users, UserCog, LogOut, Menu, X, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { href: "/admin/discounts", label: "Discounts", icon: Tag },
   { href: "/admin/customers", label: "Customers", icon: Users },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/admin/users", label: "Users", icon: UserCog },
 ];
 
 function getBreadcrumbs(pathname: string) {
@@ -29,6 +30,7 @@ function getBreadcrumbs(pathname: string) {
         discounts: "Discounts",
         customers: "Customers",
         analytics: "Analytics",
+        users: "Users",
       };
       crumbs.push({ label: labels[parts[1]] || parts[1], href: `/admin/${parts[1]}` });
 

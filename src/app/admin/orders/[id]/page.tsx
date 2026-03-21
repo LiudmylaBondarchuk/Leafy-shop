@@ -11,14 +11,16 @@ import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from "@/constants/order-stat
 import type { OrderStatus } from "@/constants/order-statuses";
 import { toast } from "sonner";
 import Link from "next/link";
-import { ArrowLeft, Check, Circle } from "lucide-react";
+import { ArrowLeft, Check, Circle, AlertTriangle } from "lucide-react";
 
 export default function AdminOrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [statusNote, setStatusNote] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
   const [changing, setChanging] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const fetchOrder = () => {
     fetch(`/api/orders/${id}`)
@@ -138,28 +140,83 @@ export default function AdminOrderDetailPage() {
           {order.availableTransitions?.length > 0 && (
             <Card className="p-5">
               <h2 className="font-semibold mb-3">Change Status</h2>
-              <div className="space-y-2">
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600 mb-3"
+              >
+                <option value="">Select new status...</option>
                 {order.availableTransitions.map((status: string) => (
-                  <Button
-                    key={status}
-                    variant={status === "cancelled" ? "destructive" : "secondary"}
-                    size="sm"
-                    className="w-full justify-start"
-                    onClick={() => handleStatusChange(status)}
-                    loading={changing}
-                  >
-                    → {ORDER_STATUS_LABELS[status as OrderStatus]}
-                  </Button>
+                  <option key={status} value={status}>
+                    {ORDER_STATUS_LABELS[status as OrderStatus]}
+                  </option>
                 ))}
-              </div>
+              </select>
               <textarea
                 value={statusNote}
                 onChange={(e) => setStatusNote(e.target.value)}
                 placeholder="Add a note (optional)"
                 rows={2}
-                className="w-full mt-3 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600 mb-3"
               />
+              <Button
+                variant={selectedStatus === "cancelled" ? "destructive" : "primary"}
+                size="sm"
+                className="w-full"
+                disabled={!selectedStatus}
+                onClick={() => setShowConfirm(true)}
+              >
+                Update Status
+              </Button>
             </Card>
+          )}
+
+          {/* Confirmation modal */}
+          {showConfirm && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowConfirm(false)}>
+              <div className="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className={`p-2 rounded-full ${selectedStatus === "cancelled" ? "bg-red-100" : "bg-green-100"}`}>
+                    <AlertTriangle className={`h-5 w-5 ${selectedStatus === "cancelled" ? "text-red-600" : "text-green-600"}`} />
+                  </div>
+                  <h3 className="font-semibold text-gray-900">Confirm Status Change</h3>
+                </div>
+                <p className="text-sm text-gray-600 mb-2">
+                  Change order <strong>{order.orderNumber}</strong> status from{" "}
+                  <strong>{ORDER_STATUS_LABELS[order.status as OrderStatus]}</strong> to{" "}
+                  <strong>{ORDER_STATUS_LABELS[selectedStatus as OrderStatus]}</strong>?
+                </p>
+                {selectedStatus === "cancelled" && (
+                  <p className="text-sm text-red-600 mb-2">
+                    This will restore stock and notify the customer via email.
+                    {order.paymentMethod !== "cod" && " A refund will need to be processed manually."}
+                  </p>
+                )}
+                {selectedStatus !== "cancelled" && (
+                  <p className="text-sm text-gray-500 mb-2">
+                    The customer will be notified via email.
+                  </p>
+                )}
+                <div className="flex gap-3 mt-4">
+                  <Button variant="secondary" size="sm" className="flex-1" onClick={() => setShowConfirm(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    variant={selectedStatus === "cancelled" ? "destructive" : "primary"}
+                    size="sm"
+                    className="flex-1"
+                    loading={changing}
+                    onClick={async () => {
+                      await handleStatusChange(selectedStatus);
+                      setShowConfirm(false);
+                      setSelectedStatus("");
+                    }}
+                  >
+                    Confirm
+                  </Button>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* History */}

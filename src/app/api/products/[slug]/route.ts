@@ -44,7 +44,7 @@ export async function GET(
       )
       .limit(5);
 
-    const relatedFiltered = related.filter((p) => p.id !== product.id).slice(0, 4);
+    const relatedFiltered = related.filter((p: any) => p.id !== product.id).slice(0, 4);
 
     return apiSuccess({
       ...product,

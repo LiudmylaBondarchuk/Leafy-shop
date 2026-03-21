@@ -1,8 +1,8 @@
-export const SHIPPING_METHODS = {
+export const SHIPPING_METHODS: Record<string, { label: string; cost: number }> = {
   courier: { label: "Courier (DPD)", cost: 1499 },
   inpost: { label: "InPost Parcel Locker", cost: 999 },
   pickup: { label: "In-store Pickup", cost: 0 },
-} as const;
+};
 
 export type ShippingMethod = keyof typeof SHIPPING_METHODS;
 

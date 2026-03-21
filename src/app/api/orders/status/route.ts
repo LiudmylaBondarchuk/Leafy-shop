@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       with: {
         items: true,
         statusHistory: {
-          orderBy: (h, { asc }) => [asc(h.createdAt)],
+          orderBy: (h: any, { asc }: any) => [asc(h.createdAt)],
         },
       },
     });
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     // Check if can return (delivered + within 14 days)
     let canReturn = false;
     if (order.status === "delivered") {
-      const deliveredEntry = order.statusHistory.find((h) => h.toStatus === "delivered");
+      const deliveredEntry = order.statusHistory.find((h: any) => h.toStatus === "delivered");
       if (deliveredEntry) {
         const deliveredDate = new Date(deliveredEntry.createdAt);
         const daysSinceDelivery = (Date.now() - deliveredDate.getTime()) / (1000 * 60 * 60 * 24);
@@ -51,14 +51,14 @@ export async function GET(request: NextRequest) {
       status: order.status,
       customerFirstName: order.customerFirstName,
       customerLastName: order.customerLastName,
-      items: order.items,
+      items: order.items as any[],
       subtotal: order.subtotal,
       discountAmount: order.discountAmount,
       shippingCost: order.shippingCost,
       shippingMethod: order.shippingMethod,
       total: order.total,
       createdAt: order.createdAt,
-      history: order.statusHistory.map((h) => ({
+      history: order.statusHistory.map((h: any) => ({
         status: h.toStatus,
         date: h.createdAt,
         note: h.note,

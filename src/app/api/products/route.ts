@@ -71,18 +71,18 @@ export async function GET(request: NextRequest) {
 
     if (minPrice) {
       const min = parseInt(minPrice);
-      filtered = filtered.filter((p) => p.minPrice >= min);
+      filtered = filtered.filter((p: any) => p.minPrice >= min);
     }
     if (maxPrice) {
       const max = parseInt(maxPrice);
-      filtered = filtered.filter((p) => p.minPrice <= max);
+      filtered = filtered.filter((p: any) => p.minPrice <= max);
     }
     if (inStock === "true") {
-      filtered = filtered.filter((p) => p.maxStock > 0);
+      filtered = filtered.filter((p: any) => p.maxStock > 0);
     }
 
     // Sort
-    filtered.sort((a, b) => {
+    filtered.sort((a: any, b: any) => {
       switch (sort) {
         case "price_asc": return a.minPrice - b.minPrice;
         case "price_desc": return b.minPrice - a.minPrice;
@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
     const offset = (page - 1) * limit;
     const paginated = filtered.slice(offset, offset + limit);
 
-    const data = paginated.map((p) => ({
+    const data = paginated.map((p: any) => ({
       id: p.id,
       name: p.name,
       slug: p.slug,

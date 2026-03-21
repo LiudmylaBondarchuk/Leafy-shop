@@ -23,7 +23,8 @@ const STATUS_ICONS: Record<string, any> = {
   returned: RotateCcw,
 };
 
-const STATUS_FLOW = ["new", "paid", "processing", "shipped", "delivered"];
+const STATUS_FLOW_PREPAID = ["new", "paid", "processing", "shipped", "delivered"];
+const STATUS_FLOW_COD = ["new", "processing", "shipped", "delivered", "paid"];
 
 interface OrderData {
   orderNumber: string;
@@ -35,6 +36,7 @@ interface OrderData {
   discountAmount: number;
   shippingCost: number;
   shippingMethod: string;
+  paymentMethod: string;
   total: number;
   createdAt: string;
   history: { status: string; date: string; note: string | null }[];
@@ -167,7 +169,7 @@ function OrderStatusContent() {
                 })}
 
                 {/* Future steps (not yet reached) */}
-                {STATUS_FLOW.filter((s) => !order.history.some((h) => h.status === s) && !["cancelled", "returned"].includes(order.status)).map((s) => {
+                {(order.paymentMethod === "cod" ? STATUS_FLOW_COD : STATUS_FLOW_PREPAID).filter((s) => !order.history.some((h) => h.status === s) && !["cancelled", "returned"].includes(order.status)).map((s) => {
                   const Icon = STATUS_ICONS[s] || Circle;
                   return (
                     <div key={s} className="flex gap-3 opacity-40">

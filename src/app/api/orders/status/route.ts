@@ -56,6 +56,7 @@ export async function GET(request: NextRequest) {
       discountAmount: order.discountAmount,
       shippingCost: order.shippingCost,
       shippingMethod: order.shippingMethod,
+      paymentMethod: order.paymentMethod,
       total: order.total,
       createdAt: order.createdAt,
       history: order.statusHistory.map((h: any) => ({

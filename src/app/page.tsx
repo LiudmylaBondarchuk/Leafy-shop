@@ -7,7 +7,7 @@ export default function HomePage() {
     <div>
       {/* Hero */}
       <section className="relative bg-gradient-to-br from-green-900 via-green-800 to-green-900 text-white">
-        <div className="absolute inset-0 bg-[url('/images/hero/pattern.svg')] opacity-5" />
+        <div className="absolute inset-0 bg-gradient-to-t from-green-950/30 to-transparent" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32">
           <div className="max-w-2xl">
             <div className="flex items-center gap-2 mb-6">

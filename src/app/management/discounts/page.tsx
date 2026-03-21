@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { formatPrice } from "@/lib/utils";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -13,6 +13,9 @@ export default function AdminDiscountsPage() {
   const [codes, setCodes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteModal, setDeleteModal] = useState<{ id: number; code: string } | null>(null);
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
 
   const fetchCodes = () => {
     fetch("/api/discount-codes")
@@ -26,7 +29,7 @@ export default function AdminDiscountsPage() {
   useEffect(() => { fetchCodes(); }, []);
 
   const handleToggleActive = async (id: number, code: string, activate: boolean) => {
-    const res = await fetch(`/api/management/discounts/${id}`, {
+    const res = await fetch(`/api/admin/discounts/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ isActive: activate }),
@@ -42,7 +45,7 @@ export default function AdminDiscountsPage() {
 
   const handleDelete = async () => {
     if (!deleteModal) return;
-    const res = await fetch(`/api/management/discounts/${deleteModal.id}`, { method: "DELETE" });
+    const res = await fetch(`/api/admin/discounts/${deleteModal.id}`, { method: "DELETE" });
     const json = await res.json();
     if (json.data) {
       toast.success(`"${deleteModal.code}" deleted`);
@@ -69,11 +72,26 @@ export default function AdminDiscountsPage() {
   };
 
   const getStatus = (code: any) => {
-    if (!code.isActive) return { label: "Inactive", variant: "default" as const };
-    if (code.expiresAt && new Date(code.expiresAt) < new Date()) return { label: "Expired", variant: "warning" as const };
-    if (code.usageLimit && code.usageCount >= code.usageLimit) return { label: "Used up", variant: "warning" as const };
-    return { label: "Active", variant: "success" as const };
+    if (!code.isActive) return { label: "Inactive", variant: "default" as const, key: "inactive" };
+    if (code.expiresAt && new Date(code.expiresAt) < new Date()) return { label: "Expired", variant: "warning" as const, key: "expired" };
+    if (code.usageLimit && code.usageCount >= code.usageLimit) return { label: "Used up", variant: "warning" as const, key: "used_up" };
+    return { label: "Active", variant: "success" as const, key: "active" };
   };
+
+  const filtered = codes.filter((code) => {
+    if (search) {
+      const q = search.toLowerCase();
+      if (!code.code.toLowerCase().includes(q) && !(code.description || "").toLowerCase().includes(q)) return false;
+    }
+    if (typeFilter && code.type !== typeFilter) return false;
+    if (statusFilter) {
+      const s = getStatus(code);
+      if (s.key !== statusFilter) return false;
+    }
+    return true;
+  });
+
+  const hasFilters = search || typeFilter || statusFilter;
 
   return (
     <div>
@@ -86,11 +104,43 @@ export default function AdminDiscountsPage() {
         </Link>
       </div>
 
+      {/* Filters */}
+      <div className="flex flex-wrap gap-3 mb-6">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by code..."
+            className="rounded-lg border border-gray-300 pl-9 pr-3 py-2 text-sm w-full sm:w-48"
+          />
+        </div>
+        <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm">
+          <option value="">All types</option>
+          <option value="percentage">Percentage</option>
+          <option value="fixed_amount">Fixed Amount</option>
+          <option value="free_shipping">Free Shipping</option>
+        </select>
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm">
+          <option value="">All statuses</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+          <option value="expired">Expired</option>
+          <option value="used_up">Used up</option>
+        </select>
+        {hasFilters && (
+          <button onClick={() => { setSearch(""); setTypeFilter(""); setStatusFilter(""); }} className="text-sm text-green-700 hover:text-green-800">
+            Clear filters
+          </button>
+        )}
+      </div>
+
       <Card className="overflow-hidden">
         {loading ? (
           <div className="p-8 text-center text-gray-400">Loading...</div>
-        ) : codes.length === 0 ? (
-          <div className="p-8 text-center text-gray-400">No discount codes yet.</div>
+        ) : filtered.length === 0 ? (
+          <div className="p-8 text-center text-gray-400">{hasFilters ? "No discount codes match your filters." : "No discount codes yet."}</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[800px]">
@@ -107,7 +157,7 @@ export default function AdminDiscountsPage() {
                 </tr>
               </thead>
               <tbody>
-                {codes.map((code: any) => {
+                {filtered.map((code: any) => {
                   const status = getStatus(code);
                   return (
                     <tr key={code.id} className={`border-t border-gray-100 hover:bg-gray-50 ${!code.isActive ? "opacity-40" : ""}`}>

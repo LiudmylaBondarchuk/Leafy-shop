@@ -25,13 +25,26 @@ const ROLE_COLORS: Record<string, string> = {
   tester: "text-purple-600",
 };
 
+function formatValue(val: unknown): string {
+  if (val === null || val === undefined) return "—";
+  if (typeof val === "object") {
+    try {
+      const str = JSON.stringify(val);
+      return str.length > 60 ? str.slice(0, 57) + "..." : str;
+    } catch {
+      return "—";
+    }
+  }
+  return String(val);
+}
+
 export default function AdminLogsPage() {
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState({ entityType: "", userRole: "" });
+  const [filter, setFilter] = useState({ entityType: "", userRole: "", action: "" });
 
   useEffect(() => {
-    fetch("/api/management/logs")
+    fetch("/api/admin/logs")
       .then((r) => r.json())
       .then((json) => {
         setLogs(json.data || []);
@@ -42,6 +55,7 @@ export default function AdminLogsPage() {
   const filtered = logs.filter((l) => {
     if (filter.entityType && l.entityType !== filter.entityType) return false;
     if (filter.userRole && l.userRole !== filter.userRole) return false;
+    if (filter.action && l.action !== filter.action) return false;
     return true;
   });
 
@@ -51,26 +65,38 @@ export default function AdminLogsPage() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-6">
-        <select value={filter.entityType} onChange={(e) => setFilter({ ...filter, entityType: e.target.value })} className="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        <select value={filter.entityType} onChange={(e) => setFilter({ ...filter, entityType: e.target.value })} className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm">
           <option value="">All types</option>
           <option value="product">Products</option>
           <option value="order">Orders</option>
           <option value="discount">Discounts</option>
           <option value="user">Users</option>
         </select>
-        <select value={filter.userRole} onChange={(e) => setFilter({ ...filter, userRole: e.target.value })} className="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+        <select value={filter.userRole} onChange={(e) => setFilter({ ...filter, userRole: e.target.value })} className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm">
           <option value="">All roles</option>
           <option value="admin">Admin</option>
           <option value="manager">Manager</option>
           <option value="tester">Tester</option>
         </select>
+        <select value={filter.action} onChange={(e) => setFilter({ ...filter, action: e.target.value })} className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm">
+          <option value="">All actions</option>
+          <option value="create">Create</option>
+          <option value="update">Update</option>
+          <option value="delete">Delete</option>
+          <option value="status_change">Status Change</option>
+        </select>
+        {(filter.entityType || filter.userRole || filter.action) && (
+          <button onClick={() => setFilter({ entityType: "", userRole: "", action: "" })} className="text-sm text-green-700 hover:text-green-800">
+            Clear filters
+          </button>
+        )}
       </div>
 
       <Card className="overflow-hidden">
         {loading ? (
           <div className="p-8 text-center text-gray-400">Loading logs...</div>
         ) : filtered.length === 0 ? (
-          <div className="p-8 text-center text-gray-400">No activity logs yet.</div>
+          <div className="p-8 text-center text-gray-400">No activity logs found.</div>
         ) : (
           <div className="divide-y divide-gray-100">
             {filtered.map((log: any) => {
@@ -93,14 +119,14 @@ export default function AdminLogsPage() {
                     </div>
 
                     {/* Changes */}
-                    {log.changes && (
-                      <div className="mt-1 text-xs text-gray-500">
+                    {log.changes && typeof log.changes === "object" && (
+                      <div className="mt-1 text-xs text-gray-500 space-y-0.5">
                         {Object.entries(log.changes).map(([field, val]: [string, any]) => (
-                          <span key={field} className="inline-block mr-3">
+                          <div key={field}>
                             <span className="font-medium">{field}:</span>{" "}
-                            <span className="text-red-500 line-through">{String(val.old)}</span>{" → "}
-                            <span className="text-green-600">{String(val.new)}</span>
-                          </span>
+                            <span className="text-red-500 line-through">{formatValue(val?.old)}</span>{" → "}
+                            <span className="text-green-600">{formatValue(val?.new)}</span>
+                          </div>
                         ))}
                       </div>
                     )}

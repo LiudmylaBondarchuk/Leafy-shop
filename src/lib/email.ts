@@ -20,17 +20,20 @@ const PAYMENT_LABELS: Record<string, string> = {
   transfer: "Bank Transfer",
 };
 
+const LEAF_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:8px"><path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 1c1 2 2 4.5 2 8 0 5.5-4.78 12-10 12Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>`;
+
 function emailWrapper(content: string) {
   return `
     <div style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto">
       <div style="background:#1a4d1a;padding:24px;text-align:center;border-radius:12px 12px 0 0">
-        <h1 style="color:white;margin:0;font-size:24px">🌿 Leafy</h1>
+        <h1 style="color:white;margin:0;font-size:24px">${LEAF_SVG}<span style="vertical-align:middle">Leafy</span></h1>
+        <p style="color:#86efac;margin:4px 0 0;font-size:12px">Premium Teas & Coffees</p>
       </div>
       <div style="padding:24px;background:white;border:1px solid #e5e7eb;border-top:none">
         ${content}
       </div>
       <div style="padding:16px;text-align:center;font-size:12px;color:#999;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px">
-        Leafy — Premium Teas & Coffees
+        <p style="margin:0">Leafy Tea & Coffee Ltd. · leafyshop.eu</p>
       </div>
     </div>
   `;

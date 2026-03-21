@@ -4,19 +4,22 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { formatPrice } from "@/lib/utils";
-import { FileText, ExternalLink } from "lucide-react";
+import { FileText, ExternalLink, Search } from "lucide-react";
 import Link from "next/link";
 
 export default function AdminInvoicesPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   useEffect(() => {
     fetch("/api/orders?limit=1000")
       .then((r) => r.json())
       .then((json) => {
         const allOrders = json.data?.orders || [];
-        // Only orders that want invoice
         const invoiceOrders = allOrders.filter((o: any) => o.wantsInvoice);
         setOrders(invoiceOrders);
         setLoading(false);
@@ -26,6 +29,36 @@ export default function AdminInvoicesPage() {
   const isPaid = (order: any) => {
     return ["paid", "processing", "shipped", "delivered"].includes(order.status);
   };
+
+  const getInvoiceStatus = (order: any) => {
+    if (order.status === "cancelled") return "cancelled";
+    if (isPaid(order)) return "issued";
+    return "pending";
+  };
+
+  const filtered = orders.filter((order) => {
+    if (search) {
+      const q = search.toLowerCase();
+      const name = `${order.customerFirstName} ${order.customerLastName}`.toLowerCase();
+      const company = (order.invoiceCompany || "").toLowerCase();
+      if (!name.includes(q) && !company.includes(q) && !order.orderNumber?.toLowerCase().includes(q) && !(order.invoiceNip || "").includes(q)) return false;
+    }
+    if (statusFilter) {
+      const s = getInvoiceStatus(order);
+      if (s !== statusFilter) return false;
+    }
+    if (dateFrom) {
+      const d = new Date(order.createdAt).toISOString().split("T")[0];
+      if (d < dateFrom) return false;
+    }
+    if (dateTo) {
+      const d = new Date(order.createdAt).toISOString().split("T")[0];
+      if (d > dateTo) return false;
+    }
+    return true;
+  });
+
+  const hasFilters = search || statusFilter || dateFrom || dateTo;
 
   return (
     <div>
@@ -47,11 +80,43 @@ export default function AdminInvoicesPage() {
         </Card>
       </div>
 
+      {/* Filters */}
+      <div className="flex flex-wrap gap-3 mb-6">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by name, company, NIP..."
+            className="rounded-lg border border-gray-300 pl-9 pr-3 py-2 text-sm w-full sm:w-64"
+          />
+        </div>
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm">
+          <option value="">All statuses</option>
+          <option value="issued">Issued</option>
+          <option value="pending">Pending</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+        <div className="flex items-center gap-2">
+          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="rounded-lg border border-gray-300 px-3 py-2 text-sm" title="Date from" />
+          <span className="text-gray-400 text-sm">–</span>
+          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="rounded-lg border border-gray-300 px-3 py-2 text-sm" title="Date to" />
+        </div>
+        {hasFilters && (
+          <button onClick={() => { setSearch(""); setStatusFilter(""); setDateFrom(""); setDateTo(""); }} className="text-sm text-green-700 hover:text-green-800">
+            Clear filters
+          </button>
+        )}
+      </div>
+
       <Card className="overflow-hidden">
         {loading ? (
           <div className="p-8 text-center text-gray-400">Loading invoices...</div>
-        ) : orders.length === 0 ? (
-          <div className="p-8 text-center text-gray-400">No invoices yet. Invoices are created when customers select "I need a VAT invoice" during checkout.</div>
+        ) : filtered.length === 0 ? (
+          <div className="p-8 text-center text-gray-400">
+            {hasFilters ? "No invoices match your filters." : "No invoices yet. Invoices are created when customers select \"I need a VAT invoice\" during checkout."}
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[700px]">
@@ -67,7 +132,7 @@ export default function AdminInvoicesPage() {
                 </tr>
               </thead>
               <tbody>
-                {orders.map((order: any) => {
+                {filtered.map((order: any) => {
                   const paid = isPaid(order);
                   const d = new Date(order.createdAt);
                   const invoiceNum = `INV/${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(order.id).padStart(4, "0")}`;

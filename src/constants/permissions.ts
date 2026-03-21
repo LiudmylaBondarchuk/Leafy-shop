@@ -11,6 +11,9 @@ export const ALL_PERMISSIONS = [
   { key: "analytics.view", label: "View analytics", group: "Analytics" },
   { key: "users.view", label: "View users", group: "Users" },
   { key: "users.manage", label: "Manage users", group: "Users" },
+  { key: "logs.view", label: "View activity logs", group: "Logs" },
+  { key: "settings.view", label: "View settings", group: "Settings" },
+  { key: "settings.edit", label: "Edit settings", group: "Settings" },
 ] as const;
 
 export type Permission = (typeof ALL_PERMISSIONS)[number]["key"];

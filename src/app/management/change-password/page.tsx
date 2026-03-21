@@ -33,7 +33,7 @@ export default function ChangePasswordPage() {
       const meJson = await meRes.json();
       if (!meJson.data?.user) { router.push("/management/login"); return; }
 
-      const res = await fetch(`/api/management/users/${meJson.data.user.sub}`, {
+      const res = await fetch(`/api/admin/users/${meJson.data.user.sub}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password: newPassword, mustChangePassword: false }),

@@ -1,8 +1,9 @@
 import { db } from "@/lib/db";
-import { products, productVariants } from "@/lib/db/schema-pg";
+import { products, productVariants, adminUsers } from "@/lib/db/schema-pg";
 import { getAdminFromCookie } from "@/lib/auth";
 import { apiSuccess, apiError, slugify } from "@/lib/utils";
 import { eq } from "drizzle-orm";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(
   _request: Request,
@@ -114,6 +115,22 @@ export async function PUT(
       with: { category: true, variants: true },
     });
 
+    // Audit log
+    const requestingUser = await db.query.adminUsers.findFirst({
+      where: eq(adminUsers.id, Number(admin.sub)),
+    });
+    logAudit({
+      userId: Number(admin.sub),
+      userName: requestingUser?.name || "Unknown",
+      userRole: requestingUser?.role || "unknown",
+      action: "update",
+      entityType: "product",
+      entityId: productId,
+      entityName: name || updated?.name || "Unknown",
+      changes: { update: { old: null, new: body } },
+      isTestData: requestingUser?.role === "tester",
+    });
+
     return apiSuccess(updated);
   } catch (error) {
     console.error("PUT /api/admin/products/[id] error:", error);
@@ -130,9 +147,31 @@ export async function DELETE(
 
   try {
     const { id } = await params;
+    const productId = parseInt(id);
+
+    // Fetch product name before deactivating
+    const product = await db.query.products.findFirst({
+      where: eq(products.id, productId),
+    });
+
     await db.update(products)
       .set({ isActive: false, updatedAt: new Date().toISOString() })
-      .where(eq(products.id, parseInt(id)));
+      .where(eq(products.id, productId));
+
+    // Audit log
+    const requestingUser = await db.query.adminUsers.findFirst({
+      where: eq(adminUsers.id, Number(admin.sub)),
+    });
+    logAudit({
+      userId: Number(admin.sub),
+      userName: requestingUser?.name || "Unknown",
+      userRole: requestingUser?.role || "unknown",
+      action: "delete",
+      entityType: "product",
+      entityId: productId,
+      entityName: product?.name || "Unknown",
+      isTestData: requestingUser?.role === "tester",
+    });
 
     return apiSuccess({ message: "Product deactivated" });
   } catch (error) {

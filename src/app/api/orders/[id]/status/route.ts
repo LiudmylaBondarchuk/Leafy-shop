@@ -1,10 +1,12 @@
 import { db } from "@/lib/db";
-import { orders, orderStatusHistory, productVariants, orderItems, discountCodes, products } from "@/lib/db/schema-pg";
+import { orders, orderStatusHistory, productVariants, orderItems, discountCodes, products, adminUsers } from "@/lib/db/schema-pg";
 import { eq, sql, inArray } from "drizzle-orm";
 import type { OrderStatus } from "@/constants/order-statuses";
 import { getTransitionsForOrder } from "@/constants/order-statuses";
+import { logAudit } from "@/lib/audit";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { sendOrderStatusEmail } from "@/lib/email";
+import { getAdminFromCookie } from "@/lib/auth";
 import { NextRequest } from "next/server";
 
 export async function PATCH(
@@ -12,6 +14,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const admin = await getAdminFromCookie();
     const { id } = await params;
     const body = await request.json();
     const { status: newStatus, note } = body;
@@ -93,6 +96,22 @@ export async function PATCH(
       "admin",
       productTypes,
     ).catch(() => {});
+
+    // Audit log
+    const adminUserId = admin ? Number(admin.sub) : 0;
+    const requestingUser = adminUserId ? await db.query.adminUsers.findFirst({
+      where: eq(adminUsers.id, adminUserId),
+    }) : null;
+    logAudit({
+      userId: adminUserId,
+      userName: requestingUser?.name || "Unknown",
+      userRole: requestingUser?.role || "unknown",
+      action: "status_change",
+      entityType: "order",
+      entityId: parseInt(id),
+      entityName: order.orderNumber,
+      changes: { status: { old: currentStatus, new: newStatus } },
+    });
 
     return apiSuccess({ orderNumber: order.orderNumber, status: newStatus });
   } catch (error) {

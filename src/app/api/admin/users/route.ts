@@ -7,6 +7,7 @@ import { getAdminFromCookie } from "@/lib/auth";
 import { hasPermission } from "@/constants/permissions";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { sendWelcomeEmail } from "@/lib/email";
+import { logAudit } from "@/lib/audit";
 
 export async function GET() {
   const admin = await getAdminFromCookie();
@@ -113,6 +114,18 @@ export async function POST(request: Request) {
       `${appUrl}/admin/login`,
       role,
     ).catch(() => {});
+
+    // Audit log
+    logAudit({
+      userId: Number(admin.sub),
+      userName: requestingUser?.name || "Unknown",
+      userRole: requestingUser?.role || "unknown",
+      action: "create",
+      entityType: "user",
+      entityId: created.id,
+      entityName: name.trim(),
+      isTestData: requestingUser?.role === "tester",
+    });
 
     return apiSuccess({
       id: created.id,

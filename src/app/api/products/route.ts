@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const inStock = searchParams.get("in_stock");
 
     // Build conditions
-    const conditions = [eq(products.isActive, true)];
+    const conditions = [eq(products.isActive, true), eq(products.isTestData, false)];
 
     if (type) {
       conditions.push(eq(products.productType, type));

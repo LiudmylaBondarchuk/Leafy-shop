@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { SITE_LINKS } from "@/constants/links";
+import { COUNTRIES, getCountry } from "@/constants/countries";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +26,7 @@ export default function CheckoutPage() {
 
   const [form, setForm] = useState({
     firstName: "", lastName: "", email: "", phone: "",
+    country: "PL",
     street: "", city: "", zip: "",
     wantsInvoice: false, company: "", nip: "", invoiceAddress: "",
     shippingMethod: "courier" as "courier" | "inpost" | "pickup",
@@ -33,6 +35,8 @@ export default function CheckoutPage() {
     acceptTerms: false,
     notes: "",
   });
+
+  const selectedCountry = getCountry(form.country);
 
   useEffect(() => setMounted(true), []);
 
@@ -51,16 +55,41 @@ export default function CheckoutPage() {
     const errs: Record<string, string> = {};
 
     if (s === 0) {
+      const nameRegex = /^[a-zA-ZàáâãäåæçèéêëìíîïðñòóôõöùúûüýþÿĀ-žА-яЁёІіЇїЄє' -]+$/;
       if (!form.firstName.trim() || form.firstName.trim().length < 2) errs.firstName = "First name must be at least 2 characters";
+      else if (!nameRegex.test(form.firstName.trim())) errs.firstName = "First name contains invalid characters";
       if (!form.lastName.trim() || form.lastName.trim().length < 2) errs.lastName = "Last name must be at least 2 characters";
+      else if (!nameRegex.test(form.lastName.trim())) errs.lastName = "Last name contains invalid characters";
       if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = "Invalid email address";
-      if (!form.phone.trim() || !/^\d{9}$/.test(form.phone.replace(/\s/g, ""))) errs.phone = "Phone must be 9 digits";
+
+      const phoneClean = form.phone.replace(/\s/g, "");
+      if (!phoneClean || phoneClean.length !== selectedCountry.phoneDigits) {
+        errs.phone = `Phone must be ${selectedCountry.phoneDigits} digits for ${selectedCountry.name}`;
+      } else if (!/^\d+$/.test(phoneClean)) {
+        errs.phone = "Phone must contain only digits";
+      } else {
+        const startsValid = selectedCountry.phoneStartsWith.some((prefix: string) => phoneClean.startsWith(prefix));
+        if (!startsValid) {
+          errs.phone = "Invalid phone number";
+        }
+      }
+
       if (!form.street.trim()) errs.street = "Street is required";
       if (!form.city.trim()) errs.city = "City is required";
-      if (!form.zip.trim() || !/^\d{2}-\d{3}$/.test(form.zip)) errs.zip = "Zip must be XX-XXX format";
+
+      if (!form.zip.trim()) {
+        errs.zip = "Zip code is required";
+      } else if (!selectedCountry.zipRegex.test(form.zip.trim())) {
+        errs.zip = `Invalid format for ${selectedCountry.name} (${selectedCountry.zipFormat})`;
+      }
+
       if (form.wantsInvoice) {
         if (!form.company.trim()) errs.company = "Company name is required";
-        if (!form.nip.trim() || !/^\d{10}$/.test(form.nip)) errs.nip = "NIP must be 10 digits";
+        if (!form.nip.trim()) {
+          errs.nip = `${selectedCountry.vatLabel} is required`;
+        } else if (!selectedCountry.validateVat(form.nip.trim())) {
+          errs.nip = `Invalid ${selectedCountry.vatLabel} for ${selectedCountry.name}`;
+        }
         if (!form.invoiceAddress.trim()) errs.invoiceAddress = "Company address is required";
       }
     }
@@ -161,13 +190,86 @@ export default function CheckoutPage() {
             <Input label="First name *" id="firstName" value={form.firstName} onChange={(e) => updateField("firstName", e.target.value)} error={errors.firstName} placeholder="John" />
             <Input label="Last name *" id="lastName" value={form.lastName} onChange={(e) => updateField("lastName", e.target.value)} error={errors.lastName} placeholder="Smith" />
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label="Email *" id="email" type="email" value={form.email} onChange={(e) => updateField("email", e.target.value)} error={errors.email} placeholder="john@example.com" />
-            <Input label="Phone *" id="phone" value={form.phone} onChange={(e) => updateField("phone", e.target.value)} error={errors.phone} placeholder="500600700" />
+
+          <Input label="Email *" id="email" type="email" value={form.email} onChange={(e) => updateField("email", e.target.value)} error={errors.email} placeholder="john@example.com" />
+
+          {/* Country */}
+          <div>
+            <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">Country *</label>
+            <select
+              id="country"
+              value={form.country}
+              onChange={(e) => {
+                updateField("country", e.target.value);
+                updateField("zip", "");
+                updateField("phone", "");
+                updateField("nip", "");
+              }}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+            >
+              {COUNTRIES.map((c) => (
+                <option key={c.code} value={c.code}>{c.name}</option>
+              ))}
+            </select>
           </div>
+
+          {/* Phone with prefix */}
+          <div>
+            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone *</label>
+            <div className="flex">
+              <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 text-sm text-gray-600">
+                {selectedCountry.phonePrefix}
+              </span>
+              <input
+                id="phone"
+                type="tel"
+                value={form.phone}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, "");
+                  updateField("phone", val);
+                }}
+                maxLength={selectedCountry.phoneDigits}
+                placeholder={"0".repeat(selectedCountry.phoneDigits)}
+                className={cn(
+                  "flex-1 rounded-r-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-offset-1",
+                  errors.phone ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-green-600"
+                )}
+              />
+            </div>
+            {errors.phone && <p className="mt-1 text-xs text-red-600">{errors.phone}</p>}
+          </div>
+
           <Input label="Street & number *" id="street" value={form.street} onChange={(e) => updateField("street", e.target.value)} error={errors.street} placeholder="123 Tea Street, Apt 4" />
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label="Zip code *" id="zip" value={form.zip} onChange={(e) => updateField("zip", e.target.value)} error={errors.zip} placeholder="00-001" />
+            <div>
+              <label htmlFor="zip" className="block text-sm font-medium text-gray-700 mb-1">Zip code *</label>
+              <input
+                id="zip"
+                value={form.zip}
+                onChange={(e) => {
+                  let val = e.target.value;
+                  if (form.country === "PL") {
+                    val = val.replace(/[^\d]/g, "");
+                    if (val.length > 2) val = val.slice(0, 2) + "-" + val.slice(2);
+                    if (val.length > 6) val = val.slice(0, 6);
+                  } else if (form.country === "NL") {
+                    val = val.toUpperCase().replace(/[^A-Z0-9\s]/g, "").slice(0, 7);
+                  } else if (form.country === "GB") {
+                    val = val.toUpperCase().slice(0, 8);
+                  } else {
+                    val = val.replace(/[^\d-]/g, "").slice(0, 10);
+                  }
+                  updateField("zip", val);
+                }}
+                placeholder={selectedCountry.zipPlaceholder}
+                className={cn(
+                  "w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-offset-1",
+                  errors.zip ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-green-600"
+                )}
+              />
+              {errors.zip && <p className="mt-1 text-xs text-red-600">{errors.zip}</p>}
+            </div>
             <Input label="City *" id="city" value={form.city} onChange={(e) => updateField("city", e.target.value)} error={errors.city} placeholder="Warsaw" />
           </div>
 
@@ -179,7 +281,7 @@ export default function CheckoutPage() {
           {form.wantsInvoice && (
             <div className="space-y-4 pl-6 border-l-2 border-green-200">
               <Input label="Company name *" id="company" value={form.company} onChange={(e) => updateField("company", e.target.value)} error={errors.company} placeholder="Acme Ltd." />
-              <Input label="Tax ID (NIP) *" id="nip" value={form.nip} onChange={(e) => updateField("nip", e.target.value)} error={errors.nip} placeholder="1234567890" />
+              <Input label={`${selectedCountry.vatLabel} *`} id="nip" value={form.nip} onChange={(e) => updateField("nip", e.target.value)} error={errors.nip} placeholder={selectedCountry.vatPlaceholder} />
               <Input label="Company address *" id="invoiceAddress" value={form.invoiceAddress} onChange={(e) => updateField("invoiceAddress", e.target.value)} error={errors.invoiceAddress} placeholder="456 Business Ave, 00-002 Warsaw" />
             </div>
           )}

@@ -1,0 +1,104 @@
+export const COUNTRIES = [
+  {
+    code: "PL",
+    name: "Poland",
+    phonePrefix: "+48",
+    phoneDigits: 9,
+    phoneStartsWith: ["45", "50", "51", "53", "57", "60", "66", "69", "72", "73", "78", "79", "88"],
+    phoneError: "Polish mobile numbers start with 45, 50, 51, 53, 57, 60, 66, 69, 72, 73, 78, 79, or 88",
+    zipFormat: "XX-XXX",
+    zipRegex: /^\d{2}-\d{3}$/,
+    zipPlaceholder: "00-001",
+    vatLabel: "NIP",
+    vatRegex: /^\d{10}$/,
+    vatPlaceholder: "1234567890",
+    validateVat: (nip: string) => {
+      if (!/^\d{10}$/.test(nip)) return false;
+      const weights = [6, 5, 7, 2, 3, 4, 5, 6, 7];
+      const digits = nip.split("").map(Number);
+      const sum = weights.reduce((acc, w, i) => acc + w * digits[i], 0);
+      return sum % 11 === digits[9];
+    },
+  },
+  {
+    code: "DE",
+    name: "Germany",
+    phonePrefix: "+49",
+    phoneDigits: 11,
+    phoneStartsWith: ["15", "16", "17"],
+    phoneError: "German mobile numbers start with 15, 16, or 17",
+    zipFormat: "5 digits",
+    zipRegex: /^\d{5}$/,
+    zipPlaceholder: "10115",
+    vatLabel: "USt-IdNr",
+    vatRegex: /^DE\d{9}$/,
+    vatPlaceholder: "DE123456789",
+    validateVat: (vat: string) => /^DE\d{9}$/.test(vat),
+  },
+  {
+    code: "GB",
+    name: "United Kingdom",
+    phonePrefix: "+44",
+    phoneDigits: 10,
+    phoneStartsWith: ["7"],
+    phoneError: "UK mobile numbers start with 7",
+    zipFormat: "UK postcode",
+    zipRegex: /^[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}$/i,
+    zipPlaceholder: "SW1A 1AA",
+    vatLabel: "VAT Number",
+    vatRegex: /^GB\d{9,12}$/,
+    vatPlaceholder: "GB123456789",
+    validateVat: (vat: string) => /^GB\d{9,12}$/.test(vat),
+  },
+  {
+    code: "US",
+    name: "United States",
+    phonePrefix: "+1",
+    phoneDigits: 10,
+    phoneStartsWith: ["2", "3", "4", "5", "6", "7", "8", "9"],
+    phoneError: "US phone numbers cannot start with 0 or 1",
+    zipFormat: "5 digits",
+    zipRegex: /^\d{5}(-\d{4})?$/,
+    zipPlaceholder: "10001",
+    vatLabel: "EIN",
+    vatRegex: /^\d{9}$/,
+    vatPlaceholder: "123456789",
+    validateVat: (vat: string) => /^\d{9}$/.test(vat),
+  },
+  {
+    code: "FR",
+    name: "France",
+    phonePrefix: "+33",
+    phoneDigits: 9,
+    phoneStartsWith: ["6", "7"],
+    phoneError: "French mobile numbers start with 6 or 7",
+    zipFormat: "5 digits",
+    zipRegex: /^\d{5}$/,
+    zipPlaceholder: "75001",
+    vatLabel: "TVA",
+    vatRegex: /^FR[A-Z0-9]{2}\d{9}$/,
+    vatPlaceholder: "FR12345678901",
+    validateVat: (vat: string) => /^FR[A-Z0-9]{2}\d{9}$/.test(vat),
+  },
+  {
+    code: "NL",
+    name: "Netherlands",
+    phonePrefix: "+31",
+    phoneDigits: 9,
+    phoneStartsWith: ["6"],
+    phoneError: "Dutch mobile numbers start with 6",
+    zipFormat: "4 digits + 2 letters",
+    zipRegex: /^\d{4}\s?[A-Z]{2}$/i,
+    zipPlaceholder: "1012 AB",
+    vatLabel: "BTW",
+    vatRegex: /^NL\d{9}B\d{2}$/,
+    vatPlaceholder: "NL123456789B01",
+    validateVat: (vat: string) => /^NL\d{9}B\d{2}$/.test(vat),
+  },
+] as const;
+
+export type CountryCode = (typeof COUNTRIES)[number]["code"];
+
+export function getCountry(code: string) {
+  return COUNTRIES.find((c) => c.code === code) || COUNTRIES[0];
+}

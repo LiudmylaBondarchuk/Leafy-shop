@@ -62,12 +62,12 @@ export default function AdminOrderDetailPage() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
-        <Link href="/admin/orders" className="text-gray-400 hover:text-gray-600">
+      <div className="flex flex-wrap items-center gap-4 mb-6">
+        <Link href="/admin/orders" className="text-gray-400 hover:text-gray-600 shrink-0">
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold text-gray-900">Order {order.orderNumber}</h1>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 break-all">Order {order.orderNumber}</h1>
           <p className="text-sm text-gray-500">
             Placed on {new Date(order.createdAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}
           </p>

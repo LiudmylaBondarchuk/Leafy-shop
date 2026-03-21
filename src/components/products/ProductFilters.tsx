@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { X } from "lucide-react";
+import { X, SlidersHorizontal, ChevronUp } from "lucide-react";
 
 interface Category {
   id: number;
@@ -19,6 +19,7 @@ interface ProductFiltersProps {
 export function ProductFilters({ categories }: ProductFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const activeCategory = searchParams.get("category") || "";
   const activeType = searchParams.get("type") || "";
@@ -43,9 +44,28 @@ export function ProductFilters({ categories }: ProductFiltersProps) {
   };
 
   const hasFilters = activeCategory || activeType || inStockOnly;
+  const activeFilterCount = (activeCategory ? 1 : 0) + (activeType ? 1 : 0) + (inStockOnly ? 1 : 0);
 
   return (
     <div className="space-y-6">
+      {/* Mobile toggle button */}
+      <button
+        onClick={() => setMobileOpen(!mobileOpen)}
+        className="lg:hidden w-full flex items-center justify-between px-4 py-3 bg-white rounded-xl border border-gray-200 text-sm font-medium text-gray-700"
+      >
+        <span className="flex items-center gap-2">
+          <SlidersHorizontal className="h-4 w-4" />
+          Filters
+          {activeFilterCount > 0 && (
+            <span className="bg-green-700 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              {activeFilterCount}
+            </span>
+          )}
+        </span>
+        <ChevronUp className={`h-4 w-4 transition-transform ${mobileOpen ? "" : "rotate-180"}`} />
+      </button>
+
+      <div className={`${mobileOpen ? "block" : "hidden"} lg:block`}>
       <div className="flex items-center justify-between">
         <h3 className="font-semibold text-gray-900">Filters</h3>
         {hasFilters && (
@@ -111,6 +131,7 @@ export function ProductFilters({ categories }: ProductFiltersProps) {
           />
           <span className="text-sm text-gray-600">In stock only</span>
         </label>
+      </div>
       </div>
     </div>
   );

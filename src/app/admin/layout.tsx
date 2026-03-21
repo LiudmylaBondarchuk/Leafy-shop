@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Leaf, LayoutDashboard, Package, ShoppingBag, Tag, LogOut, Menu, X } from "lucide-react";
+import { Leaf, LayoutDashboard, Package, ShoppingBag, Tag, BarChart3, LogOut, Menu, X, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -11,7 +11,37 @@ const NAV_ITEMS = [
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
   { href: "/admin/discounts", label: "Discounts", icon: Tag },
+  { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
 ];
+
+function getBreadcrumbs(pathname: string) {
+  const parts = pathname.split("/").filter(Boolean);
+  const crumbs: { label: string; href: string }[] = [];
+
+  if (parts[0] === "admin") {
+    crumbs.push({ label: "Dashboard", href: "/admin" });
+
+    if (parts[1]) {
+      const labels: Record<string, string> = {
+        products: "Products",
+        orders: "Orders",
+        discounts: "Discounts",
+        analytics: "Analytics",
+      };
+      crumbs.push({ label: labels[parts[1]] || parts[1], href: `/admin/${parts[1]}` });
+
+      if (parts[2] === "new") {
+        crumbs.push({ label: "New", href: pathname });
+      } else if (parts[2] && parts[3] === "edit") {
+        crumbs.push({ label: "Edit", href: pathname });
+      } else if (parts[2] && !parts[3]) {
+        crumbs.push({ label: `#${parts[2]}`, href: pathname });
+      }
+    }
+  }
+
+  return crumbs;
+}
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -20,7 +50,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [checking, setChecking] = useState(true);
 
-  // Skip auth check on login page
   const isLoginPage = pathname === "/admin/login";
 
   useEffect(() => {
@@ -57,6 +86,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     router.push("/admin/login");
   };
 
+  const breadcrumbs = getBreadcrumbs(pathname);
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
@@ -65,7 +96,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="flex flex-col h-full">
-          {/* Logo */}
           <div className="flex items-center justify-between px-6 py-5 border-b border-green-800">
             <Link href="/admin" className="flex items-center gap-2">
               <Leaf className="h-6 w-6 text-green-400" />
@@ -76,7 +106,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </button>
           </div>
 
-          {/* Nav */}
           <nav className="flex-1 px-3 py-4 space-y-1">
             {NAV_ITEMS.map((item) => {
               const isActive = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href));
@@ -99,7 +128,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             })}
           </nav>
 
-          {/* User */}
           <div className="px-3 py-4 border-t border-green-800">
             <div className="px-3 py-2 text-sm text-green-300 mb-1">{adminName}</div>
             <button
@@ -113,26 +141,38 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      {/* Overlay for mobile */}
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top bar */}
-        <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4 flex items-center gap-4">
+        {/* Top bar with breadcrumbs + avatar */}
+        <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 flex items-center gap-4">
           <button className="lg:hidden text-gray-500" onClick={() => setSidebarOpen(true)}>
             <Menu className="h-5 w-5" />
           </button>
-          <div className="text-sm text-gray-500">
-            <Link href="/" className="hover:text-green-700" target="_blank">
-              View Store →
-            </Link>
+          <nav className="flex-1 flex items-center gap-1 text-sm text-gray-500 overflow-x-auto">
+            {breadcrumbs.map((crumb, i) => (
+              <span key={crumb.href} className="flex items-center gap-1 whitespace-nowrap">
+                {i > 0 && <ChevronRight className="h-3.5 w-3.5 text-gray-300" />}
+                {i === breadcrumbs.length - 1 ? (
+                  <span className="text-gray-900 font-medium">{crumb.label}</span>
+                ) : (
+                  <Link href={crumb.href} className="hover:text-green-700 transition-colors">
+                    {crumb.label}
+                  </Link>
+                )}
+              </span>
+            ))}
+          </nav>
+          <div className="flex items-center gap-3 shrink-0">
+            <span className="text-xs text-gray-500 hidden sm:block">{adminName}</span>
+            <div className="w-8 h-8 rounded-full bg-green-700 text-white flex items-center justify-center text-xs font-medium">
+              {adminName ? adminName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) : "A"}
+            </div>
           </div>
         </header>
 
-        {/* Content */}
         <main className="flex-1 p-4 sm:p-6">
           {children}
         </main>

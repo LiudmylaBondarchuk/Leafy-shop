@@ -58,7 +58,7 @@ export default function AdminOrdersPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search by order #, email..."
-          className="rounded-lg border border-gray-300 px-3 py-2 text-sm w-64"
+          className="rounded-lg border border-gray-300 px-3 py-2 text-sm w-full sm:w-64"
         />
         {statusFilter && (
           <button onClick={() => setStatusFilter("")} className="text-sm text-green-700 hover:text-green-800">
@@ -75,7 +75,7 @@ export default function AdminOrdersPage() {
           <div className="p-8 text-center text-gray-400">No orders found.</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm min-w-[540px]">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Order</th>

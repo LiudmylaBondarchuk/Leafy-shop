@@ -18,7 +18,7 @@ function ConfirmationContent() {
       <p className="text-gray-600 mb-2">
         Your order number is:
       </p>
-      <p className="text-2xl font-mono font-bold text-green-800 mb-4">
+      <p className="text-xl sm:text-2xl font-mono font-bold text-green-800 mb-4 break-all">
         {orderNumber}
       </p>
       {email && (

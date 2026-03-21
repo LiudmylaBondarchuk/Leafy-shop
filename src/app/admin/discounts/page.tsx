@@ -12,6 +12,7 @@ import { toast } from "sonner";
 export default function AdminDiscountsPage() {
   const [codes, setCodes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteModal, setDeleteModal] = useState<{ id: number; code: string } | null>(null);
 
   const fetchCodes = () => {
     fetch("/api/discount-codes")
@@ -39,16 +40,17 @@ export default function AdminDiscountsPage() {
     }
   };
 
-  const handleDelete = async (id: number, code: string) => {
-    if (!confirm(`Delete code "${code}" permanently?`)) return;
-    const res = await fetch(`/api/admin/discounts/${id}`, { method: "DELETE" });
+  const handleDelete = async () => {
+    if (!deleteModal) return;
+    const res = await fetch(`/api/admin/discounts/${deleteModal.id}`, { method: "DELETE" });
     const json = await res.json();
     if (json.data) {
-      toast.success(`"${code}" deleted`);
+      toast.success(`"${deleteModal.code}" deleted`);
       fetchCodes();
     } else {
       toast.error("Failed to delete");
     }
+    setDeleteModal(null);
   };
 
   const getTypeLabel = (type: string) => {
@@ -91,7 +93,7 @@ export default function AdminDiscountsPage() {
           <div className="p-8 text-center text-gray-400">No discount codes yet.</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm min-w-[800px]">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Code</th>
@@ -143,7 +145,7 @@ export default function AdminDiscountsPage() {
                               {code.isActive ? "Deactivate" : "Activate"}
                             </span>
                           </Button>
-                          <Button variant="ghost" size="sm" onClick={() => handleDelete(code.id, code.code)}>
+                          <Button variant="ghost" size="sm" onClick={() => setDeleteModal({ id: code.id, code: code.code })}>
                             <Trash2 className="h-3.5 w-3.5 text-red-500" />
                           </Button>
                         </div>
@@ -156,6 +158,31 @@ export default function AdminDiscountsPage() {
           </div>
         )}
       </Card>
+
+      {/* Delete confirmation modal */}
+      {deleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setDeleteModal(null)}>
+          <div className="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-full bg-red-100">
+                <Trash2 className="h-5 w-5 text-red-600" />
+              </div>
+              <h3 className="font-semibold text-gray-900">Delete Discount Code</h3>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              Are you sure you want to permanently delete <strong>{deleteModal.code}</strong>? This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <Button variant="secondary" size="sm" className="flex-1" onClick={() => setDeleteModal(null)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" size="sm" className="flex-1" onClick={handleDelete}>
+                Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

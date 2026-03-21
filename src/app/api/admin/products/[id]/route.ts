@@ -45,6 +45,19 @@ export async function PUT(
 
     const productId = parseInt(id);
 
+    // Get requesting user
+    const testerCheckUser = await db.query.adminUsers.findFirst({
+      where: eq(adminUsers.id, Number(admin.sub)),
+    });
+
+    // Tester can only edit their own products
+    if (testerCheckUser?.role === "tester") {
+      const product = await db.query.products.findFirst({ where: eq(products.id, productId) });
+      if (product?.createdBy !== Number(admin.sub)) {
+        return apiError("You can only edit products you created. Add your own first.", 403, "FORBIDDEN");
+      }
+    }
+
     // Update product
     await db.update(products).set({
       name, description,
@@ -149,13 +162,21 @@ export async function DELETE(
     const { id } = await params;
     const productId = parseInt(id);
 
-    // Fetch product name before deactivating
+    // Fetch product before deactivating
     const product = await db.query.products.findFirst({
       where: eq(products.id, productId),
     });
 
+    // Tester can only delete their own products
+    const delRequestingUser = await db.query.adminUsers.findFirst({
+      where: eq(adminUsers.id, Number(admin.sub)),
+    });
+    if (delRequestingUser?.role === "tester" && product?.createdBy !== Number(admin.sub)) {
+      return apiError("You can only delete products you created.", 403, "FORBIDDEN");
+    }
+
     await db.update(products)
-      .set({ isActive: false, updatedAt: new Date().toISOString() })
+      .set({ isActive: false, deletedAt: new Date().toISOString(), updatedAt: new Date().toISOString() })
       .where(eq(products.id, productId));
 
     // Audit log

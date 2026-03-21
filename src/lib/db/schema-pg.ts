@@ -37,6 +37,7 @@ export const products = pgTable("products", {
   createdBy: integer("created_by"),
   modifiedBy: integer("modified_by"),
   modifiedAt: text("modified_at"),
+  deletedAt: text("deleted_at"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
   updatedAt: text("updated_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
@@ -147,6 +148,7 @@ export const discountCodes = pgTable("discount_codes", {
   isActive: boolean("is_active").notNull().default(true),
   isTestData: boolean("is_test_data").notNull().default(false),
   createdBy: integer("created_by"),
+  deletedAt: text("deleted_at"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
 
@@ -163,6 +165,7 @@ export const adminUsers = pgTable("admin_users", {
   permissions: text("permissions").notNull().default("[]"),
   mustChangePassword: boolean("must_change_password").notNull().default(false),
   isActive: boolean("is_active").notNull().default(true),
+  deletedAt: text("deleted_at"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
 

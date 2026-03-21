@@ -53,13 +53,13 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <span className="text-sm text-green-300">About Us</span>
+                <Link href="/about" className="text-sm text-green-300 hover:text-white transition-colors">About Us</Link>
               </li>
               <li>
-                <span className="text-sm text-green-300">Contact</span>
+                <Link href="/contact" className="text-sm text-green-300 hover:text-white transition-colors">Contact</Link>
               </li>
               <li>
-                <span className="text-sm text-green-300">Terms & Conditions</span>
+                <Link href="/terms" className="text-sm text-green-300 hover:text-white transition-colors">Terms & Conditions</Link>
               </li>
             </ul>
           </div>

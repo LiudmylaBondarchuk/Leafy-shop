@@ -77,6 +77,44 @@ export default function AdminOrderDetailPage() {
         </Badge>
       </div>
 
+      {/* Cancelled/Returned alert */}
+      {order.status === "cancelled" && (
+        <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-red-800">Order Cancelled</h3>
+              <p className="text-sm text-red-700 mt-1">
+                {order.statusHistory?.find((h: any) => h.toStatus === "cancelled")?.changedBy === "customer"
+                  ? "This order was cancelled by the customer."
+                  : "This order was cancelled by admin."}
+                {order.paymentMethod !== "cod" && " A refund needs to be processed manually via the payment provider."}
+              </p>
+              <p className="text-xs text-red-500 mt-2">
+                Stock has been automatically restored. {order.discountCodeId ? "Discount code usage has been reverted." : ""}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {order.status === "returned" && (
+        <div className="mb-6 bg-orange-50 border border-orange-200 rounded-xl p-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-orange-600 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-orange-800">Return Processed</h3>
+              <p className="text-sm text-orange-700 mt-1">
+                This order has been returned. A refund needs to be processed manually via the payment provider.
+              </p>
+              <p className="text-xs text-orange-500 mt-2">
+                Stock has been automatically restored.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left: order details */}
         <div className="lg:col-span-2 space-y-6">

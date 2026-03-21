@@ -160,7 +160,9 @@ export async function sendOrderStatusEmail(
   newStatus: string,
   shippingMethod?: string,
   paymentMethod?: string,
-  note?: string
+  note?: string,
+  changedBy?: string,
+  productTypes?: string[],
 ) {
   if (!resend) {
     console.log("[EMAIL] Resend not configured — skipping status email to", customerEmail);
@@ -198,7 +200,14 @@ export async function sendOrderStatusEmail(
     delivered: {
       subject: `Order ${orderNumber} — Delivered`,
       heading: "Your Order Has Been Delivered ✓",
-      message: "We hope you enjoy your teas and coffees! If you have any questions, don't hesitate to contact us.",
+      message: (() => {
+        const hasTea = productTypes?.includes("tea");
+        const hasCoffee = productTypes?.includes("coffee");
+        const productDesc = hasTea && hasCoffee
+          ? "teas and coffees"
+          : hasTea ? "teas" : hasCoffee ? "coffees" : "products";
+        return `We hope you enjoy your ${productDesc}! If you have any questions, don't hesitate to contact us at hello@leafy-shop.com.`;
+      })(),
       color: "#15803d",
       bgColor: "#f0fdf4",
     },
@@ -206,8 +215,8 @@ export async function sendOrderStatusEmail(
       subject: `Order ${orderNumber} — Cancelled`,
       heading: "Your Order Has Been Cancelled",
       message: paymentMethod === "cod"
-        ? "Your order has been cancelled. Since no payment was made, no refund is needed."
-        : "Your order has been cancelled and your payment will be refunded within 5–10 business days.",
+        ? "Your order has been cancelled. Since no payment was made, no refund is needed. All reserved items have been returned to stock."
+        : `Your order has been cancelled. All reserved items have been returned to stock. Your payment will be refunded within 5–10 business days.${changedBy === "customer" ? " If you have any questions about your refund, please contact us at hello@leafy-shop.com." : ""}`,
       color: "#dc2626",
       bgColor: "#fef2f2",
     },
@@ -231,7 +240,10 @@ export async function sendOrderStatusEmail(
       <p style="margin:8px 0 0;font-size:14px;color:#666">${config.message}</p>
     </div>
     ${note ? `<p style="color:#666;font-size:14px"><strong>Note:</strong> ${note}</p>` : ""}
-    <p style="color:#666;font-size:13px">You can track your order at any time on our website.</p>
+    ${["delivered", "cancelled", "returned"].includes(newStatus)
+      ? ""
+      : `<p style="color:#666;font-size:13px">Track your order: <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://leafyshop.eu"}/order/status" style="color:#15803d">Track your order →</a></p>`
+    }
   `);
 
   try {

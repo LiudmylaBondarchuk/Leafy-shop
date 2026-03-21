@@ -32,8 +32,9 @@ export async function GET(request: NextRequest) {
       return apiError("Order not found. Please check the order number and email address.", 404, "NOT_FOUND");
     }
 
-    // Check if can cancel
-    const canCancel = canTransition(order.status as OrderStatus, "cancelled");
+    // Check if can cancel (only new or paid, but NOT if already delivered)
+    const wasDelivered = order.statusHistory.some((h: any) => h.toStatus === "delivered");
+    const canCancel = ["new", "paid"].includes(order.status) && !wasDelivered;
 
     // Check if can return (delivered + within 14 days)
     let canReturn = false;

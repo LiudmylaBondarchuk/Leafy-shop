@@ -5,6 +5,7 @@ import { hashSync } from "bcryptjs";
 import { getAdminFromCookie } from "@/lib/auth";
 import { hasPermission } from "@/constants/permissions";
 import { apiSuccess, apiError } from "@/lib/utils";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(
   _request: Request,
@@ -104,6 +105,19 @@ export async function PUT(
     }
 
     await db.update(adminUsers).set(updateData).where(eq(adminUsers.id, userId));
+
+    // Audit log
+    logAudit({
+      userId: Number(admin.sub),
+      userName: requestingUser?.name || "Unknown",
+      userRole: requestingUser?.role || "unknown",
+      action: "update",
+      entityType: "user",
+      entityId: userId,
+      entityName: targetUser.name || "Unknown",
+      changes: { update: { old: null, new: updateData } },
+      isTestData: requestingUser?.role === "tester",
+    });
 
     return apiSuccess({ message: "User updated" });
   } catch (error) {

@@ -1,8 +1,9 @@
 import { db } from "@/lib/db";
-import { discountCodes } from "@/lib/db/schema-pg";
+import { discountCodes, adminUsers } from "@/lib/db/schema-pg";
 import { eq } from "drizzle-orm";
 import { getAdminFromCookie } from "@/lib/auth";
 import { apiSuccess, apiError } from "@/lib/utils";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(request: Request) {
   const admin = await getAdminFromCookie();
@@ -36,6 +37,12 @@ export async function POST(request: Request) {
       return apiError("Expiry date must be after start date", 400, "VALIDATION_ERROR");
     }
 
+    // Get requesting user info for audit and test data flag
+    const requestingUser = await db.query.adminUsers.findFirst({
+      where: eq(adminUsers.id, Number(admin.sub)),
+    });
+    const isTester = requestingUser?.role === "tester";
+
     const [created] = await db.insert(discountCodes).values({
       code: code.trim().toUpperCase(),
       description: description || null,
@@ -48,7 +55,21 @@ export async function POST(request: Request) {
       startsAt: startsAt || new Date().toISOString(),
       expiresAt: expiresAt || null,
       isActive: isActive ?? true,
+      isTestData: isTester,
+      createdBy: Number(admin.sub),
     }).returning();
+
+    // Audit log
+    logAudit({
+      userId: Number(admin.sub),
+      userName: requestingUser?.name || "Unknown",
+      userRole: requestingUser?.role || "unknown",
+      action: "create",
+      entityType: "discount",
+      entityId: created.id,
+      entityName: code.trim().toUpperCase(),
+      isTestData: isTester,
+    });
 
     return apiSuccess(created, 201);
   } catch (error) {

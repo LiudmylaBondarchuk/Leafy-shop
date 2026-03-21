@@ -1,8 +1,9 @@
 import { db } from "@/lib/db";
-import { products, productVariants } from "@/lib/db/schema-pg";
+import { products, productVariants, adminUsers } from "@/lib/db/schema-pg";
 import { getAdminFromCookie } from "@/lib/auth";
 import { apiSuccess, apiError, slugify } from "@/lib/utils";
 import { eq } from "drizzle-orm";
+import { logAudit } from "@/lib/audit";
 
 export async function POST(request: Request) {
   const admin = await getAdminFromCookie();
@@ -19,6 +20,12 @@ export async function POST(request: Request) {
     if (!name || !description || !categoryId || !productType) {
       return apiError("Name, description, category, and type are required", 400, "VALIDATION_ERROR");
     }
+
+    // Get requesting user info for audit
+    const requestingUser = await db.query.adminUsers.findFirst({
+      where: eq(adminUsers.id, Number(admin.sub)),
+    });
+    const isTester = requestingUser?.role === "tester";
 
     // Generate unique slug
     let slug = slugify(name);
@@ -39,6 +46,8 @@ export async function POST(request: Request) {
       imageUrl: imageUrl || null,
       isActive: isActive ?? true,
       isFeatured: isFeatured ?? false,
+      isTestData: isTester,
+      createdBy: Number(admin.sub),
     }).returning();
 
     // Insert variants
@@ -57,6 +66,18 @@ export async function POST(request: Request) {
         });
       }
     }
+
+    // Audit log
+    logAudit({
+      userId: Number(admin.sub),
+      userName: requestingUser?.name || "Unknown",
+      userRole: requestingUser?.role || "unknown",
+      action: "create",
+      entityType: "product",
+      entityId: product.id,
+      entityName: name,
+      isTestData: isTester,
+    });
 
     return apiSuccess(product, 201);
   } catch (error) {

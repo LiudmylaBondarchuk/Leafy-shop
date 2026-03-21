@@ -297,7 +297,7 @@ export async function sendWelcomeEmail(
 
   try {
     await resend.emails.send({
-      from: `Leafy <${FROM_EMAIL}>`,
+      from: "Leafy <noreply@leafyshop.eu>",
       to: email,
       subject: "Welcome to Leafy Admin — Your Login Details",
       html,
@@ -336,7 +336,7 @@ export async function sendPasswordResetEmail(
 
   try {
     await resend.emails.send({
-      from: `Leafy <${FROM_EMAIL}>`,
+      from: "Leafy <noreply@leafyshop.eu>",
       to: email,
       subject: "Leafy Admin — Your Password Has Been Reset",
       html,

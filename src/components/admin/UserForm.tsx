@@ -118,26 +118,34 @@ export function UserForm({ userId }: UserFormProps) {
       {/* Role */}
       <Card className="p-5 space-y-4">
         <h2 className="font-semibold text-gray-900">Role</h2>
-        <div className="grid grid-cols-3 gap-3">
-          {ROLES.map((role) => (
-            <button
-              key={role}
-              onClick={() => setForm({ ...form, role, permissions: role === "admin" ? [] : form.permissions })}
-              className={`p-3 rounded-lg border text-center transition-colors ${
-                form.role === role
-                  ? "border-green-700 bg-green-50 text-green-800"
-                  : "border-gray-200 hover:border-gray-300 text-gray-600"
-              }`}
-            >
-              <p className="font-medium text-sm">{ROLE_LABELS[role]}</p>
-              <p className="text-xs mt-0.5 text-gray-400">
-                {role === "admin" && "Full access"}
-                {role === "manager" && "Custom access"}
-                {role === "tester" && "Testing access"}
-              </p>
-            </button>
-          ))}
+        <div>
+          <select
+            value={form.role}
+            onChange={(e) => setForm({ ...form, role: e.target.value as any, permissions: e.target.value === "admin" ? [] : form.permissions })}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+          >
+            {ROLES.map((role) => (
+              <option key={role} value={role}>{ROLE_LABELS[role]}</option>
+            ))}
+          </select>
         </div>
+
+        {/* Role description */}
+        {form.role === "admin" && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-800">
+            <strong>Admin</strong> — Full access to all system features. Manages users, products, orders, and store configuration. Permissions cannot be restricted.
+          </div>
+        )}
+        {form.role === "manager" && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+            <strong>Manager</strong> — Access to selected features based on granted permissions. Cannot manage admin accounts or grant permissions they don't have.
+          </div>
+        )}
+        {form.role === "tester" && (
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 text-sm text-purple-800">
+            <strong>Tester</strong> — Account for testing the store. All data created by testers (products, discounts, orders) is marked as test data and not visible to customers. Test data is automatically cleaned up. Access limited based on granted permissions.
+          </div>
+        )}
 
         <label className="flex items-center gap-2 cursor-pointer">
           <input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} className="rounded border-gray-300 text-green-700 focus:ring-green-600" />

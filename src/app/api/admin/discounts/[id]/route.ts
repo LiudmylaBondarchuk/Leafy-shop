@@ -1,8 +1,9 @@
 import { db } from "@/lib/db";
-import { discountCodes } from "@/lib/db/schema-pg";
+import { discountCodes, adminUsers } from "@/lib/db/schema-pg";
 import { eq } from "drizzle-orm";
 import { getAdminFromCookie } from "@/lib/auth";
 import { apiSuccess, apiError } from "@/lib/utils";
+import { logAudit } from "@/lib/audit";
 
 export async function GET(
   _request: Request,
@@ -77,6 +78,22 @@ export async function PUT(
       where: eq(discountCodes.id, parseInt(id)),
     });
 
+    // Audit log
+    const requestingUser = await db.query.adminUsers.findFirst({
+      where: eq(adminUsers.id, Number(admin.sub)),
+    });
+    logAudit({
+      userId: Number(admin.sub),
+      userName: requestingUser?.name || "Unknown",
+      userRole: requestingUser?.role || "unknown",
+      action: "update",
+      entityType: "discount",
+      entityId: parseInt(id),
+      entityName: updated?.code || "Unknown",
+      changes: { update: { old: null, new: updateData } },
+      isTestData: requestingUser?.role === "tester",
+    });
+
     return apiSuccess(updated);
   } catch (error) {
     console.error("PUT /api/admin/discounts/[id] error:", error);
@@ -93,8 +110,31 @@ export async function DELETE(
 
   try {
     const { id } = await params;
+    const discountId = parseInt(id);
+
+    // Fetch discount info before deleting
+    const discount = await db.query.discountCodes.findFirst({
+      where: eq(discountCodes.id, discountId),
+    });
+
     await db.delete(discountCodes)
-      .where(eq(discountCodes.id, parseInt(id)));
+      .where(eq(discountCodes.id, discountId));
+
+    // Audit log
+    const requestingUser = await db.query.adminUsers.findFirst({
+      where: eq(adminUsers.id, Number(admin.sub)),
+    });
+    logAudit({
+      userId: Number(admin.sub),
+      userName: requestingUser?.name || "Unknown",
+      userRole: requestingUser?.role || "unknown",
+      action: "delete",
+      entityType: "discount",
+      entityId: discountId,
+      entityName: discount?.code || "Unknown",
+      isTestData: requestingUser?.role === "tester",
+    });
+
     return apiSuccess({ message: "Discount code deleted" });
   } catch (error) {
     console.error("DELETE /api/admin/discounts/[id] error:", error);

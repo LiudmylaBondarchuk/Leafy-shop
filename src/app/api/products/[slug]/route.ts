@@ -11,7 +11,7 @@ export async function GET(
     const { slug } = await params;
 
     const product = await db.query.products.findFirst({
-      where: and(eq(products.slug, slug), eq(products.isActive, true)),
+      where: and(eq(products.slug, slug), eq(products.isActive, true), eq(products.isTestData, false)),
       with: {
         category: true,
         variants: {
@@ -40,6 +40,7 @@ export async function GET(
         and(
           eq(products.categoryId, product.categoryId),
           eq(products.isActive, true),
+          eq(products.isTestData, false),
         )
       )
       .limit(5);

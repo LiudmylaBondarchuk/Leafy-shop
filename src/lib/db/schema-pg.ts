@@ -33,6 +33,10 @@ export const products = pgTable("products", {
   flavorNotes: text("flavor_notes"),
   isActive: boolean("is_active").notNull().default(true),
   isFeatured: boolean("is_featured").notNull().default(false),
+  isTestData: boolean("is_test_data").notNull().default(false),
+  createdBy: integer("created_by"),
+  modifiedBy: integer("modified_by"),
+  modifiedAt: text("modified_at"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
   updatedAt: text("updated_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
@@ -84,6 +88,7 @@ export const orders = pgTable("orders", {
   discountCodeId: integer("discount_code_id").references(() => discountCodes.id),
   total: integer("total").notNull(),
   notes: text("notes"),
+  isTestData: boolean("is_test_data").notNull().default(false),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
   updatedAt: text("updated_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
@@ -140,6 +145,8 @@ export const discountCodes = pgTable("discount_codes", {
   startsAt: text("starts_at").notNull(),
   expiresAt: text("expires_at"),
   isActive: boolean("is_active").notNull().default(true),
+  isTestData: boolean("is_test_data").notNull().default(false),
+  createdBy: integer("created_by"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
 
@@ -156,5 +163,22 @@ export const adminUsers = pgTable("admin_users", {
   permissions: text("permissions").notNull().default("[]"),
   mustChangePassword: boolean("must_change_password").notNull().default(false),
   isActive: boolean("is_active").notNull().default(true),
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+});
+
+// ============================================
+// AUDIT LOGS
+// ============================================
+export const auditLogs = pgTable("audit_logs", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => adminUsers.id),
+  userName: text("user_name").notNull(),
+  userRole: text("user_role").notNull(),
+  action: text("action").notNull(),
+  entityType: text("entity_type").notNull(),
+  entityId: integer("entity_id"),
+  entityName: text("entity_name"),
+  changes: text("changes"),
+  isTestData: boolean("is_test_data").notNull().default(false),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });

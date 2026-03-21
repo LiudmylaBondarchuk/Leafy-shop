@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
       .where(
         and(
           eq(products.isActive, true),
+          eq(products.isTestData, false),
           or(
             like(products.name, `%${q}%`),
             like(products.description, `%${q}%`)

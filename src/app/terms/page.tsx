@@ -8,7 +8,7 @@ export default function TermsPage() {
         <section>
           <h2 className="text-lg font-semibold text-gray-900 mb-3">1. General</h2>
           <p>
-            These Terms & Conditions govern your use of the Leafy online store (leafyshop.vercel.app)
+            These Terms & Conditions govern your use of the Leafy online store (leafyshop.eu)
             and any purchases made through it. By placing an order, you agree to be bound by these terms.
           </p>
         </section>

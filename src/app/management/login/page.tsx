@@ -55,7 +55,7 @@ export default function AdminLoginPage() {
             <Leaf className="h-8 w-8 text-green-700" />
             <span className="text-2xl font-bold text-green-900">Leafy</span>
           </div>
-          <p className="text-sm text-gray-500">Admin Panel</p>
+          <p className="text-sm text-gray-500">Management Panel</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-4">

@@ -17,7 +17,7 @@ export async function GET() {
       })
       .from(categories)
       .leftJoin(products, and(eq(products.categoryId, categories.id), eq(products.isActive, true)))
-      .groupBy(categories.id)
+      .groupBy(categories.id, categories.name, categories.slug, categories.description, categories.imageUrl, categories.sortOrder)
       .orderBy(categories.sortOrder);
 
     return apiSuccess(result);

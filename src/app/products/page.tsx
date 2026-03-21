@@ -17,7 +17,7 @@ async function getCategories() {
     })
     .from(categories)
     .leftJoin(products, and(eq(products.categoryId, categories.id), eq(products.isActive, true)))
-    .groupBy(categories.id)
+    .groupBy(categories.id, categories.name, categories.slug)
     .orderBy(categories.sortOrder);
 
   return result;
@@ -70,7 +70,11 @@ async function getProducts(searchParams: Record<string, string>) {
     .innerJoin(categories, eq(products.categoryId, categories.id))
     .innerJoin(productVariants, and(eq(productVariants.productId, products.id), eq(productVariants.isActive, true)))
     .where(and(...conditions))
-    .groupBy(products.id);
+    .groupBy(
+      products.id, products.name, products.slug, products.shortDescription,
+      products.imageUrl, products.productType, products.isFeatured, products.createdAt,
+      categories.id, categories.name, categories.slug
+    );
 
   let filtered = allProducts;
   if (inStock === "true") filtered = filtered.filter((p: any) => p.maxStock > 0);

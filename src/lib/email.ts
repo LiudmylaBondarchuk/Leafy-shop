@@ -1,10 +1,9 @@
 import { Resend } from "resend";
+import { getSettings } from "@/lib/settings";
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null;
-
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
 
 const SHIPPING_LABELS: Record<string, string> = {
   courier: "Courier (DPD)",
@@ -22,7 +21,7 @@ const PAYMENT_LABELS: Record<string, string> = {
 
 const LEAF_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:8px"><path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 1c1 2 2 4.5 2 8 0 5.5-4.78 12-10 12Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>`;
 
-function emailWrapper(content: string) {
+function emailWrapper(content: string, storeName: string) {
   return `
     <div style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto">
       <div style="background:#1a4d1a;padding:24px;text-align:center;border-radius:12px 12px 0 0">
@@ -33,7 +32,7 @@ function emailWrapper(content: string) {
         ${content}
       </div>
       <div style="padding:16px;text-align:center;font-size:12px;color:#999;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px">
-        <p style="margin:0">Leafy Tea & Coffee Ltd. · leafyshop.eu</p>
+        <p style="margin:0">${storeName} · leafyshop.eu</p>
       </div>
     </div>
   `;
@@ -60,6 +59,11 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
     console.log("[EMAIL] Resend not configured — skipping order confirmation email to", data.customerEmail);
     return;
   }
+
+  const cfg = await getSettings();
+  const ordersFrom = cfg["email.orders_from"] || "orders@leafyshop.eu";
+  const storeName = cfg["store.name"] || "Leafy Tea & Coffee Ltd.";
+  const storeEmail = cfg["store.email"] || "support@leafyshop.eu";
 
   const itemsHtml = data.items
     .map(
@@ -147,11 +151,11 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
     ` : ""}
 
     <p style="color:#666;font-size:13px">You can track your order status at any time: <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://leafyshop.eu"}/order/status" style="color:#15803d">Track your order →</a></p>
-  `);
+  `, storeName);
 
   try {
     await resend.emails.send({
-      from: `Leafy <${FROM_EMAIL}>`,
+      from: `Leafy <${ordersFrom}>`,
       to: data.customerEmail,
       subject: isPaid
         ? `Payment Confirmed — Order ${data.orderNumber}`
@@ -180,6 +184,12 @@ export async function sendOrderStatusEmail(
     return;
   }
 
+  const cfg = await getSettings();
+  const noreplyFrom = cfg["email.noreply_from"] || "noreply@leafyshop.eu";
+  const storeName = cfg["store.name"] || "Leafy Tea & Coffee Ltd.";
+  const storeEmail = cfg["store.email"] || "support@leafyshop.eu";
+  const storeAddress = cfg["store.address"] || "5 Leafy Lane, Warsaw, Poland";
+
   const shippingLabel = SHIPPING_LABELS[shippingMethod || "courier"] || shippingMethod;
 
   const statusConfig: Record<string, { subject: string; heading: string; message: string; color: string; bgColor: string }> = {
@@ -203,7 +213,7 @@ export async function sendOrderStatusEmail(
       message: shippingMethod === "inpost"
         ? `Your package is on its way to your InPost Parcel Locker. You'll receive a code to pick it up.`
         : shippingMethod === "pickup"
-          ? `Your order is ready for pickup at our store (5 Leafy Lane, Warsaw). Mon–Fri 10am–6pm.`
+          ? `Your order is ready for pickup at our store (${storeAddress}). Mon–Fri 10am–6pm.`
           : `Your package is on its way via ${shippingLabel}. It should arrive within 2–4 business days.`,
       color: "#7c3aed",
       bgColor: "#f5f3ff",
@@ -217,7 +227,7 @@ export async function sendOrderStatusEmail(
         const productDesc = hasTea && hasCoffee
           ? "teas and coffees"
           : hasTea ? "teas" : hasCoffee ? "coffees" : "products";
-        return `We hope you enjoy your ${productDesc}! If you have any questions, don't hesitate to contact us at support@leafyshop.eu.`;
+        return `We hope you enjoy your ${productDesc}! If you have any questions, don't hesitate to contact us at ${storeEmail}.`;
       })(),
       color: "#15803d",
       bgColor: "#f0fdf4",
@@ -227,7 +237,7 @@ export async function sendOrderStatusEmail(
       heading: "Your Order Has Been Cancelled",
       message: paymentMethod === "cod"
         ? "Your order has been cancelled. Since no payment was made, no refund is needed. All reserved items have been returned to stock."
-        : `Your order has been cancelled. All reserved items have been returned to stock. Your payment will be refunded within 5–10 business days.${changedBy === "customer" ? " If you have any questions about your refund, please contact us at support@leafyshop.eu." : ""}`,
+        : `Your order has been cancelled. All reserved items have been returned to stock. Your payment will be refunded within 5–10 business days.${changedBy === "customer" ? ` If you have any questions about your refund, please contact us at ${storeEmail}.` : ""}`,
       color: "#dc2626",
       bgColor: "#fef2f2",
     },
@@ -255,11 +265,11 @@ export async function sendOrderStatusEmail(
       ? ""
       : `<p style="color:#666;font-size:13px">Track your order: <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://leafyshop.eu"}/order/status" style="color:#15803d">Track your order →</a></p>`
     }
-  `);
+  `, storeName);
 
   try {
     await resend.emails.send({
-      from: `Leafy <${FROM_EMAIL}>`,
+      from: `Leafy <${noreplyFrom}>`,
       to: customerEmail,
       subject: config.subject,
       html,
@@ -282,6 +292,10 @@ export async function sendWelcomeEmail(
     return;
   }
 
+  const cfg = await getSettings();
+  const noreplyFrom = cfg["email.noreply_from"] || "noreply@leafyshop.eu";
+  const storeName = cfg["store.name"] || "Leafy Tea & Coffee Ltd.";
+
   const html = emailWrapper(`
     <h2 style="color:#1a4d1a;margin-top:0">Welcome to Leafy Management, ${name}!</h2>
     <p>Your account has been created. Here are your login details:</p>
@@ -296,11 +310,11 @@ export async function sendWelcomeEmail(
     <p>
       <a href="${loginUrl}" style="display:inline-block;background:#15803d;color:white;padding:10px 24px;border-radius:8px;text-decoration:none;font-weight:600">Log In →</a>
     </p>
-  `);
+  `, storeName);
 
   try {
     await resend.emails.send({
-      from: "Leafy <noreply@leafyshop.eu>",
+      from: `Leafy <${noreplyFrom}>`,
       to: email,
       subject: "Welcome to Leafy Management — Your Login Details",
       html,
@@ -322,6 +336,10 @@ export async function sendPasswordResetEmail(
     return;
   }
 
+  const cfg = await getSettings();
+  const noreplyFrom = cfg["email.noreply_from"] || "noreply@leafyshop.eu";
+  const storeName = cfg["store.name"] || "Leafy Tea & Coffee Ltd.";
+
   const html = emailWrapper(`
     <h2 style="color:#1a4d1a;margin-top:0">Password Reset</h2>
     <p>Hi ${name}, your password has been reset by an administrator.</p>
@@ -335,11 +353,11 @@ export async function sendPasswordResetEmail(
     <p>
       <a href="${loginUrl}" style="display:inline-block;background:#15803d;color:white;padding:10px 24px;border-radius:8px;text-decoration:none;font-weight:600">Log In →</a>
     </p>
-  `);
+  `, storeName);
 
   try {
     await resend.emails.send({
-      from: "Leafy <noreply@leafyshop.eu>",
+      from: `Leafy <${noreplyFrom}>`,
       to: email,
       subject: "Leafy Management — Your Password Has Been Reset",
       html,

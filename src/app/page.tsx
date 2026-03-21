@@ -31,14 +31,15 @@ export default function HomePage() {
           </div>
           <div className="hidden lg:block shrink-0 relative w-64 h-40">
             {/* Decorative circles */}
-            <div className="absolute top-0 right-0 w-32 h-32 rounded-full border border-green-600/20" />
-            <div className="absolute top-6 right-12 w-24 h-24 rounded-full border border-green-500/15" />
-            <div className="absolute top-2 right-4 w-16 h-16 rounded-full bg-green-700/20" />
-            <div className="absolute bottom-0 right-20 w-20 h-20 rounded-full border border-green-600/10" />
-            <div className="absolute bottom-4 right-0 w-10 h-10 rounded-full bg-green-600/15" />
+            <div className="absolute top-0 right-0 w-32 h-32 rounded-full border border-green-500/30" />
+            <div className="absolute top-6 right-12 w-24 h-24 rounded-full border border-green-400/20" />
+            <div className="absolute top-2 right-4 w-16 h-16 rounded-full bg-green-600/25" />
+            <div className="absolute bottom-0 right-20 w-20 h-20 rounded-full border border-green-500/15" />
+            <div className="absolute bottom-4 right-0 w-10 h-10 rounded-full bg-green-500/20" />
             {/* Icon accents */}
-            <Leaf className="absolute top-8 right-8 h-8 w-8 text-green-500/25 -rotate-12" />
-            <Coffee className="absolute bottom-6 right-24 h-6 w-6 text-green-500/20 rotate-12" />
+            <Leaf className="absolute top-4 right-6 h-10 w-10 text-green-400/40 -rotate-12" />
+            <Coffee className="absolute bottom-4 right-20 h-8 w-8 text-green-400/35 rotate-12" />
+            <Leaf className="absolute top-16 right-28 h-6 w-6 text-green-400/25 rotate-45" />
           </div>
         </div>
       </section>

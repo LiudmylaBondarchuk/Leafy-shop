@@ -11,6 +11,7 @@ export async function middleware(request: NextRequest) {
 
   // Skip login page and public API
   if (pathname === "/admin/login") return NextResponse.next();
+  if (pathname === "/admin/change-password") return NextResponse.next();
   if (pathname.startsWith("/api/auth/")) return NextResponse.next();
   if (pathname.startsWith("/api/products")) return NextResponse.next();
   if (pathname.startsWith("/api/categories")) return NextResponse.next();
@@ -20,6 +21,7 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith("/api/orders/status") && request.method === "GET") return NextResponse.next();
   if (pathname.startsWith("/api/orders/cancel")) return NextResponse.next();
   if (pathname.startsWith("/api/paypal/")) return NextResponse.next();
+  if (pathname.startsWith("/api/invoices/")) return NextResponse.next();
   if (pathname === "/api/health") return NextResponse.next();
 
   // Protect admin pages and admin API

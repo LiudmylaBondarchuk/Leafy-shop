@@ -58,8 +58,7 @@ export function UserForm({ userId }: UserFormProps) {
   const handleSubmit = async () => {
     if (!form.name.trim()) { toast.error("Name is required"); return; }
     if (!form.email.trim()) { toast.error("Email is required"); return; }
-    if (!userId && !form.password) { toast.error("Password is required"); return; }
-    if (form.password && form.password.length < 8) { toast.error("Password must be at least 8 characters"); return; }
+    if (userId && form.password && form.password.length < 8) { toast.error("Password must be at least 8 characters"); return; }
 
     setSaving(true);
 
@@ -72,9 +71,8 @@ export function UserForm({ userId }: UserFormProps) {
 
     if (!userId) {
       payload.email = form.email.trim().toLowerCase();
-      payload.password = form.password;
     }
-    if (form.password) payload.password = form.password;
+    if (userId && form.password) payload.password = form.password;
 
     try {
       const url = userId ? `/api/admin/users/${userId}` : "/api/admin/users";
@@ -106,9 +104,15 @@ export function UserForm({ userId }: UserFormProps) {
         <h2 className="font-semibold text-gray-900">Account Details</h2>
         <Input label="Name *" id="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="John Smith" />
         <Input label="Email *" id="email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="john@leafy.pl" disabled={!!userId} />
-        <div>
-          <Input label={userId ? "New password (leave empty to keep)" : "Password *"} id="password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Min 8 characters" />
-        </div>
+        {!userId && (
+          <p className="text-xs text-gray-500 bg-gray-50 rounded-lg p-3">
+            A strong password will be generated automatically and sent to the user's email.
+            They will be required to change it on first login.
+          </p>
+        )}
+        {userId && (
+          <Input label="New password (leave empty to keep current)" id="password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Min 8 characters" />
+        )}
       </Card>
 
       {/* Role */}

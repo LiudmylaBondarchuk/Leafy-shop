@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ROLE_LABELS } from "@/constants/permissions";
 import type { Role } from "@/constants/permissions";
-import { Plus, Pencil, Shield, ShieldCheck, TestTube } from "lucide-react";
+import { Plus, Pencil, Shield, ShieldCheck, TestTube, KeyRound } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -126,8 +126,25 @@ export default function AdminUsersPage() {
                         ) : (
                           <div className="flex justify-end gap-1">
                             <Link href={`/admin/users/${u.id}/edit`}>
-                              <Button variant="ghost" size="sm"><Pencil className="h-3.5 w-3.5" /></Button>
+                              <Button variant="ghost" size="sm" title="Edit"><Pencil className="h-3.5 w-3.5" /></Button>
                             </Link>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              title="Reset password"
+                              onClick={async () => {
+                                const res = await fetch("/api/admin/users/reset-password", {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ userId: u.id }),
+                                });
+                                const json = await res.json();
+                                if (json.data) toast.success(`Password reset email sent to ${u.email}`);
+                                else toast.error(json.message || "Failed to reset");
+                              }}
+                            >
+                              <KeyRound className="h-3.5 w-3.5 text-blue-500" />
+                            </Button>
                             <Button
                               variant="ghost"
                               size="sm"

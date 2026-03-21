@@ -36,6 +36,7 @@ export async function POST(request: Request) {
 
     return apiSuccess({
       user: { id: user.id, email: user.email, name: user.name },
+      mustChangePassword: user.mustChangePassword,
     });
   } catch (error) {
     console.error("POST /api/auth/login error:", error);

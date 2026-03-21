@@ -140,7 +140,7 @@ export default function AdminOrderDetailPage() {
             </div>
             {order.wantsInvoice && (
               <div className="mt-3 pt-3 border-t border-gray-200">
-                <a href={`/api/admin/invoices/${order.id}`} target="_blank" className="text-sm text-green-700 hover:text-green-800 font-medium">
+                <a href={`/api/invoices/${order.id}`} target="_blank" className="text-sm text-green-700 hover:text-green-800 font-medium">
                   📄 View Invoice
                 </a>
               </div>

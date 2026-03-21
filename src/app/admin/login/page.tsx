@@ -32,7 +32,11 @@ export default function AdminLoginPage() {
       const json = await res.json();
 
       if (json.data?.user) {
-        router.push("/admin");
+        if (json.data.mustChangePassword) {
+          router.push("/admin/change-password");
+        } else {
+          router.push("/admin");
+        }
       } else {
         setError(json.message || "Invalid email or password");
       }

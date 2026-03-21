@@ -64,7 +64,11 @@ export async function GET(request: NextRequest) {
       .innerJoin(categories, eq(products.categoryId, categories.id))
       .innerJoin(productVariants, and(eq(productVariants.productId, products.id), eq(productVariants.isActive, true)))
       .where(and(...conditions))
-      .groupBy(products.id);
+      .groupBy(
+        products.id, products.name, products.slug, products.shortDescription,
+        products.imageUrl, products.productType, products.isFeatured, products.createdAt,
+        categories.id, categories.name, categories.slug
+      );
 
     // Filter by price and stock in memory (after aggregation)
     let filtered = allProducts;

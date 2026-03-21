@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
           )
         )
       )
-      .groupBy(products.id)
+      .groupBy(products.id, products.name, products.slug, products.imageUrl, products.productType)
       .limit(5);
 
     return apiSuccess(results);

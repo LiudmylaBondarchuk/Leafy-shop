@@ -28,7 +28,7 @@ export const orderSchema = z.object({
   }),
 
   payment: z.object({
-    method: z.enum(["blik", "card", "transfer", "cod"]),
+    method: z.enum(["blik", "card", "transfer", "cod", "paypal"]),
   }),
 
   invoice: z.object({

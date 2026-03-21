@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { SITE_LINKS } from "@/constants/links";
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { cn } from "@/lib/utils";
 
 const STEPS = ["Contact & Address", "Shipping", "Payment", "Summary"];
@@ -28,7 +29,7 @@ export default function CheckoutPage() {
     wantsInvoice: false, company: "", nip: "", invoiceAddress: "",
     shippingMethod: "courier" as "courier" | "inpost" | "pickup",
     inpostCode: "",
-    paymentMethod: "blik" as "blik" | "card" | "transfer" | "cod",
+    paymentMethod: "paypal" as "paypal" | "cod",
     acceptTerms: false,
     notes: "",
   });
@@ -224,12 +225,16 @@ export default function CheckoutPage() {
       {/* Step 2: Payment */}
       {step === 2 && (
         <div className="space-y-4">
-          {(["blik", "card", "transfer", "cod"] as const).map((method) => {
-            const labels = { blik: "BLIK", card: "Credit / Debit Card", transfer: "Bank Transfer", cod: "Cash on Delivery (+$5.00)" };
+          {(["paypal", "cod"] as const).map((method) => {
+            const labels = { paypal: "PayPal", cod: "Cash on Delivery (+$5.00)" };
+            const descriptions = { paypal: "Pay securely with PayPal, credit or debit card", cod: "Pay when your order arrives" };
             return (
-              <label key={method} className={cn("flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-colors", form.paymentMethod === method ? "border-green-700 bg-green-50" : "border-gray-200 hover:border-gray-300")}>
-                <input type="radio" name="payment" value={method} checked={form.paymentMethod === method} onChange={() => updateField("paymentMethod", method)} className="text-green-700 focus:ring-green-600" />
-                <span className="font-medium text-gray-900">{labels[method]}</span>
+              <label key={method} className={cn("flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-colors", form.paymentMethod === method ? "border-green-700 bg-green-50" : "border-gray-200 hover:border-gray-300")}>
+                <input type="radio" name="payment" value={method} checked={form.paymentMethod === method} onChange={() => updateField("paymentMethod", method)} className="mt-0.5 text-green-700 focus:ring-green-600" />
+                <div>
+                  <span className="font-medium text-gray-900">{labels[method]}</span>
+                  <p className="text-xs text-gray-500 mt-0.5">{descriptions[method]}</p>
+                </div>
               </label>
             );
           })}
@@ -273,7 +278,7 @@ export default function CheckoutPage() {
 
           <div className="bg-white rounded-xl border border-gray-200 p-4 text-sm space-y-2">
             <div className="flex justify-between"><span>Shipping</span><span>{{ courier: "Courier (DPD)", inpost: "InPost", pickup: "In-store Pickup" }[form.shippingMethod]}</span></div>
-            <div className="flex justify-between"><span>Payment</span><span>{{ blik: "BLIK", card: "Card", transfer: "Bank Transfer", cod: "Cash on Delivery" }[form.paymentMethod]}</span></div>
+            <div className="flex justify-between"><span>Payment</span><span>{{ paypal: "PayPal", cod: "Cash on Delivery" }[form.paymentMethod]}</span></div>
           </div>
 
           {/* Totals */}
@@ -299,11 +304,113 @@ export default function CheckoutPage() {
             </div>
           )}
 
-          <div className="flex justify-between pt-2">
-            <Button variant="ghost" onClick={goBack}><ChevronLeft className="mr-1 h-4 w-4" /> Back</Button>
-            <Button size="lg" onClick={handleSubmit} loading={submitting} disabled={!form.acceptTerms}>
-              Place Order
-            </Button>
+          <div className="pt-2">
+            <div className="flex justify-between mb-4">
+              <Button variant="ghost" onClick={goBack}><ChevronLeft className="mr-1 h-4 w-4" /> Back</Button>
+              {form.paymentMethod !== "paypal" && (
+                <Button size="lg" onClick={handleSubmit} loading={submitting} disabled={!form.acceptTerms}>
+                  Place Order
+                </Button>
+              )}
+            </div>
+
+            {form.paymentMethod === "paypal" && form.acceptTerms && (
+              <PayPalScriptProvider options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!, currency: "USD", locale: "en_US", disableFunding: "paylater,venmo,card,p24,blik,sofort,giropay,sepa,ideal,bancontact,eps,mybank" }}>
+                <PayPalButtons
+                  style={{ layout: "vertical", shape: "rect", label: "pay", tagline: false }}
+                  fundingSource="paypal"
+                  disabled={submitting}
+                  createOrder={async () => {
+                    setSubmitting(true);
+                    try {
+                      // First create the order in our system
+                      const orderRes = await fetch("/api/orders", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          items: items.map((i) => ({ variant_id: i.variantId, quantity: i.quantity })),
+                          discount_code: discountCode || undefined,
+                          customer: { email: form.email.trim(), phone: form.phone.replace(/\s/g, ""), first_name: form.firstName.trim(), last_name: form.lastName.trim() },
+                          shipping: { street: form.street.trim(), city: form.city.trim(), zip: form.zip.trim(), method: form.shippingMethod, inpost_code: form.inpostCode || undefined },
+                          payment: { method: "paypal" },
+                          invoice: { wants_invoice: form.wantsInvoice, company: form.company || undefined, nip: form.nip || undefined, address: form.invoiceAddress || undefined },
+                          notes: form.notes || undefined,
+                        }),
+                      });
+                      const orderJson = await orderRes.json();
+
+                      if (!orderJson.data?.orderNumber) {
+                        toast.error(orderJson.message || "Failed to create order");
+                        setSubmitting(false);
+                        return "";
+                      }
+
+                      // Then create PayPal order
+                      const ppRes = await fetch("/api/paypal/create-order", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ totalInCents: orderJson.data.total, orderNumber: orderJson.data.orderNumber }),
+                      });
+                      const ppJson = await ppRes.json();
+
+                      if (ppJson.data?.paypalOrderId) {
+                        // Store order number for capture
+                        sessionStorage.setItem("leafy_order_number", orderJson.data.orderNumber);
+                        sessionStorage.setItem("leafy_order_email", form.email.trim());
+                        return ppJson.data.paypalOrderId;
+                      } else {
+                        toast.error("Failed to initialize PayPal");
+                        setSubmitting(false);
+                        return "";
+                      }
+                    } catch {
+                      toast.error("Something went wrong");
+                      setSubmitting(false);
+                      return "";
+                    }
+                  }}
+                  onApprove={async (data) => {
+                    try {
+                      const orderNumber = sessionStorage.getItem("leafy_order_number") || "";
+                      const captureRes = await fetch("/api/paypal/capture-order", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ paypalOrderId: data.orderID, orderNumber }),
+                      });
+                      const captureJson = await captureRes.json();
+
+                      if (captureJson.data?.status === "COMPLETED") {
+                        setOrderPlaced(true);
+                        clearCart();
+                        const email = sessionStorage.getItem("leafy_order_email") || form.email;
+                        router.push(`/order/confirmation?number=${orderNumber}&email=${encodeURIComponent(email)}`);
+                      } else {
+                        toast.error("Payment was not completed");
+                      }
+                    } catch {
+                      toast.error("Failed to process payment");
+                    } finally {
+                      setSubmitting(false);
+                    }
+                  }}
+                  onCancel={() => {
+                    toast.info("Payment cancelled");
+                    setSubmitting(false);
+                  }}
+                  onError={(err) => {
+                    console.error("PayPal error:", err);
+                    toast.error("PayPal encountered an error");
+                    setSubmitting(false);
+                  }}
+                />
+              </PayPalScriptProvider>
+            )}
+
+            {form.paymentMethod === "paypal" && !form.acceptTerms && (
+              <p className="text-sm text-gray-500 text-center py-4">
+                Please accept the Terms & Conditions to proceed with PayPal payment.
+              </p>
+            )}
           </div>
         </div>
       )}

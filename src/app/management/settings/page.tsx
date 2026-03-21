@@ -127,6 +127,47 @@ export default function SettingsPage() {
         <Input label="No-reply email (from)" id="emailNoreply" value={settings["email.noreply_from"] || ""} onChange={(e) => updateSetting("email.noreply_from", e.target.value)} />
         <p className="text-xs text-gray-400 -mt-2">Used for status updates, welcome emails, and password resets.</p>
         <p className="text-xs text-gray-400">All emails must use the @leafyshop.eu domain (verified with Resend).</p>
+
+        {/* Email overview table */}
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Emails sent by the system</h3>
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-gray-400">
+                <th className="text-left py-1 font-medium">Email type</th>
+                <th className="text-left py-1 font-medium">From address</th>
+                <th className="text-left py-1 font-medium">When sent</th>
+              </tr>
+            </thead>
+            <tbody className="text-gray-600">
+              <tr className="border-t border-gray-50">
+                <td className="py-1.5">Order Confirmation</td>
+                <td className="py-1.5 font-mono text-[11px]">{settings["email.orders_from"] || "orders@leafyshop.eu"}</td>
+                <td className="py-1.5">Customer places an order</td>
+              </tr>
+              <tr className="border-t border-gray-50">
+                <td className="py-1.5">Status Update (paid, shipped, delivered, etc.)</td>
+                <td className="py-1.5 font-mono text-[11px]">{settings["email.noreply_from"] || "noreply@leafyshop.eu"}</td>
+                <td className="py-1.5">Order status changes</td>
+              </tr>
+              <tr className="border-t border-gray-50">
+                <td className="py-1.5">Welcome (new user)</td>
+                <td className="py-1.5 font-mono text-[11px]">{settings["email.noreply_from"] || "noreply@leafyshop.eu"}</td>
+                <td className="py-1.5">Admin creates a new user</td>
+              </tr>
+              <tr className="border-t border-gray-50">
+                <td className="py-1.5">Password Reset</td>
+                <td className="py-1.5 font-mono text-[11px]">{settings["email.noreply_from"] || "noreply@leafyshop.eu"}</td>
+                <td className="py-1.5">Admin resets user password</td>
+              </tr>
+              <tr className="border-t border-gray-50">
+                <td className="py-1.5">Invoice (seller contact)</td>
+                <td className="py-1.5 font-mono text-[11px]">{settings["email.invoices_from"] || "invoices@leafyshop.eu"}</td>
+                <td className="py-1.5">Shown on invoice document</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </Card>
 
       {/* Categories */}

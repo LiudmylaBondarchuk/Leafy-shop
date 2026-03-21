@@ -7,7 +7,8 @@ import { Card } from "@/components/ui/Card";
 import { ProductImage } from "@/components/products/ProductImage";
 import { BestsellerBadge } from "@/components/products/BestsellerBadge";
 import { formatPrice } from "@/lib/utils";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Upload, Download } from "lucide-react";
+import { useRef } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -29,6 +30,68 @@ export default function AdminProductsPage() {
   };
 
   const [deleteModal, setDeleteModal] = useState<{ id: number; name: string } | null>(null);
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const res = await fetch("/api/admin/products/import", { method: "POST", body: formData });
+      const json = await res.json();
+      if (json.data) {
+        toast.success(`Imported ${json.data.imported} product(s)${json.data.skipped ? `, ${json.data.skipped} skipped` : ""}`);
+        if (json.data.errors?.length) {
+          json.data.errors.forEach((err: string) => toast.error(err));
+        }
+        fetchProducts();
+      } else {
+        toast.error(json.message || "Import failed");
+      }
+    } catch {
+      toast.error("Import failed");
+    } finally {
+      setImporting(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleExportCSV = () => {
+    const headers = ["Name", "Category", "Type", "Price From", "Stock", "Status", "Featured"];
+    const rows = products.map((p) => [
+      p.name,
+      p.category?.name || "",
+      p.productType,
+      (p.priceFrom / 100).toFixed(2),
+      p.totalStock ?? 0,
+      !p.isActive ? "Inactive" : p.inStock ? "In stock" : "Out of stock",
+      p.isFeatured ? "Yes" : "No",
+    ]);
+    const csv = [headers, ...rows].map((r) => r.map((c: any) => `"${c}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `products-${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadTemplate = () => {
+    const csv = `name,description,category,productType,origin,imageUrl,isFeatured,weightGrams,price,cost,stock
+"Example Green Tea","A smooth green tea","Green Tea","tea","Japan","","false","100","12.99","6.50","50"
+"Example Green Tea","A smooth green tea","Green Tea","tea","Japan","","false","250","28.99","15.00","30"`;
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "products-import-template.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   useEffect(() => { fetchProducts(); }, []);
 
@@ -67,11 +130,25 @@ export default function AdminProductsPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Products</h1>
-        <Link href="/management/products/new">
-          <Button size="sm">
-            <Plus className="h-4 w-4 mr-1" /> Add Product
+        <div className="flex gap-2">
+          <Button size="sm" variant="secondary" onClick={handleExportCSV}>
+            <Download className="h-4 w-4 mr-1" /> Export
           </Button>
-        </Link>
+          <Button size="sm" variant="secondary" onClick={() => fileInputRef.current?.click()} loading={importing}>
+            <Upload className="h-4 w-4 mr-1" /> Import CSV
+          </Button>
+          <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={handleImport} />
+          <Link href="/management/products/new">
+            <Button size="sm">
+              <Plus className="h-4 w-4 mr-1" /> Add Product
+            </Button>
+          </Link>
+        </div>
+      </div>
+      <div className="flex gap-2 mb-4">
+        <button onClick={downloadTemplate} className="text-xs text-green-700 hover:text-green-800 underline">
+          Download CSV template
+        </button>
       </div>
 
       {/* Filters */}

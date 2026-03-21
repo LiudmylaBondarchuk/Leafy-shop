@@ -44,37 +44,33 @@ export async function PATCH(
     // Side effects for cancellation/return: restore stock
     if (newStatus === "cancelled" || newStatus === "returned") {
       for (const item of order.items) {
-        db.update(productVariants)
+        await db.update(productVariants)
           .set({ stock: sql`${productVariants.stock} + ${item.quantity}` })
-          .where(eq(productVariants.id, item.variantId))
-          .run();
+          .where(eq(productVariants.id, item.variantId));
       }
 
       // Revert discount code usage
       if (order.discountCodeId) {
-        db.update(discountCodes)
+        await db.update(discountCodes)
           .set({ usageCount: sql`${discountCodes.usageCount} - 1` })
-          .where(eq(discountCodes.id, order.discountCodeId))
-          .run();
+          .where(eq(discountCodes.id, order.discountCodeId));
       }
     }
 
     // Update order status
-    db.update(orders)
+    await db.update(orders)
       .set({ status: newStatus, updatedAt: new Date().toISOString() })
-      .where(eq(orders.id, parseInt(id)))
-      .run();
+      .where(eq(orders.id, parseInt(id)));
 
     // Insert status history
-    db.insert(orderStatusHistory)
+    await db.insert(orderStatusHistory)
       .values({
         orderId: parseInt(id),
         fromStatus: currentStatus,
         toStatus: newStatus,
         changedBy: "admin",
         note: note || null,
-      })
-      .run();
+      });
 
     // Send status update email (async)
     sendOrderStatusEmail(

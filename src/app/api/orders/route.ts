@@ -156,8 +156,8 @@ export async function POST(request: NextRequest) {
       .where(sql`date(${orders.createdAt}) = ${todayStr}`);
     const orderNumber = generateOrderNumber(today, existingOrders.length + 1);
 
-    // INSERT in transaction-like sequence (SQLite is single-writer)
-    const [order] = db
+    // INSERT order
+    const orderResults = await db
       .insert(orders)
       .values({
         orderNumber,
@@ -183,15 +183,15 @@ export async function POST(request: NextRequest) {
         total,
         notes: data.notes || null,
       })
-      .returning()
-      .all();
+      .returning();
+    const order = orderResults[0];
 
     // Insert order items
     for (const v of variantRows) {
       const weightLabel = v.weightGrams >= 1000 ? `${v.weightGrams / 1000}kg` : `${v.weightGrams}g`;
       const grindLabel = v.grindType ? `, ${v.grindType.replace("_", " ")}` : "";
 
-      db.insert(orderItems)
+      await db.insert(orderItems)
         .values({
           orderId: order.id,
           productId: v.productId,
@@ -201,35 +201,31 @@ export async function POST(request: NextRequest) {
           quantity: v.quantity,
           unitPrice: v.price,
           totalPrice: v.price * v.quantity,
-        })
-        .run();
+        });
     }
 
     // Insert status history
-    db.insert(orderStatusHistory)
+    await db.insert(orderStatusHistory)
       .values({
         orderId: order.id,
         fromStatus: null,
         toStatus: "new",
         changedBy: "system",
         note: "Order placed",
-      })
-      .run();
+      });
 
     // Decrement stock
     for (const v of variantRows) {
-      db.update(productVariants)
+      await db.update(productVariants)
         .set({ stock: sql`${productVariants.stock} - ${v.quantity}` })
-        .where(eq(productVariants.id, v.id))
-        .run();
+        .where(eq(productVariants.id, v.id));
     }
 
     // Increment discount code usage
     if (discountCodeId) {
-      db.update(discountCodes)
+      await db.update(discountCodes)
         .set({ usageCount: sql`${discountCodes.usageCount} + 1` })
-        .where(eq(discountCodes.id, discountCodeId))
-        .run();
+        .where(eq(discountCodes.id, discountCodeId));
     }
 
     // Send confirmation email (async, don't block response)

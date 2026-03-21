@@ -125,10 +125,16 @@ export default function CartPage() {
               className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4"
             >
               {/* Image */}
-              <div className={`w-16 h-16 rounded-lg flex items-center justify-center text-2xl shrink-0 ${
-                item.productType === "tea" ? "bg-green-50" : "bg-amber-50"
-              }`}>
-                {item.productType === "tea" ? "🍵" : "☕"}
+              <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 relative">
+                {item.productImage ? (
+                  <img src={item.productImage} alt={item.productName} className="w-full h-full object-cover" />
+                ) : (
+                  <div className={`w-full h-full flex items-center justify-center text-2xl ${
+                    item.productType === "tea" ? "bg-green-50" : "bg-amber-50"
+                  }`}>
+                    {item.productType === "tea" ? "🍵" : "☕"}
+                  </div>
+                )}
               </div>
 
               {/* Info */}

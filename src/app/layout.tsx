@@ -7,6 +7,13 @@ import { Footer } from "@/components/layout/Footer";
 export const metadata: Metadata = {
   title: "Leafy — Premium Teas & Coffees",
   description: "Carefully selected teas and coffees from around the world, delivered to your door.",
+  openGraph: {
+    title: "Leafy — Premium Teas & Coffees",
+    description: "Carefully selected teas and coffees from around the world, delivered to your door.",
+    url: "https://leafyshop.eu",
+    siteName: "Leafy",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

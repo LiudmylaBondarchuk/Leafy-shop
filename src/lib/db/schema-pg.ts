@@ -185,3 +185,13 @@ export const auditLogs = pgTable("audit_logs", {
   isTestData: boolean("is_test_data").notNull().default(false),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
+
+// ============================================
+// SETTINGS (key-value store)
+// ============================================
+export const settings = pgTable("settings", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  value: text("value").notNull(),
+  updatedAt: text("updated_at").notNull().$defaultFn(() => new Date().toISOString()),
+});

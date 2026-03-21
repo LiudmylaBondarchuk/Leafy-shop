@@ -21,6 +21,7 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith("/api/orders/status") && request.method === "GET") return NextResponse.next();
   if (pathname.startsWith("/api/orders/cancel")) return NextResponse.next();
   if (pathname.startsWith("/api/paypal/")) return NextResponse.next();
+  if (pathname.startsWith("/api/cron/")) return NextResponse.next();
   if (pathname.startsWith("/api/invoices/")) return NextResponse.next();
   if (pathname === "/api/health") return NextResponse.next();
 

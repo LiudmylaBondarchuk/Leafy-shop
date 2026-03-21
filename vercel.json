@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/cleanup-test-data?token=leafy-cron-secret-token",
+      "schedule": "0 3 * * *"
+    }
+  ]
+}

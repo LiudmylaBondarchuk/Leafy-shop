@@ -135,7 +135,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
       <p style="margin:8px 0 0"><strong>Payment:</strong> ${paymentLabel}</p>
     </div>
 
-    <p style="color:#666;font-size:13px">You can track your order status at any time on our website.</p>
+    <p style="color:#666;font-size:13px">You can track your order status at any time: <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://leafyshop.vercel.app"}/order/status" style="color:#15803d">Track your order →</a></p>
   `);
 
   try {

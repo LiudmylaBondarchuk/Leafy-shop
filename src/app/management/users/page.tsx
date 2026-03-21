@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ROLE_LABELS } from "@/constants/permissions";
 import type { Role } from "@/constants/permissions";
-import { Plus, Pencil, Shield, ShieldCheck, TestTube, KeyRound, Search } from "lucide-react";
+import { Plus, Pencil, Shield, ShieldCheck, TestTube, KeyRound, Search, Copy } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -29,6 +29,15 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [resetModal, setResetModal] = useState<{ id: number; name: string; email: string } | null>(null);
+  const [resetting, setResetting] = useState(false);
+  const [generatedPassword, setGeneratedPassword] = useState<{ email: string; password: string } | null>(null);
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      toast.success("Copied to clipboard");
+    });
+  };
 
   const fetchUsers = () => {
     fetch("/api/admin/users")
@@ -178,16 +187,7 @@ export default function AdminUsersPage() {
                               variant="ghost"
                               size="sm"
                               title="Reset password"
-                              onClick={async () => {
-                                const res = await fetch("/api/admin/users/reset-password", {
-                                  method: "POST",
-                                  headers: { "Content-Type": "application/json" },
-                                  body: JSON.stringify({ userId: u.id }),
-                                });
-                                const json = await res.json();
-                                if (json.data) toast.success(`Password reset email sent to ${u.email}`);
-                                else toast.error(json.message || "Failed to reset");
-                              }}
+                              onClick={() => setResetModal({ id: u.id, name: u.name, email: u.email })}
                             >
                               <KeyRound className="h-3.5 w-3.5 text-blue-500" />
                             </Button>
@@ -211,6 +211,83 @@ export default function AdminUsersPage() {
           </div>
         )}
       </Card>
+
+      {/* Reset password confirmation modal */}
+      {resetModal && !generatedPassword && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => { if (!resetting) setResetModal(null); }}>
+          <div className="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-full bg-blue-100">
+                <KeyRound className="h-5 w-5 text-blue-600" />
+              </div>
+              <h3 className="font-semibold text-gray-900">Reset Password</h3>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              Are you sure you want to reset the password for <strong>{resetModal.name}</strong> ({resetModal.email})?
+            </p>
+            <div className="flex gap-3">
+              <Button variant="secondary" size="sm" className="flex-1" onClick={() => setResetModal(null)} disabled={resetting}>
+                Cancel
+              </Button>
+              <Button size="sm" className="flex-1" loading={resetting} onClick={async () => {
+                setResetting(true);
+                try {
+                  const res = await fetch("/api/admin/users/reset-password", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ userId: resetModal.id }),
+                  });
+                  const json = await res.json();
+                  if (json.data) {
+                    setGeneratedPassword({ email: resetModal.email, password: json.data.password });
+                  } else {
+                    toast.error(json.message || "Failed to reset");
+                    setResetModal(null);
+                  }
+                } catch {
+                  toast.error("Failed to reset password");
+                  setResetModal(null);
+                } finally {
+                  setResetting(false);
+                }
+              }}>
+                Reset
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Generated password modal */}
+      {generatedPassword && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-full bg-green-100">
+                <KeyRound className="h-5 w-5 text-green-600" />
+              </div>
+              <h3 className="font-semibold text-gray-900">Password Reset Successful</h3>
+            </div>
+            <p className="text-sm text-gray-600 mb-2">
+              New password for <strong>{generatedPassword.email}</strong>:
+            </p>
+            <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-3 mb-4">
+              <code className="flex-1 text-sm font-mono font-medium text-gray-900 break-all">{generatedPassword.password}</code>
+              <button
+                onClick={() => copyToClipboard(generatedPassword.password)}
+                className="p-1.5 rounded-md hover:bg-gray-200 text-gray-500 hover:text-gray-700 shrink-0"
+                title="Copy password"
+              >
+                <Copy className="h-4 w-4" />
+              </button>
+            </div>
+            <p className="text-xs text-gray-400 mb-4">Make sure to save this password. It will not be shown again.</p>
+            <Button size="sm" className="w-full" onClick={() => { setGeneratedPassword(null); setResetModal(null); }}>
+              Done
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

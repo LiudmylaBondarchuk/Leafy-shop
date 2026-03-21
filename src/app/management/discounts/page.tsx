@@ -16,6 +16,8 @@ export default function AdminDiscountsPage() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const fetchCodes = () => {
     fetch("/api/discount-codes")
@@ -88,10 +90,20 @@ export default function AdminDiscountsPage() {
       const s = getStatus(code);
       if (s.key !== statusFilter) return false;
     }
+    if (dateFrom || dateTo) {
+      const filterStart = dateFrom ? new Date(dateFrom) : null;
+      const filterEnd = dateTo ? new Date(dateTo) : null;
+      const codeStart = code.startsAt ? new Date(code.startsAt) : null;
+      const codeEnd = code.expiresAt ? new Date(code.expiresAt) : null;
+
+      // Overlap: code range and filter range intersect
+      if (filterEnd && codeStart && codeStart > filterEnd) return false;
+      if (filterStart && codeEnd && codeEnd < filterStart) return false;
+    }
     return true;
   });
 
-  const hasFilters = search || typeFilter || statusFilter;
+  const hasFilters = search || typeFilter || statusFilter || dateFrom || dateTo;
 
   return (
     <div>
@@ -129,8 +141,24 @@ export default function AdminDiscountsPage() {
           <option value="expired">Expired</option>
           <option value="used_up">Used up</option>
         </select>
+        <input
+          type="date"
+          value={dateFrom}
+          onChange={(e) => setDateFrom(e.target.value)}
+          placeholder="From"
+          className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+          title="Valid from"
+        />
+        <input
+          type="date"
+          value={dateTo}
+          onChange={(e) => setDateTo(e.target.value)}
+          placeholder="To"
+          className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+          title="Valid to"
+        />
         {hasFilters && (
-          <button onClick={() => { setSearch(""); setTypeFilter(""); setStatusFilter(""); }} className="text-sm text-green-700 hover:text-green-800">
+          <button onClick={() => { setSearch(""); setTypeFilter(""); setStatusFilter(""); setDateFrom(""); setDateTo(""); }} className="text-sm text-green-700 hover:text-green-800">
             Clear filters
           </button>
         )}

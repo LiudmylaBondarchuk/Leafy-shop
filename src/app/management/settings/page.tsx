@@ -215,10 +215,20 @@ export default function SettingsPage() {
           <Tooltip text="Limits for tester accounts. Test data is automatically cleaned up daily at 3:00 AM." />
         </div>
         <Input label="Session duration (minutes)" id="testerSession" type="number" value={settings["tester.session_minutes"] || "180"} onChange={(e) => updateSetting("tester.session_minutes", e.target.value)} />
+        <p className="text-xs text-gray-400 -mt-2">How long a tester session lasts before automatic logout. After this time, the tester must generate a new password.</p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Input label="Max test products" id="testerProducts" type="number" value={settings["tester.max_products"] || "20"} onChange={(e) => updateSetting("tester.max_products", e.target.value)} />
-          <Input label="Max test discounts" id="testerDiscounts" type="number" value={settings["tester.max_discounts"] || "10"} onChange={(e) => updateSetting("tester.max_discounts", e.target.value)} />
-          <Input label="Max test orders" id="testerOrders" type="number" value={settings["tester.max_orders"] || "50"} onChange={(e) => updateSetting("tester.max_orders", e.target.value)} />
+          <div className="space-y-1">
+            <Input label="Max test products" id="testerProducts" type="number" value={settings["tester.max_products"] || "20"} onChange={(e) => updateSetting("tester.max_products", e.target.value)} />
+            <p className="text-xs text-gray-400">Maximum number of products a tester can create during their session.</p>
+          </div>
+          <div className="space-y-1">
+            <Input label="Max test discounts" id="testerDiscounts" type="number" value={settings["tester.max_discounts"] || "10"} onChange={(e) => updateSetting("tester.max_discounts", e.target.value)} />
+            <p className="text-xs text-gray-400">Maximum number of discount codes a tester can create.</p>
+          </div>
+          <div className="space-y-1">
+            <Input label="Max test orders" id="testerOrders" type="number" value={settings["tester.max_orders"] || "50"} onChange={(e) => updateSetting("tester.max_orders", e.target.value)} />
+            <p className="text-xs text-gray-400">Maximum number of test orders a tester can place.</p>
+          </div>
         </div>
         <p className="text-xs text-gray-400">Test data created by testers is automatically cleaned up daily at 3:00 AM.</p>
         <Button

@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { discountCodes } from "@/lib/db/schema";
+import { discountCodes } from "@/lib/db/schema-pg";
 import { eq } from "drizzle-orm";
 
 export interface DiscountValidationResult {

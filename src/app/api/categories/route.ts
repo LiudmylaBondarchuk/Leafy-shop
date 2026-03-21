@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { categories, products } from "@/lib/db/schema";
+import { categories, products } from "@/lib/db/schema-pg";
 import { eq, count, and } from "drizzle-orm";
 import { apiSuccess, apiError } from "@/lib/utils";
 

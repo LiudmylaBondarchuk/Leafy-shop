@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { adminUsers } from "@/lib/db/schema";
+import { adminUsers } from "@/lib/db/schema-pg";
 import { eq } from "drizzle-orm";
 import { compareSync } from "bcryptjs";
 import { signToken, createAuthCookie } from "@/lib/auth";

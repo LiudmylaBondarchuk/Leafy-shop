@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { discountCodes } from "@/lib/db/schema";
+import { discountCodes } from "@/lib/db/schema-pg";
 import { desc } from "drizzle-orm";
 import { apiSuccess, apiError } from "@/lib/utils";
 

@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { productVariants, products } from "@/lib/db/schema";
+import { productVariants, products } from "@/lib/db/schema-pg";
 import { eq, inArray, and } from "drizzle-orm";
 import { validateDiscountCode, calculateDiscountAmount } from "@/lib/discount-engine";
 import { SHIPPING_METHODS, FREE_SHIPPING_THRESHOLD, COD_SURCHARGE } from "@/constants/shipping-methods";
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
       if (validation.valid) {
         const discountCodeData = await db.query.discountCodes.findFirst({
           where: eq(
-            (await import("@/lib/db/schema")).discountCodes.code,
+            (await import("@/lib/db/schema-pg")).discountCodes.code,
             discount_code.trim().toUpperCase()
           ),
         });

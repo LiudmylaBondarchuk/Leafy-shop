@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { orders, orderItems, orderStatusHistory, productVariants, products, discountCodes } from "@/lib/db/schema";
+import { orders, orderItems, orderStatusHistory, productVariants, products, discountCodes } from "@/lib/db/schema-pg";
 import { eq, and, sql, like, or, desc } from "drizzle-orm";
 import { orderSchema } from "@/lib/validators/order";
 import { validateDiscountCode, calculateDiscountAmount } from "@/lib/discount-engine";

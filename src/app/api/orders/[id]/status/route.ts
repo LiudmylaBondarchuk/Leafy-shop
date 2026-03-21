@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { orders, orderStatusHistory, productVariants, orderItems, discountCodes } from "@/lib/db/schema";
+import { orders, orderStatusHistory, productVariants, orderItems, discountCodes } from "@/lib/db/schema-pg";
 import { eq, sql } from "drizzle-orm";
 import { canTransition, transition } from "@/lib/order-state-machine";
 import type { OrderStatus } from "@/constants/order-statuses";

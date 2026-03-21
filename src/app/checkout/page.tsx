@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { SITE_LINKS } from "@/constants/links";
 import { cn } from "@/lib/utils";
 
 const STEPS = ["Contact & Address", "Shipping", "Payment", "Summary"];
@@ -288,7 +289,7 @@ export default function CheckoutPage() {
           {/* Terms */}
           <label className="flex items-start gap-2 cursor-pointer">
             <input type="checkbox" checked={form.acceptTerms} onChange={(e) => updateField("acceptTerms", e.target.checked)} className="mt-0.5 rounded border-gray-300 text-green-700 focus:ring-green-600" />
-            <span className="text-sm text-gray-600">I accept the <span className="text-green-700 underline">Terms & Conditions</span> and <span className="text-green-700 underline">Privacy Policy</span> *</span>
+            <span className="text-sm text-gray-600">I accept the <a href={SITE_LINKS.terms.href} target="_blank" className="text-green-700 underline hover:text-green-800">{SITE_LINKS.terms.label}</a> and <a href={SITE_LINKS.privacy.href} target="_blank" className="text-green-700 underline hover:text-green-800">{SITE_LINKS.privacy.label}</a> *</span>
           </label>
 
           {form.notes !== undefined && (

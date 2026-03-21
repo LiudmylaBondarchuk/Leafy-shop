@@ -5,6 +5,7 @@ import { Leaf, ShoppingCart, Search, Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store/cart-store";
+import { SITE_LINKS } from "@/constants/links";
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -14,11 +15,7 @@ export function Navbar() {
   useEffect(() => setMounted(true), []);
   const cartItemCount = mounted ? items.reduce((sum, i) => sum + i.quantity, 0) : 0;
 
-  const navLinks = [
-    { href: "/products?type=tea", label: "Teas" },
-    { href: "/products?type=coffee", label: "Coffees" },
-    { href: "/products", label: "All Products" },
-  ];
+  const navLinks = [SITE_LINKS.teas, SITE_LINKS.coffees, SITE_LINKS.products];
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-200">
@@ -32,14 +29,14 @@ export function Navbar() {
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-6">
-            <Link href="/products?type=tea" className="text-sm font-medium text-gray-600 hover:text-green-700 transition-colors">
-              Teas
+            <Link href={SITE_LINKS.teas.href} className="text-sm font-medium text-gray-600 hover:text-green-700 transition-colors">
+              {SITE_LINKS.teas.label}
             </Link>
-            <Link href="/products?type=coffee" className="text-sm font-medium text-gray-600 hover:text-green-700 transition-colors">
-              Coffees
+            <Link href={SITE_LINKS.coffees.href} className="text-sm font-medium text-gray-600 hover:text-green-700 transition-colors">
+              {SITE_LINKS.coffees.label}
             </Link>
-            <Link href="/products" className="text-sm font-medium text-green-700 bg-green-50 px-3 py-1.5 rounded-lg hover:bg-green-100 transition-colors">
-              All Products
+            <Link href={SITE_LINKS.products.href} className="text-sm font-medium text-green-700 bg-green-50 px-3 py-1.5 rounded-lg hover:bg-green-100 transition-colors">
+              {SITE_LINKS.products.label}
             </Link>
           </nav>
 

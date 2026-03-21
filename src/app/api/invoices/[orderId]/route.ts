@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { orders, orderItems } from "@/lib/db/schema-pg";
 import { eq } from "drizzle-orm";
 import { apiError } from "@/lib/utils";
+import { getSettings } from "@/lib/settings";
 import { NextResponse } from "next/server";
 
 function generateInvoiceNumber(orderId: number, date: string): string {
@@ -30,11 +31,13 @@ export async function GET(
     if (!order) return apiError("Order not found", 404);
     if (!order.wantsInvoice) return apiError("No invoice requested for this order", 400);
 
+    const cfg = await getSettings();
+    const storeName = cfg["store.name"] || "Leafy Tea & Coffee Ltd.";
+    const storeAddress = cfg["store.address"] || "5 Leafy Lane, Warsaw, Poland";
+    const invoicesEmail = cfg["email.invoices_from"] || "invoices@leafyshop.eu";
+
     const invoiceNumber = generateInvoiceNumber(order.id, order.createdAt);
     const invoiceDate = new Date(order.createdAt).toLocaleDateString("en-US", { dateStyle: "long" });
-
-    // Find paid date from status history
-    const paidDate = new Date().toLocaleDateString("en-US", { dateStyle: "long" });
 
     const itemsHtml = (order.items as any[]).map((item: any) => `
       <tr>
@@ -86,10 +89,9 @@ export async function GET(
     <div style="display:flex;gap:40px;margin-bottom:32px">
       <div style="flex:1">
         <h3 style="font-size:11px;text-transform:uppercase;color:#999;letter-spacing:1px;margin-bottom:8px">From</h3>
-        <p style="font-weight:600">Leafy Tea & Coffee Ltd.</p>
-        <p style="color:#666">5 Leafy Lane</p>
-        <p style="color:#666">Warsaw, Poland</p>
-        <p style="color:#666;margin-top:4px">invoices@leafyshop.eu</p>
+        <p style="font-weight:600">${storeName}</p>
+        <p style="color:#666">${storeAddress}</p>
+        <p style="color:#666;margin-top:4px">${invoicesEmail}</p>
       </div>
       <div style="flex:1">
         <h3 style="font-size:11px;text-transform:uppercase;color:#999;letter-spacing:1px;margin-bottom:8px">Bill To</h3>
@@ -157,7 +159,7 @@ export async function GET(
 
     <!-- Footer -->
     <div style="margin-top:40px;padding-top:20px;border-top:1px solid #e5e7eb;text-align:center;font-size:11px;color:#999">
-      <p>Leafy Tea & Coffee Ltd. · 5 Leafy Lane, Warsaw, Poland · invoices@leafyshop.eu</p>
+      <p>${storeName} · ${storeAddress} · ${invoicesEmail}</p>
       <p style="margin-top:4px">This is a portfolio project. This invoice is for demonstration purposes only.</p>
     </div>
 

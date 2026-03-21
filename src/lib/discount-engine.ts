@@ -41,7 +41,7 @@ export async function validateDiscountCode(
   const now = new Date().toISOString();
 
   if (discountCode.startsAt > now) {
-    return { valid: false, reason: "NOT_STARTED", message: "This discount code is not yet active." };
+    return { valid: false, reason: "NOT_STARTED", message: "Invalid discount code." };
   }
 
   if (discountCode.expiresAt && discountCode.expiresAt < now) {

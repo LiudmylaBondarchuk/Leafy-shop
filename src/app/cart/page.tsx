@@ -123,67 +123,70 @@ export default function CartPage() {
           {items.map((item) => (
             <div
               key={item.variantId}
-              className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4"
+              className="bg-white rounded-xl border border-gray-200 p-4"
             >
-              {/* Image */}
-              <ProductImage
-                src={item.productImage}
-                alt={item.productName}
-                productType={item.productType}
-                size="md"
-                className="rounded-lg shrink-0"
-              />
+              <div className="flex items-start gap-4">
+                {/* Image */}
+                <ProductImage
+                  src={item.productImage}
+                  alt={item.productName}
+                  productType={item.productType}
+                  size="md"
+                  className="rounded-lg shrink-0"
+                />
 
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <Link href={`/products/${item.productSlug}`} className="font-medium text-gray-900 hover:text-green-700">
-                  {item.productName}
-                </Link>
-                <p className="text-sm text-gray-500">{item.variantDesc}</p>
-                <p className="text-sm font-medium text-green-800 mt-1">
-                  {formatPrice(item.unitPrice)}
-                </p>
-              </div>
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <Link href={`/products/${item.productSlug}`} className="font-medium text-gray-900 hover:text-green-700">
+                    {item.productName}
+                  </Link>
+                  <p className="text-sm text-gray-500">{item.variantDesc}</p>
+                  <p className="text-sm font-medium text-green-800 mt-1">
+                    {formatPrice(item.unitPrice)}
+                  </p>
+                </div>
 
-              {/* Quantity */}
-              <div className="flex items-center border border-gray-300 rounded-lg">
+                {/* Remove - visible on all sizes */}
                 <button
-                  onClick={() => updateQuantity(item.variantId, item.quantity - 1)}
-                  disabled={item.quantity <= 1}
-                  className="p-1.5 hover:bg-gray-100 disabled:opacity-40 rounded-l-lg"
+                  onClick={() => {
+                    removeItem(item.variantId);
+                    toast.info(`Removed ${item.productName} from cart`);
+                  }}
+                  className="p-2 text-gray-400 hover:text-red-600 transition-colors shrink-0"
+                  aria-label={`Remove ${item.productName}`}
                 >
-                  <Minus className="h-3.5 w-3.5" />
-                </button>
-                <span className="px-3 py-1.5 text-sm font-medium min-w-[2.5rem] text-center">
-                  {item.quantity}
-                </span>
-                <button
-                  onClick={() => updateQuantity(item.variantId, item.quantity + 1)}
-                  disabled={item.quantity >= item.maxStock}
-                  className="p-1.5 hover:bg-gray-100 disabled:opacity-40 rounded-r-lg"
-                >
-                  <Plus className="h-3.5 w-3.5" />
+                  <Trash2 className="h-4 w-4" />
                 </button>
               </div>
 
-              {/* Line total */}
-              <div className="text-right w-24 shrink-0">
+              {/* Quantity + Line total row */}
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 sm:border-0 sm:pt-0 sm:mt-0 sm:justify-end sm:gap-6">
+                {/* Quantity */}
+                <div className="flex items-center border border-gray-300 rounded-lg">
+                  <button
+                    onClick={() => updateQuantity(item.variantId, item.quantity - 1)}
+                    disabled={item.quantity <= 1}
+                    className="p-2 hover:bg-gray-100 disabled:opacity-40 rounded-l-lg"
+                  >
+                    <Minus className="h-3.5 w-3.5" />
+                  </button>
+                  <span className="px-3 py-2 text-sm font-medium min-w-[2.5rem] text-center">
+                    {item.quantity}
+                  </span>
+                  <button
+                    onClick={() => updateQuantity(item.variantId, item.quantity + 1)}
+                    disabled={item.quantity >= item.maxStock}
+                    className="p-2 hover:bg-gray-100 disabled:opacity-40 rounded-r-lg"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+
+                {/* Line total */}
                 <p className="font-semibold text-gray-900">
                   {formatPrice(item.unitPrice * item.quantity)}
                 </p>
               </div>
-
-              {/* Remove */}
-              <button
-                onClick={() => {
-                  removeItem(item.variantId);
-                  toast.info(`Removed ${item.productName} from cart`);
-                }}
-                className="p-1.5 text-gray-400 hover:text-red-600 transition-colors"
-                aria-label={`Remove ${item.productName}`}
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
             </div>
           ))}
         </div>

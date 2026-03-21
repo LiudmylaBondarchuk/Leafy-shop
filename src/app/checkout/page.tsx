@@ -354,12 +354,12 @@ export default function CheckoutPage() {
           <div className="bg-white rounded-xl border border-gray-200 p-4">
             <h3 className="font-semibold mb-3">Products</h3>
             {items.map((item) => (
-              <div key={item.variantId} className="flex justify-between py-2 border-b border-gray-100 last:border-0 text-sm">
-                <div>
+              <div key={item.variantId} className="flex justify-between gap-2 py-2 border-b border-gray-100 last:border-0 text-sm">
+                <div className="min-w-0">
                   <span className="font-medium">{item.productName}</span>
-                  <span className="text-gray-500 ml-2">{item.variantDesc} × {item.quantity}</span>
+                  <span className="text-gray-500 block sm:inline sm:ml-2">{item.variantDesc} x {item.quantity}</span>
                 </div>
-                <span>{formatPrice(item.unitPrice * item.quantity)}</span>
+                <span className="shrink-0">{formatPrice(item.unitPrice * item.quantity)}</span>
               </div>
             ))}
           </div>

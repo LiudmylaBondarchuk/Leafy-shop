@@ -44,6 +44,7 @@ export async function GET() {
       isFeatured: p.isFeatured,
       category: { id: p.categoryId, name: p.categoryName },
       priceFrom: p.minPrice || 0,
+      totalStock: p.totalStock || 0,
       inStock: (p.totalStock || 0) > 0,
       variantsCount: p.variantCount || 0,
     }));

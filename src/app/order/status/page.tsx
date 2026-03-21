@@ -134,10 +134,10 @@ function OrderStatusContent() {
         <div className="space-y-6">
           {/* Header */}
           <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+              <div className="min-w-0">
                 <p className="text-sm text-gray-500">Order</p>
-                <p className="text-xl font-mono font-bold">{order.orderNumber}</p>
+                <p className="text-lg sm:text-xl font-mono font-bold break-all">{order.orderNumber}</p>
               </div>
               <Badge variant={order.status === "delivered" ? "success" : order.status === "cancelled" ? "error" : "info"} className={ORDER_STATUS_COLORS[order.status as OrderStatus]}>
                 {ORDER_STATUS_LABELS[order.status as OrderStatus] || order.status}

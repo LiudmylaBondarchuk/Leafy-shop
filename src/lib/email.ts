@@ -280,7 +280,7 @@ export async function sendWelcomeEmail(
   }
 
   const html = emailWrapper(`
-    <h2 style="color:#1a4d1a;margin-top:0">Welcome to Leafy Admin, ${name}!</h2>
+    <h2 style="color:#1a4d1a;margin-top:0">Welcome to Leafy Management, ${name}!</h2>
     <p>Your account has been created. Here are your login details:</p>
     <div style="background:#f9fafb;padding:16px;border-radius:8px;margin:16px 0;font-size:14px">
       <p style="margin:0 0 8px"><strong>Email:</strong> ${email}</p>
@@ -299,7 +299,7 @@ export async function sendWelcomeEmail(
     await resend.emails.send({
       from: "Leafy <noreply@leafyshop.eu>",
       to: email,
-      subject: "Welcome to Leafy Admin — Your Login Details",
+      subject: "Welcome to Leafy Management — Your Login Details",
       html,
     });
     console.log("[EMAIL] Welcome email sent to", email);
@@ -338,7 +338,7 @@ export async function sendPasswordResetEmail(
     await resend.emails.send({
       from: "Leafy <noreply@leafyshop.eu>",
       to: email,
-      subject: "Leafy Admin — Your Password Has Been Reset",
+      subject: "Leafy Management — Your Password Has Been Reset",
       html,
     });
     console.log("[EMAIL] Password reset email sent to", email);

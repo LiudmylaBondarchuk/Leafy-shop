@@ -35,9 +35,9 @@ export async function POST(request: NextRequest) {
       .where(inArray(productVariants.id, variantIds));
 
     // Build calculated items
-    const calculatedItems = [];
-    for (const item of items) {
-      const variant = variants.find((v) => v.id === item.variant_id);
+    const calculatedItems: any[] = [];
+    for (const item of items as any[]) {
+      const variant = variants.find((v: any) => v.id === item.variant_id);
       if (!variant) {
         return apiError(`Variant ${item.variant_id} not found`, 400, "VARIANT_NOT_FOUND");
       }

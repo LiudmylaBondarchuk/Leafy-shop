@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
         .from(productVariants)
         .innerJoin(products, eq(products.id, productVariants.productId))
         .where(eq(productVariants.id, vid))
-        .then((rows) => rows[0]);
+        .then((rows: any[]) => rows[0]);
 
       if (!v) return apiError(`Variant ${vid} not found`, 400, "VARIANT_NOT_FOUND");
       if (!v.isActive || !v.productActive) return apiError(`${v.productName} is no longer available`, 400, "VARIANT_INACTIVE");

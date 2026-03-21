@@ -8,7 +8,7 @@ const JWT_SECRET = new TextEncoder().encode(
 const COOKIE_NAME = "admin_token";
 
 export async function signToken(payload: { sub: number; email: string; name: string }) {
-  return new SignJWT(payload)
+  return new SignJWT({ ...payload, sub: String(payload.sub) })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("24h")
@@ -18,7 +18,7 @@ export async function signToken(payload: { sub: number; email: string; name: str
 export async function verifyToken(token: string) {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
-    return payload as { sub: number; email: string; name: string };
+    return payload as unknown as { sub: number; email: string; name: string };
   } catch {
     return null;
   }

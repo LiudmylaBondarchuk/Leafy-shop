@@ -16,7 +16,7 @@ export async function GET(
       with: {
         items: true,
         statusHistory: {
-          orderBy: (h, { asc }) => [asc(h.createdAt)],
+          orderBy: (h: any, { asc }: any) => [asc(h.createdAt)],
         },
         discountCode: true,
       },

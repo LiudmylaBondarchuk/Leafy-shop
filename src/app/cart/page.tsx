@@ -4,6 +4,7 @@ import { useCartStore } from "@/store/cart-store";
 import { Button } from "@/components/ui/Button";
 import { formatPrice } from "@/lib/utils";
 import { ShoppingCart, Minus, Plus, Trash2, Tag, X, ArrowRight } from "lucide-react";
+import { ProductImage } from "@/components/products/ProductImage";
 import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
@@ -125,17 +126,13 @@ export default function CartPage() {
               className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4"
             >
               {/* Image */}
-              <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 relative">
-                {item.productImage ? (
-                  <img src={item.productImage} alt={item.productName} className="w-full h-full object-cover" />
-                ) : (
-                  <div className={`w-full h-full flex items-center justify-center text-2xl ${
-                    item.productType === "tea" ? "bg-green-50" : "bg-amber-50"
-                  }`}>
-                    {item.productType === "tea" ? "🍵" : "☕"}
-                  </div>
-                )}
-              </div>
+              <ProductImage
+                src={item.productImage}
+                alt={item.productName}
+                productType={item.productType}
+                size="md"
+                className="rounded-lg shrink-0"
+              />
 
               {/* Info */}
               <div className="flex-1 min-w-0">

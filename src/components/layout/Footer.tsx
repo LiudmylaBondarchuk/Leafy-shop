@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Leaf, Truck } from "lucide-react";
+import { SITE_LINKS } from "@/constants/links";
 
 export function Footer() {
   return (
@@ -25,21 +26,11 @@ export function Footer() {
           <div>
             <h3 className="text-sm font-semibold text-white mb-3">Shop</h3>
             <ul className="space-y-2">
-              <li>
-                <Link href="/products?type=tea" className="text-sm text-green-300 hover:text-white transition-colors">
-                  Teas
-                </Link>
-              </li>
-              <li>
-                <Link href="/products?type=coffee" className="text-sm text-green-300 hover:text-white transition-colors">
-                  Coffees
-                </Link>
-              </li>
-              <li>
-                <Link href="/products" className="text-sm text-green-300 hover:text-white transition-colors">
-                  All Products
-                </Link>
-              </li>
+              {[SITE_LINKS.teas, SITE_LINKS.coffees, SITE_LINKS.products].map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href} className="text-sm text-green-300 hover:text-white transition-colors">{link.label}</Link>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -47,20 +38,11 @@ export function Footer() {
           <div>
             <h3 className="text-sm font-semibold text-white mb-3">Information</h3>
             <ul className="space-y-2">
-              <li>
-                <Link href="/order/status" className="text-sm text-green-300 hover:text-white transition-colors">
-                  Track Order
-                </Link>
-              </li>
-              <li>
-                <Link href="/about" className="text-sm text-green-300 hover:text-white transition-colors">About Us</Link>
-              </li>
-              <li>
-                <Link href="/contact" className="text-sm text-green-300 hover:text-white transition-colors">Contact</Link>
-              </li>
-              <li>
-                <Link href="/terms" className="text-sm text-green-300 hover:text-white transition-colors">Terms & Conditions</Link>
-              </li>
+              {[SITE_LINKS.trackOrder, SITE_LINKS.about, SITE_LINKS.contact, SITE_LINKS.terms].map((link) => (
+                <li key={link.href + link.label}>
+                  <Link href={link.href} className="text-sm text-green-300 hover:text-white transition-colors">{link.label}</Link>
+                </li>
+              ))}
             </ul>
           </div>
         </div>

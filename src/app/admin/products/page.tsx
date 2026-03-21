@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { formatPrice } from "@/lib/utils";
 import Link from "next/link";
+import { ProductImage } from "@/components/products/ProductImage";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
@@ -45,9 +46,13 @@ export default function AdminProductsPage() {
                   <tr key={p.id} className="border-t border-gray-100 hover:bg-gray-50">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg ${p.productType === "tea" ? "bg-green-50" : "bg-amber-50"}`}>
-                          {p.productType === "tea" ? "🍵" : "☕"}
-                        </div>
+                        <ProductImage
+                          src={p.imageUrl}
+                          alt={p.name}
+                          productType={p.productType}
+                          size="sm"
+                          className="rounded-lg"
+                        />
                         <div>
                           <p className="font-medium text-gray-900">{p.name}</p>
                           <p className="text-xs text-gray-400">{p.variantsCount} variant(s)</p>

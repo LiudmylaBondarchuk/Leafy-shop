@@ -1,6 +1,7 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Badge } from "@/components/ui/Badge";
+import { ProductImage } from "@/components/products/ProductImage";
+import { BestsellerBadge, OutOfStockBadge } from "@/components/products/BestsellerBadge";
 import { formatPrice, cn } from "@/lib/utils";
 
 interface ProductCardProps {
@@ -27,45 +28,29 @@ export function ProductCard({
         !inStock && "opacity-60"
       )}
     >
-      {/* Image */}
-      <div className="relative h-48 overflow-hidden">
-        {imageUrl ? (
-          <Image
-            src={imageUrl}
-            alt={name}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          />
-        ) : (
-          <div className={cn(
-            "h-full flex items-center justify-center text-4xl",
-            productType === "tea" ? "bg-green-50" : "bg-amber-50"
-          )}>
-            {productType === "tea" ? "🍵" : "☕"}
-          </div>
-        )}
-      </div>
+      <ProductImage
+        src={imageUrl}
+        alt={name}
+        productType={productType}
+        size="xl"
+        className="w-full group-hover:scale-105 transition-transform duration-300"
+      />
 
       <div className="p-4">
-        {/* Badges */}
         <div className="flex gap-1.5 mb-2 flex-wrap">
           <Badge variant="default">{category.name}</Badge>
-          {isFeatured && <Badge variant="warning">★ Bestseller</Badge>}
-          {!inStock && <Badge variant="error">Out of stock</Badge>}
+          {isFeatured && <BestsellerBadge />}
+          {!inStock && <OutOfStockBadge />}
         </div>
 
-        {/* Name */}
         <h3 className="font-semibold text-gray-900 group-hover:text-green-700 transition-colors mb-1">
           {name}
         </h3>
 
-        {/* Description */}
         {shortDescription && (
           <p className="text-sm text-gray-500 line-clamp-2 mb-3">{shortDescription}</p>
         )}
 
-        {/* Price */}
         <p className="text-lg font-bold text-green-800">
           from {formatPrice(priceFrom)}
         </p>

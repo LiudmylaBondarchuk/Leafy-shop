@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import Image from "next/image";
 import { Badge } from "@/components/ui/Badge";
+import { ProductImage } from "@/components/products/ProductImage";
+import { BestsellerBadge } from "@/components/products/BestsellerBadge";
 import { Button } from "@/components/ui/Button";
 import { VariantSelector } from "@/components/products/VariantSelector";
 import { GrindSelector } from "@/components/products/GrindSelector";
@@ -166,21 +167,18 @@ export default function ProductDetailPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
         {/* Image */}
-        <div className="relative rounded-2xl overflow-hidden h-96">
-          {product.imageUrl ? (
-            <Image src={product.imageUrl} alt={product.name} fill className="object-cover" sizes="(max-width: 1024px) 100vw, 50vw" />
-          ) : (
-            <div className={`h-full flex items-center justify-center text-8xl ${product.productType === "tea" ? "bg-green-50" : "bg-amber-50"}`}>
-              {product.productType === "tea" ? "🍵" : "☕"}
-            </div>
-          )}
-        </div>
+        <ProductImage
+          src={product.imageUrl}
+          alt={product.name}
+          productType={product.productType}
+          className="rounded-2xl h-96 w-full"
+        />
 
         {/* Info */}
         <div>
           <div className="flex gap-2 mb-3">
             <Badge>{product.category.name}</Badge>
-            {product.isFeatured && <Badge variant="success">Bestseller</Badge>}
+            {product.isFeatured && <BestsellerBadge />}
           </div>
 
           <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
@@ -315,15 +313,13 @@ export default function ProductDetailPage() {
                 href={`/products/${p.slug}`}
                 className="group bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-all"
               >
-                <div className="relative h-32 overflow-hidden">
-                  {p.imageUrl ? (
-                    <Image src={p.imageUrl} alt={p.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="25vw" />
-                  ) : (
-                    <div className={`h-full flex items-center justify-center text-3xl ${p.productType === "tea" ? "bg-green-50" : "bg-amber-50"}`}>
-                      {p.productType === "tea" ? "🍵" : "☕"}
-                    </div>
-                  )}
-                </div>
+                <ProductImage
+                  src={p.imageUrl}
+                  alt={p.name}
+                  productType={p.productType}
+                  size="lg"
+                  className="w-full group-hover:scale-105 transition-transform duration-300"
+                />
                 <div className="p-3">
                   <h3 className="font-medium text-sm text-gray-900 group-hover:text-green-700">{p.name}</h3>
                 </div>

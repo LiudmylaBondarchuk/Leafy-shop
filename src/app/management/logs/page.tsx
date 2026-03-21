@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { Package, ShoppingBag, Tag, UserCog } from "lucide-react";
+import { Package, ShoppingBag, Tag, UserCog, ChevronDown } from "lucide-react";
 
 const ACTION_COLORS: Record<string, string> = {
   create: "bg-green-100 text-green-800",
@@ -42,6 +42,7 @@ export default function AdminLogsPage() {
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState({ entityType: "", userRole: "", action: "" });
+  const [expandedId, setExpandedId] = useState<number | null>(null);
 
   useEffect(() => {
     fetch("/api/admin/logs")
@@ -101,8 +102,13 @@ export default function AdminLogsPage() {
           <div className="divide-y divide-gray-100">
             {filtered.map((log: any) => {
               const Icon = ENTITY_ICONS[log.entityType] || Package;
+              const isExpanded = expandedId === log.id;
               return (
-                <div key={log.id} className={`px-5 py-4 flex items-start gap-4 ${log.isTestData ? "bg-purple-50/50" : ""}`}>
+                <div
+                  key={log.id}
+                  className={`px-5 py-4 flex items-start gap-4 cursor-pointer hover:bg-gray-50 transition-colors ${log.isTestData ? "bg-purple-50/50" : ""}`}
+                  onClick={() => setExpandedId(isExpanded ? null : log.id)}
+                >
                   <div className="p-2 rounded-lg bg-gray-100 text-gray-500 shrink-0 mt-0.5">
                     <Icon className="h-4 w-4" />
                   </div>
@@ -116,10 +122,11 @@ export default function AdminLogsPage() {
                         {log.entityType}{log.entityName ? `: ${log.entityName}` : ""}
                       </span>
                       {log.isTestData && <Badge variant="warning">Test</Badge>}
+                      <ChevronDown className={`h-4 w-4 text-gray-400 ml-auto transition-transform ${isExpanded ? "rotate-180" : ""}`} />
                     </div>
 
                     {/* Changes */}
-                    {log.changes && typeof log.changes === "object" && (
+                    {log.changes && typeof log.changes === "object" && !isExpanded && (
                       <div className="mt-1 text-xs text-gray-500 space-y-0.5">
                         {Object.entries(log.changes).map(([field, val]: [string, any]) => (
                           <div key={field}>
@@ -129,6 +136,13 @@ export default function AdminLogsPage() {
                           </div>
                         ))}
                       </div>
+                    )}
+
+                    {/* Expanded: full JSON details */}
+                    {log.changes && typeof log.changes === "object" && isExpanded && (
+                      <pre className="mt-2 text-xs text-gray-600 bg-gray-50 rounded-lg p-3 overflow-x-auto whitespace-pre-wrap break-words">
+                        {JSON.stringify(log.changes, null, 2)}
+                      </pre>
                     )}
 
                     <p className="text-xs text-gray-400 mt-1">

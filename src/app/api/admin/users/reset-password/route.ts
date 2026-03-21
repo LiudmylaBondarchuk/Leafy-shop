@@ -49,10 +49,10 @@ export async function POST(request: Request) {
       targetUser.email,
       targetUser.name,
       newPassword,
-      `${appUrl}/admin/login`,
+      `${appUrl}/management/login`,
     ).catch(() => {});
 
-    return apiSuccess({ message: "Password reset email sent" });
+    return apiSuccess({ message: "Password reset email sent", password: newPassword });
   } catch (error) {
     console.error("POST /api/admin/users/reset-password error:", error);
     return apiError("Failed to reset password", 500);

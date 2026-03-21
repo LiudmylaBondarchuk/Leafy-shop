@@ -220,7 +220,7 @@ function OrderStatusContent() {
             </div>
             {order.wantsInvoice && order.isPaid && (
               <div className="mt-3 pt-3 border-t border-gray-200">
-                <a href={`/api/admin/invoices/${order.orderId}`} target="_blank" className="text-sm text-green-700 hover:text-green-800 font-medium">
+                <a href={`/api/invoices/${order.orderId}`} target="_blank" className="text-sm text-green-700 hover:text-green-800 font-medium">
                   📄 Download Invoice
                 </a>
               </div>

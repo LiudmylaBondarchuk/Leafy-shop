@@ -2,9 +2,11 @@ import { db } from "@/lib/db";
 import { adminUsers } from "@/lib/db/schema-pg";
 import { eq, desc } from "drizzle-orm";
 import { hashSync } from "bcryptjs";
+import crypto from "crypto";
 import { getAdminFromCookie } from "@/lib/auth";
 import { hasPermission } from "@/constants/permissions";
 import { apiSuccess, apiError } from "@/lib/utils";
+import { sendWelcomeEmail } from "@/lib/email";
 
 export async function GET() {
   const admin = await getAdminFromCookie();
@@ -59,11 +61,14 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { email, password, name, role, permissions } = body;
+    const { email, name, role, permissions } = body;
 
-    if (!email || !password || !name || !role) {
-      return apiError("Email, password, name, and role are required", 400, "VALIDATION_ERROR");
+    if (!email || !name || !role) {
+      return apiError("Email, name, and role are required", 400, "VALIDATION_ERROR");
     }
+
+    // Generate strong password
+    const generatedPassword = crypto.randomBytes(12).toString("base64url").slice(0, 16);
 
     // Non-admins can't create admins
     if (requestingUser.role !== "admin" && role === "admin") {
@@ -88,7 +93,7 @@ export async function POST(request: Request) {
       return apiError("An account with this email already exists", 409, "DUPLICATE");
     }
 
-    const passwordHash = hashSync(password, 12);
+    const passwordHash = hashSync(generatedPassword, 12);
 
     const [created] = await db.insert(adminUsers).values({
       email: email.trim().toLowerCase(),
@@ -96,7 +101,18 @@ export async function POST(request: Request) {
       name: name.trim(),
       role,
       permissions: JSON.stringify(permissions || []),
+      mustChangePassword: true,
     }).returning();
+
+    // Send welcome email with credentials
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://leafyshop.eu";
+    sendWelcomeEmail(
+      email.trim().toLowerCase(),
+      name.trim(),
+      generatedPassword,
+      `${appUrl}/admin/login`,
+      role,
+    ).catch(() => {});
 
     return apiSuccess({
       id: created.id,

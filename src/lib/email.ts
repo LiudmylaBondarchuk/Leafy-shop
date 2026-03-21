@@ -139,7 +139,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
 
     ${data.wantsInvoice && isPaid && data.orderId ? `
     <div style="background:#f0fdf4;padding:12px 16px;border-radius:8px;margin:16px 0;font-size:13px">
-      📄 <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://leafyshop.eu"}/api/admin/invoices/${data.orderId}" style="color:#15803d">Download your invoice</a>
+      📄 <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://leafyshop.eu"}/api/invoices/${data.orderId}" style="color:#15803d">Download your invoice</a>
     </div>
     ` : ""}
 
@@ -264,5 +264,85 @@ export async function sendOrderStatusEmail(
     console.log("[EMAIL] Status update sent to", customerEmail);
   } catch (error) {
     console.error("[EMAIL] Failed to send status email:", error);
+  }
+}
+
+export async function sendWelcomeEmail(
+  email: string,
+  name: string,
+  password: string,
+  loginUrl: string,
+  role: string,
+) {
+  if (!resend) {
+    console.log("[EMAIL] Resend not configured — skipping welcome email to", email);
+    return;
+  }
+
+  const html = emailWrapper(`
+    <h2 style="color:#1a4d1a;margin-top:0">Welcome to Leafy Admin, ${name}!</h2>
+    <p>Your account has been created. Here are your login details:</p>
+    <div style="background:#f9fafb;padding:16px;border-radius:8px;margin:16px 0;font-size:14px">
+      <p style="margin:0 0 8px"><strong>Email:</strong> ${email}</p>
+      <p style="margin:0 0 8px"><strong>Temporary Password:</strong> <code style="background:#e5e7eb;padding:2px 6px;border-radius:4px;font-size:13px">${password}</code></p>
+      <p style="margin:0"><strong>Role:</strong> ${role.charAt(0).toUpperCase() + role.slice(1)}</p>
+    </div>
+    <div style="background:#fff7ed;border:1px solid #fed7aa;padding:12px 16px;border-radius:8px;margin:16px 0;font-size:13px;color:#9a3412">
+      ⚠️ You will be required to change your password on first login.
+    </div>
+    <p>
+      <a href="${loginUrl}" style="display:inline-block;background:#15803d;color:white;padding:10px 24px;border-radius:8px;text-decoration:none;font-weight:600">Log In →</a>
+    </p>
+  `);
+
+  try {
+    await resend.emails.send({
+      from: `Leafy <${FROM_EMAIL}>`,
+      to: email,
+      subject: "Welcome to Leafy Admin — Your Login Details",
+      html,
+    });
+    console.log("[EMAIL] Welcome email sent to", email);
+  } catch (error) {
+    console.error("[EMAIL] Failed to send welcome email:", error);
+  }
+}
+
+export async function sendPasswordResetEmail(
+  email: string,
+  name: string,
+  password: string,
+  loginUrl: string,
+) {
+  if (!resend) {
+    console.log("[EMAIL] Resend not configured — skipping reset email to", email);
+    return;
+  }
+
+  const html = emailWrapper(`
+    <h2 style="color:#1a4d1a;margin-top:0">Password Reset</h2>
+    <p>Hi ${name}, your password has been reset by an administrator.</p>
+    <div style="background:#f9fafb;padding:16px;border-radius:8px;margin:16px 0;font-size:14px">
+      <p style="margin:0 0 8px"><strong>Email:</strong> ${email}</p>
+      <p style="margin:0"><strong>New Temporary Password:</strong> <code style="background:#e5e7eb;padding:2px 6px;border-radius:4px;font-size:13px">${password}</code></p>
+    </div>
+    <div style="background:#fff7ed;border:1px solid #fed7aa;padding:12px 16px;border-radius:8px;margin:16px 0;font-size:13px;color:#9a3412">
+      ⚠️ You will be required to change your password on next login.
+    </div>
+    <p>
+      <a href="${loginUrl}" style="display:inline-block;background:#15803d;color:white;padding:10px 24px;border-radius:8px;text-decoration:none;font-weight:600">Log In →</a>
+    </p>
+  `);
+
+  try {
+    await resend.emails.send({
+      from: `Leafy <${FROM_EMAIL}>`,
+      to: email,
+      subject: "Leafy Admin — Your Password Has Been Reset",
+      html,
+    });
+    console.log("[EMAIL] Password reset email sent to", email);
+  } catch (error) {
+    console.error("[EMAIL] Failed to send reset email:", error);
   }
 }

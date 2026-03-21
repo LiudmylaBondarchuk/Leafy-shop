@@ -97,7 +97,11 @@ export async function PUT(
       updateData.permissions = JSON.stringify(body.permissions);
     }
     if (body.isActive !== undefined) updateData.isActive = body.isActive;
-    if (body.password) updateData.passwordHash = hashSync(body.password, 12);
+    if (body.mustChangePassword !== undefined) updateData.mustChangePassword = body.mustChangePassword;
+    if (body.password) {
+      updateData.passwordHash = hashSync(body.password, 12);
+      if (body.mustChangePassword === undefined) updateData.mustChangePassword = false;
+    }
 
     await db.update(adminUsers).set(updateData).where(eq(adminUsers.id, userId));
 

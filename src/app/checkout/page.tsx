@@ -425,7 +425,43 @@ export default function CheckoutPage() {
                   createOrder={async () => {
                     setSubmitting(true);
                     try {
-                      // First create the order in our system
+                      // Calculate total for PayPal (don't create order yet)
+                      const calcRes = await fetch("/api/cart/calculate", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          items: items.map((i) => ({ variant_id: i.variantId, quantity: i.quantity })),
+                          discount_code: discountCode || undefined,
+                          shipping_method: form.shippingMethod,
+                        }),
+                      });
+                      const calcJson = await calcRes.json();
+                      const totalForPaypal = calcJson.data?.total || total;
+
+                      // Create PayPal order only (no shop order yet)
+                      const ppRes = await fetch("/api/paypal/create-order", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ totalInCents: totalForPaypal, orderNumber: "PENDING" }),
+                      });
+                      const ppJson = await ppRes.json();
+
+                      if (ppJson.data?.paypalOrderId) {
+                        return ppJson.data.paypalOrderId;
+                      } else {
+                        toast.error("Failed to initialize PayPal");
+                        setSubmitting(false);
+                        return "";
+                      }
+                    } catch {
+                      toast.error("Something went wrong");
+                      setSubmitting(false);
+                      return "";
+                    }
+                  }}
+                  onApprove={async (data) => {
+                    try {
+                      // Step 1: Create order in our system
                       const orderRes = await fetch("/api/orders", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -444,48 +480,21 @@ export default function CheckoutPage() {
                       if (!orderJson.data?.orderNumber) {
                         toast.error(orderJson.message || "Failed to create order");
                         setSubmitting(false);
-                        return "";
+                        return;
                       }
 
-                      // Then create PayPal order
-                      const ppRes = await fetch("/api/paypal/create-order", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ totalInCents: orderJson.data.total, orderNumber: orderJson.data.orderNumber }),
-                      });
-                      const ppJson = await ppRes.json();
-
-                      if (ppJson.data?.paypalOrderId) {
-                        // Store order number for capture
-                        sessionStorage.setItem("leafy_order_number", orderJson.data.orderNumber);
-                        sessionStorage.setItem("leafy_order_email", form.email.trim());
-                        return ppJson.data.paypalOrderId;
-                      } else {
-                        toast.error("Failed to initialize PayPal");
-                        setSubmitting(false);
-                        return "";
-                      }
-                    } catch {
-                      toast.error("Something went wrong");
-                      setSubmitting(false);
-                      return "";
-                    }
-                  }}
-                  onApprove={async (data) => {
-                    try {
-                      const orderNumber = sessionStorage.getItem("leafy_order_number") || "";
+                      // Step 2: Capture PayPal payment
                       const captureRes = await fetch("/api/paypal/capture-order", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ paypalOrderId: data.orderID, orderNumber }),
+                        body: JSON.stringify({ paypalOrderId: data.orderID, orderNumber: orderJson.data.orderNumber }),
                       });
                       const captureJson = await captureRes.json();
 
                       if (captureJson.data?.status === "COMPLETED") {
                         setOrderPlaced(true);
                         clearCart();
-                        const email = sessionStorage.getItem("leafy_order_email") || form.email;
-                        router.push(`/order/confirmation?number=${orderNumber}&email=${encodeURIComponent(email)}`);
+                        router.push(`/order/confirmation?number=${orderJson.data.orderNumber}&email=${encodeURIComponent(form.email.trim())}`);
                       } else {
                         toast.error("Payment was not completed");
                       }
@@ -496,7 +505,7 @@ export default function CheckoutPage() {
                     }
                   }}
                   onCancel={() => {
-                    toast.info("Payment cancelled");
+                    toast.info("Payment cancelled — no order was created");
                     setSubmitting(false);
                   }}
                   onError={(err) => {

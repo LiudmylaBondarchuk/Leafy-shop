@@ -159,6 +159,7 @@ export async function sendOrderStatusEmail(
   orderNumber: string,
   newStatus: string,
   shippingMethod?: string,
+  paymentMethod?: string,
   note?: string
 ) {
   if (!resend) {
@@ -204,7 +205,9 @@ export async function sendOrderStatusEmail(
     cancelled: {
       subject: `Order ${orderNumber} — Cancelled`,
       heading: "Your Order Has Been Cancelled",
-      message: "Your order has been cancelled and any payment will be refunded within 5–10 business days.",
+      message: paymentMethod === "cod"
+        ? "Your order has been cancelled. Since no payment was made, no refund is needed."
+        : "Your order has been cancelled and your payment will be refunded within 5–10 business days.",
       color: "#dc2626",
       bgColor: "#fef2f2",
     },

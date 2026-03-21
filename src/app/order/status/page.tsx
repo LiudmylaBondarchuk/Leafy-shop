@@ -52,6 +52,7 @@ function OrderStatusContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [cancelling, setCancelling] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
   const fetchOrder = async () => {
     if (!orderNum.trim() || !email.trim()) {
@@ -84,13 +85,21 @@ function OrderStatusContent() {
 
   const handleCancel = async () => {
     if (!order) return;
+    setShowCancelModal(false);
     setCancelling(true);
     try {
-      // Find order ID by fetching all orders (simplified — in real app would use order ID)
-      const res = await fetch(`/api/orders/status?number=${order.orderNumber}&email=${email}`);
+      const res = await fetch("/api/orders/cancel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderNumber: order.orderNumber, email: email.trim() }),
+      });
       const json = await res.json();
-      // For now, just show a message
-      toast.info("To cancel your order, please contact us at support@leafy.pl");
+      if (json.data?.status === "cancelled") {
+        toast.success("Order cancelled successfully");
+        fetchOrder();
+      } else {
+        toast.error(json.message || "Failed to cancel order");
+      }
     } catch {
       toast.error("Failed to cancel order");
     } finally {
@@ -209,18 +218,46 @@ function OrderStatusContent() {
           </div>
 
           {/* Actions */}
-          {(order.canCancel || order.canReturn) && (
-            <div className="flex gap-3">
-              {order.canCancel && (
-                <Button variant="destructive" size="sm" onClick={handleCancel} loading={cancelling}>
-                  Cancel Order
-                </Button>
-              )}
-              {order.canReturn && (
-                <Button variant="secondary" size="sm" onClick={() => toast.info("To request a return, please contact support@leafy.pl")}>
-                  Request Return
-                </Button>
-              )}
+          {order.canCancel && (
+            <div>
+              <Button variant="destructive" size="sm" onClick={() => setShowCancelModal(true)} loading={cancelling}>
+                Cancel Order
+              </Button>
+            </div>
+          )}
+
+          {!order.canCancel && ["processing", "shipped"].includes(order.status) && (
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-600">
+              Need to cancel? Contact us at <a href="mailto:hello@leafy-shop.com" className="text-green-700 underline">hello@leafy-shop.com</a> with your order number.
+            </div>
+          )}
+
+          {order.canReturn && (
+            <div>
+              <Button variant="secondary" size="sm" onClick={() => toast.info("To request a return, please contact hello@leafy-shop.com with your order number.")}>
+                Request Return
+              </Button>
+            </div>
+          )}
+
+          {/* Cancel confirmation modal */}
+          {showCancelModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowCancelModal(false)}>
+              <div className="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
+                <h3 className="font-semibold text-gray-900 text-lg mb-2">Cancel this order?</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Are you sure you want to cancel order <strong>{order.orderNumber}</strong>?
+                  {order.paymentMethod !== "cod" && " Your payment will be refunded within 5–10 business days."}
+                </p>
+                <div className="flex gap-3">
+                  <Button variant="secondary" size="sm" className="flex-1" onClick={() => setShowCancelModal(false)}>
+                    Keep Order
+                  </Button>
+                  <Button variant="destructive" size="sm" className="flex-1" onClick={handleCancel} loading={cancelling}>
+                    Yes, Cancel
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
         </div>

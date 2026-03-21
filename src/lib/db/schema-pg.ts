@@ -48,6 +48,7 @@ export const productVariants = pgTable("product_variants", {
   weightGrams: integer("weight_grams").notNull(),
   grindType: text("grind_type"),
   price: integer("price").notNull(),
+  cost: integer("cost"),
   comparePrice: integer("compare_price"),
   sku: text("sku").notNull().unique(),
   stock: integer("stock").notNull().default(0),

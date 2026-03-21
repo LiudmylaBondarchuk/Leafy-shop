@@ -1,8 +1,8 @@
 import { db } from "@/lib/db";
 import { orders } from "@/lib/db/schema-pg";
 import { eq } from "drizzle-orm";
-import { getAvailableTransitions } from "@/lib/order-state-machine";
 import type { OrderStatus } from "@/constants/order-statuses";
+import { getTransitionsForOrder } from "@/constants/order-statuses";
 import { apiSuccess, apiError } from "@/lib/utils";
 
 export async function GET(
@@ -26,7 +26,7 @@ export async function GET(
       return apiError("Order not found", 404, "NOT_FOUND");
     }
 
-    const availableTransitions = getAvailableTransitions(order.status as OrderStatus);
+    const availableTransitions = getTransitionsForOrder(order.status as OrderStatus, order.paymentMethod);
 
     return apiSuccess({ ...order, availableTransitions });
   } catch (error) {

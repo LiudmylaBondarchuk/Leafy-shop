@@ -1,8 +1,8 @@
 import { db } from "@/lib/db";
-import { orders, orderStatusHistory, productVariants, orderItems, discountCodes } from "@/lib/db/schema-pg";
-import { eq, sql } from "drizzle-orm";
-import { canTransition, transition } from "@/lib/order-state-machine";
+import { orders, orderStatusHistory, productVariants, orderItems, discountCodes, products } from "@/lib/db/schema-pg";
+import { eq, sql, inArray } from "drizzle-orm";
 import type { OrderStatus } from "@/constants/order-statuses";
+import { getTransitionsForOrder } from "@/constants/order-statuses";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { sendOrderStatusEmail } from "@/lib/email";
 import { NextRequest } from "next/server";
@@ -31,9 +31,8 @@ export async function PATCH(
 
     const currentStatus = order.status as OrderStatus;
 
-    try {
-      transition(currentStatus, newStatus as OrderStatus);
-    } catch {
+    const allowedTransitions = getTransitionsForOrder(currentStatus, order.paymentMethod);
+    if (!allowedTransitions.includes(newStatus as OrderStatus)) {
       return apiError(
         `Cannot change status from "${currentStatus}" to "${newStatus}".`,
         422,
@@ -72,6 +71,16 @@ export async function PATCH(
         note: note || null,
       });
 
+    // Get product types for email personalization
+    const productIds = (order.items as any[]).map((i: any) => i.productId);
+    let productTypes: string[] = [];
+    if (productIds.length > 0) {
+      const prods = await db.select({ productType: products.productType })
+        .from(products)
+        .where(inArray(products.id, productIds));
+      productTypes = [...new Set(prods.map((p: any) => p.productType))] as string[];
+    }
+
     // Send status update email (async)
     sendOrderStatusEmail(
       order.customerEmail,
@@ -80,7 +89,9 @@ export async function PATCH(
       newStatus,
       order.shippingMethod,
       order.paymentMethod,
-      note
+      note,
+      "admin",
+      productTypes,
     ).catch(() => {});
 
     return apiSuccess({ orderNumber: order.orderNumber, status: newStatus });

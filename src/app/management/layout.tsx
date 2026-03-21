@@ -5,25 +5,26 @@ import { usePathname, useRouter } from "next/navigation";
 import { Leaf, LayoutDashboard, Package, ShoppingBag, Tag, BarChart3, Users, UserCog, FileText, ClipboardList, Settings, LogOut, Menu, X, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { hasPermission } from "@/constants/permissions";
 
 const NAV_ITEMS = [
-  { href: "/management", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/management/products", label: "Products", icon: Package },
-  { href: "/management/orders", label: "Orders", icon: ShoppingBag },
-  { href: "/management/discounts", label: "Discounts", icon: Tag },
-  { href: "/management/invoices", label: "Invoices", icon: FileText },
-  { href: "/management/customers", label: "Customers", icon: Users },
-  { href: "/management/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/management/logs", label: "Activity Logs", icon: ClipboardList },
-  { href: "/management/users", label: "Users", icon: UserCog },
-  { href: "/management/settings", label: "Settings", icon: Settings },
+  { href: "/management", label: "Dashboard", icon: LayoutDashboard, permission: null },
+  { href: "/management/products", label: "Products", icon: Package, permission: "products.view" },
+  { href: "/management/orders", label: "Orders", icon: ShoppingBag, permission: "orders.view" },
+  { href: "/management/discounts", label: "Discounts", icon: Tag, permission: "discounts.view" },
+  { href: "/management/invoices", label: "Invoices", icon: FileText, permission: "orders.view" },
+  { href: "/management/customers", label: "Customers", icon: Users, permission: "customers.view" },
+  { href: "/management/analytics", label: "Analytics", icon: BarChart3, permission: "analytics.view" },
+  { href: "/management/logs", label: "Activity Logs", icon: ClipboardList, permission: "logs.view" },
+  { href: "/management/users", label: "Users", icon: UserCog, permission: "users.view" },
+  { href: "/management/settings", label: "Settings", icon: Settings, permission: "settings.view" },
 ];
 
 function getBreadcrumbs(pathname: string) {
   const parts = pathname.split("/").filter(Boolean);
   const crumbs: { label: string; href: string }[] = [];
 
-  if (parts[0] === "admin") {
+  if (parts[0] === "management") {
     crumbs.push({ label: "Dashboard", href: "/management" });
 
     if (parts[1]) {
@@ -57,10 +58,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const router = useRouter();
   const [adminName, setAdminName] = useState("");
+  const [userRole, setUserRole] = useState("");
+  const [userPermissions, setUserPermissions] = useState<string[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [checking, setChecking] = useState(true);
 
   const isLoginPage = pathname === "/management/login";
+  const isChangePasswordPage = pathname === "/management/change-password";
 
   useEffect(() => {
     if (isLoginPage) {
@@ -73,6 +77,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       .then((json) => {
         if (json.data?.user) {
           setAdminName(json.data.user.name);
+          setUserRole(json.data.user.role || "manager");
+          setUserPermissions(json.data.user.permissions || []);
+          // Force password change
+          if (json.data.user.mustChangePassword && !isChangePasswordPage) {
+            router.push("/management/change-password");
+          }
         } else {
           router.push("/management/login");
         }
@@ -98,6 +108,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const breadcrumbs = getBreadcrumbs(pathname);
 
+  const visibleNavItems = NAV_ITEMS.filter((item) => {
+    if (!item.permission) return true;
+    return hasPermission(userRole, userPermissions, item.permission);
+  });
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
@@ -117,7 +132,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
 
           <nav className="flex-1 px-3 py-4 space-y-1">
-            {NAV_ITEMS.map((item) => {
+            {visibleNavItems.map((item) => {
               const isActive = pathname === item.href || (item.href !== "/management" && pathname.startsWith(item.href));
               return (
                 <Link

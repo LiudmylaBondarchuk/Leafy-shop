@@ -17,7 +17,7 @@ export default function CustomerDetailPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/management/customers/${id}`)
+    fetch(`/api/admin/customers/${id}`)
       .then((r) => r.json())
       .then((json) => {
         if (json.data) setCustomer(json.data);

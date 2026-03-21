@@ -48,6 +48,8 @@ interface OrderEmailData {
   shippingMethod: string;
   paymentMethod: string;
   shippingAddress: string;
+  orderId?: number;
+  wantsInvoice?: boolean;
 }
 
 export async function sendOrderConfirmationEmail(data: OrderEmailData) {
@@ -135,7 +137,13 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
       <p style="margin:8px 0 0"><strong>Payment:</strong> ${paymentLabel}</p>
     </div>
 
-    <p style="color:#666;font-size:13px">You can track your order status at any time: <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://leafyshop.vercel.app"}/order/status" style="color:#15803d">Track your order →</a></p>
+    ${data.wantsInvoice && isPaid && data.orderId ? `
+    <div style="background:#f0fdf4;padding:12px 16px;border-radius:8px;margin:16px 0;font-size:13px">
+      📄 <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://leafyshop.eu"}/api/admin/invoices/${data.orderId}" style="color:#15803d">Download your invoice</a>
+    </div>
+    ` : ""}
+
+    <p style="color:#666;font-size:13px">You can track your order status at any time: <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://leafyshop.eu"}/order/status" style="color:#15803d">Track your order →</a></p>
   `);
 
   try {
@@ -206,7 +214,7 @@ export async function sendOrderStatusEmail(
         const productDesc = hasTea && hasCoffee
           ? "teas and coffees"
           : hasTea ? "teas" : hasCoffee ? "coffees" : "products";
-        return `We hope you enjoy your ${productDesc}! If you have any questions, don't hesitate to contact us at hello@leafy-shop.com.`;
+        return `We hope you enjoy your ${productDesc}! If you have any questions, don't hesitate to contact us at support@leafyshop.eu.`;
       })(),
       color: "#15803d",
       bgColor: "#f0fdf4",
@@ -216,7 +224,7 @@ export async function sendOrderStatusEmail(
       heading: "Your Order Has Been Cancelled",
       message: paymentMethod === "cod"
         ? "Your order has been cancelled. Since no payment was made, no refund is needed. All reserved items have been returned to stock."
-        : `Your order has been cancelled. All reserved items have been returned to stock. Your payment will be refunded within 5–10 business days.${changedBy === "customer" ? " If you have any questions about your refund, please contact us at hello@leafy-shop.com." : ""}`,
+        : `Your order has been cancelled. All reserved items have been returned to stock. Your payment will be refunded within 5–10 business days.${changedBy === "customer" ? " If you have any questions about your refund, please contact us at support@leafyshop.eu." : ""}`,
       color: "#dc2626",
       bgColor: "#fef2f2",
     },

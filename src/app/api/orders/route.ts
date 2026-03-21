@@ -245,6 +245,8 @@ export async function POST(request: NextRequest) {
       shippingMethod: data.shipping.method,
       paymentMethod: data.payment.method,
       shippingAddress: `${data.shipping.street}, ${data.shipping.zip} ${data.shipping.city}`,
+      orderId: order.id,
+      wantsInvoice: data.invoice?.wants_invoice || false,
     }).catch(() => {});
 
     return apiSuccess(

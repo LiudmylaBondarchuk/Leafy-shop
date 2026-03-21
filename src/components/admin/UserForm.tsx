@@ -22,7 +22,7 @@ export function UserForm({ userId }: UserFormProps) {
     email: "",
     password: "",
     role: "manager" as "admin" | "manager" | "tester",
-    permissions: [] as string[],
+    permissions: ["products.view", "orders.view", "discounts.view", "customers.view"] as string[],
     isActive: true,
   });
 

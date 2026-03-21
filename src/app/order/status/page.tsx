@@ -42,6 +42,9 @@ interface OrderData {
   history: { status: string; date: string; note: string | null }[];
   canCancel: boolean;
   canReturn: boolean;
+  orderId: number;
+  wantsInvoice: boolean;
+  isPaid: boolean;
 }
 
 function OrderStatusContent() {
@@ -215,6 +218,13 @@ function OrderStatusContent() {
               <div className="flex justify-between"><span>Shipping</span><span>{order.shippingCost === 0 ? "Free" : formatPrice(order.shippingCost)}</span></div>
               <div className="flex justify-between font-bold text-base pt-1"><span>Total</span><span>{formatPrice(order.total)}</span></div>
             </div>
+            {order.wantsInvoice && order.isPaid && (
+              <div className="mt-3 pt-3 border-t border-gray-200">
+                <a href={`/api/admin/invoices/${order.orderId}`} target="_blank" className="text-sm text-green-700 hover:text-green-800 font-medium">
+                  📄 Download Invoice
+                </a>
+              </div>
+            )}
           </div>
 
           {/* Actions */}
@@ -228,13 +238,13 @@ function OrderStatusContent() {
 
           {!order.canCancel && ["processing", "shipped"].includes(order.status) && (
             <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-600">
-              Need to cancel? Contact us at <a href="mailto:hello@leafy-shop.com" className="text-green-700 underline">hello@leafy-shop.com</a> with your order number.
+              Need to cancel? Contact us at <a href="mailto:support@leafyshop.eu" className="text-green-700 underline">support@leafyshop.eu</a> with your order number.
             </div>
           )}
 
           {order.canReturn && (
             <div>
-              <Button variant="secondary" size="sm" onClick={() => toast.info("To request a return, please contact hello@leafy-shop.com with your order number.")}>
+              <Button variant="secondary" size="sm" onClick={() => toast.info("To request a return, please contact support@leafyshop.eu with your order number.")}>
                 Request Return
               </Button>
             </div>

@@ -57,7 +57,7 @@ export default function TermsPage() {
             unopened and in their original packaging.
           </p>
           <p>
-            To initiate a return, please contact us at hello@leafy-shop.com with your order number.
+            To initiate a return, please contact us at support@leafyshop.eu with your order number.
             Return shipping costs are the responsibility of the customer unless the product is defective.
           </p>
           <p>
@@ -87,8 +87,8 @@ export default function TermsPage() {
           <h2 className="text-lg font-semibold text-gray-900 mb-3">8. Contact</h2>
           <p>
             For any questions regarding these terms, please contact us at{" "}
-            <a href="mailto:hello@leafy-shop.com" className="text-green-700 hover:text-green-800">
-              hello@leafy-shop.com
+            <a href="mailto:support@leafyshop.eu" className="text-green-700 hover:text-green-800">
+              support@leafyshop.eu
             </a>.
           </p>
         </section>

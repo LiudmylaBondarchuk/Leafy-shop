@@ -67,6 +67,9 @@ export async function GET(request: NextRequest) {
       })),
       canCancel,
       canReturn,
+      orderId: order.id,
+      wantsInvoice: order.wantsInvoice,
+      isPaid: order.statusHistory.some((h: any) => h.toStatus === "paid"),
     });
   } catch (error) {
     console.error("GET /api/orders/status error:", error);

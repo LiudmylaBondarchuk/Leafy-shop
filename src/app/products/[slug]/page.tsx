@@ -54,6 +54,7 @@ export default function ProductDetailPage() {
   const [selectedGrind, setSelectedGrind] = useState("");
   const [quantity, setQuantity] = useState(1);
   const addItem = useCartStore((s) => s.addItem);
+  const cartItems = useCartStore((s) => s.items);
 
   useEffect(() => {
     fetch(`/api/products/${slug}`)
@@ -97,7 +98,10 @@ export default function ProductDetailPage() {
         : v.grindType === effectiveGrind)
   );
 
-  const maxQuantity = selectedVariant?.stock || 0;
+  const inCartQuantity = selectedVariant
+    ? cartItems.find((i) => i.variantId === selectedVariant.id)?.quantity || 0
+    : 0;
+  const maxQuantity = Math.max(0, (selectedVariant?.stock || 0) - inCartQuantity);
   const isAvailable = maxQuantity > 0;
 
   if (loading) {
@@ -224,10 +228,12 @@ export default function ProductDetailPage() {
 
           {/* Stock info */}
           <div className="mb-4">
-            {!isAvailable ? (
+            {!isAvailable && inCartQuantity > 0 ? (
+              <p className="text-sm text-orange-600 font-medium">All available units are in your cart</p>
+            ) : !isAvailable ? (
               <p className="text-sm text-red-600 font-medium">Out of stock</p>
             ) : maxQuantity <= 5 ? (
-              <p className="text-sm text-orange-600 font-medium">Only {maxQuantity} left!</p>
+              <p className="text-sm text-orange-600 font-medium">Only {maxQuantity} left!{inCartQuantity > 0 ? ` (${inCartQuantity} in cart)` : ""}</p>
             ) : (
               <p className="text-sm text-green-600">In stock: {maxQuantity} units</p>
             )}

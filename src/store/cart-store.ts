@@ -3,6 +3,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+const CART_EXPIRY_MS = 30 * 60 * 1000; // 30 minutes
+
 export interface CartItem {
   variantId: number;
   productId: number;
@@ -19,6 +21,7 @@ export interface CartItem {
 interface CartStore {
   items: CartItem[];
   discountCode: string | null;
+  lastUpdated: number | null;
   addItem: (item: CartItem) => void;
   removeItem: (variantId: number) => void;
   updateQuantity: (variantId: number, quantity: number) => void;
@@ -26,6 +29,7 @@ interface CartStore {
   clearCart: () => void;
   totalItems: () => number;
   subtotal: () => number;
+  checkExpiry: () => void;
 }
 
 export const useCartStore = create<CartStore>()(
@@ -33,6 +37,7 @@ export const useCartStore = create<CartStore>()(
     (set, get) => ({
       items: [],
       discountCode: null,
+      lastUpdated: null,
 
       addItem: (newItem) =>
         set((state) => {
@@ -44,15 +49,20 @@ export const useCartStore = create<CartStore>()(
                   ? { ...i, quantity: Math.min(i.quantity + newItem.quantity, i.maxStock) }
                   : i
               ),
+              lastUpdated: Date.now(),
             };
           }
-          return { items: [...state.items, newItem] };
+          return { items: [...state.items, newItem], lastUpdated: Date.now() };
         }),
 
       removeItem: (variantId) =>
-        set((state) => ({
-          items: state.items.filter((i) => i.variantId !== variantId),
-        })),
+        set((state) => {
+          const newItems = state.items.filter((i) => i.variantId !== variantId);
+          return {
+            items: newItems,
+            lastUpdated: newItems.length > 0 ? Date.now() : null,
+          };
+        }),
 
       updateQuantity: (variantId, quantity) =>
         set((state) => ({
@@ -61,15 +71,23 @@ export const useCartStore = create<CartStore>()(
               ? { ...i, quantity: Math.max(1, Math.min(quantity, i.maxStock)) }
               : i
           ),
+          lastUpdated: Date.now(),
         })),
 
       setDiscountCode: (code) => set({ discountCode: code }),
 
-      clearCart: () => set({ items: [], discountCode: null }),
+      clearCart: () => set({ items: [], discountCode: null, lastUpdated: null }),
 
       totalItems: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
 
       subtotal: () => get().items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0),
+
+      checkExpiry: () => {
+        const { lastUpdated, items } = get();
+        if (items.length > 0 && lastUpdated && Date.now() - lastUpdated > CART_EXPIRY_MS) {
+          set({ items: [], discountCode: null, lastUpdated: null });
+        }
+      },
     }),
     {
       name: "leafy-cart",

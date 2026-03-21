@@ -410,7 +410,7 @@ export default function CheckoutPage() {
             <div className="flex justify-between mb-4">
               <Button variant="ghost" onClick={goBack}><ChevronLeft className="mr-1 h-4 w-4" /> Back</Button>
               {form.paymentMethod !== "paypal" && (
-                <Button size="lg" onClick={handleSubmit} loading={submitting} disabled={!form.acceptTerms}>
+                <Button size="lg" onClick={handleSubmit} loading={submitting} disabled={!form.acceptTerms || submitting}>
                   Place Order
                 </Button>
               )}

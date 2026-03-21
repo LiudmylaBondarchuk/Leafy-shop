@@ -76,11 +76,11 @@ async function seed() {
       variants: [{ weightGrams: 50, price: 4990, sku: "SN-050", stock: 3 }, { weightGrams: 100, price: 8990, sku: "SN-100", stock: 2 }],
     },
     {
-      product: { categoryId: catMap["herbal-tea"], name: "Fruit Paradise", slug: "fruit-paradise", description: "A vibrant blend of hibiscus, rosehip, apple pieces, and tropical fruits. Naturally sweet and refreshing, perfect hot or iced.", shortDescription: "Vibrant tropical fruit infusion", imageUrl: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=600&h=600&fit=crop", productType: "tea", origin: "Germany (blend)", brewTempMin: 95, brewTempMax: 100, brewTimeMin: 300, brewTimeMax: 600, flavorNotes: "Fruity, sweet, tangy" },
+      product: { categoryId: catMap["herbal-tea"], name: "Fruit Paradise", slug: "fruit-paradise", description: "A vibrant blend of hibiscus, rosehip, apple pieces, and tropical fruits. Naturally sweet and refreshing, perfect hot or iced.", shortDescription: "Vibrant tropical fruit infusion", imageUrl: "https://images.unsplash.com/photo-1574914629385-46448b767aec?w=600&h=600&fit=crop", productType: "tea", origin: "Germany (blend)", brewTempMin: 95, brewTempMax: 100, brewTimeMin: 300, brewTimeMax: 600, flavorNotes: "Fruity, sweet, tangy" },
       variants: [{ weightGrams: 100, price: 1490, sku: "FP-100", stock: 50 }, { weightGrams: 250, price: 2990, sku: "FP-250", stock: 35 }, { weightGrams: 500, price: 4990, sku: "FP-500", stock: 20 }],
     },
     {
-      product: { categoryId: catMap["herbal-tea"], name: "Forest Berry Mix", slug: "forest-berry-mix", description: "A rich blend of wild forest berries including blueberry, elderberry, and blackberry. Deep, fruity aroma with a naturally sweet taste.", shortDescription: "Wild forest berry infusion", imageUrl: "https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=600&h=600&fit=crop", productType: "tea", origin: "Germany (blend)", brewTempMin: 95, brewTempMax: 100, brewTimeMin: 300, brewTimeMax: 600, flavorNotes: "Berry, sweet, deep" },
+      product: { categoryId: catMap["herbal-tea"], name: "Forest Berry Mix", slug: "forest-berry-mix", description: "A rich blend of wild forest berries including blueberry, elderberry, and blackberry. Deep, fruity aroma with a naturally sweet taste.", shortDescription: "Wild forest berry infusion", imageUrl: "https://images.unsplash.com/photo-1598618443855-232ee0f819f6?w=600&h=600&fit=crop", productType: "tea", origin: "Germany (blend)", brewTempMin: 95, brewTempMax: 100, brewTimeMin: 300, brewTimeMax: 600, flavorNotes: "Berry, sweet, deep" },
       variants: [{ weightGrams: 100, price: 1490, sku: "FBM-100", stock: 40 }, { weightGrams: 250, price: 2990, sku: "FBM-250", stock: 0 }],
     },
     {

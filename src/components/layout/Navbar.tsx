@@ -31,16 +31,16 @@ export function Navbar() {
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-sm font-medium text-gray-600 hover:text-green-700 transition-colors"
-              >
-                {link.label}
-              </Link>
-            ))}
+          <nav className="hidden md:flex items-center gap-6">
+            <Link href="/products?type=tea" className="text-sm font-medium text-gray-600 hover:text-green-700 transition-colors">
+              Teas
+            </Link>
+            <Link href="/products?type=coffee" className="text-sm font-medium text-gray-600 hover:text-green-700 transition-colors">
+              Coffees
+            </Link>
+            <Link href="/products" className="text-sm font-medium text-green-700 bg-green-50 px-3 py-1.5 rounded-lg hover:bg-green-100 transition-colors">
+              All Products
+            </Link>
           </nav>
 
           {/* Right side */}

@@ -51,7 +51,7 @@ export function ProductCard({
         {/* Badges */}
         <div className="flex gap-1.5 mb-2 flex-wrap">
           <Badge variant="default">{category.name}</Badge>
-          {isFeatured && <Badge variant="success">Bestseller</Badge>}
+          {isFeatured && <Badge variant="warning">★ Bestseller</Badge>}
           {!inStock && <Badge variant="error">Out of stock</Badge>}
         </div>
 

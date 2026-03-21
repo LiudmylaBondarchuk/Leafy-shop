@@ -2,105 +2,28 @@ import { ProductCard } from "@/components/products/ProductCard";
 import { ProductFilters } from "@/components/products/ProductFilters";
 import { ProductSort } from "@/components/products/ProductSort";
 import { Suspense } from "react";
-import { db } from "@/lib/db";
+import { headers } from "next/headers";
+
+async function getBaseUrl() {
+  const h = await headers();
+  const host = h.get("host") || "localhost:3000";
+  const protocol = host.includes("localhost") ? "http" : "https";
+  return `${protocol}://${host}`;
+}
 
 async function getCategories() {
-  const { categories, products } = await import("@/lib/db/schema-pg");
-  const { eq, count, and } = await import("drizzle-orm");
-
-  const result = await (db as any)
-    .select({
-      id: categories.id,
-      name: categories.name,
-      slug: categories.slug,
-      productCount: count(products.id),
-    })
-    .from(categories)
-    .leftJoin(products, and(eq(products.categoryId, categories.id), eq(products.isActive, true)))
-    .groupBy(categories.id, categories.name, categories.slug)
-    .orderBy(categories.sortOrder);
-
-  return result;
+  const baseUrl = await getBaseUrl();
+  const res = await fetch(`${baseUrl}/api/categories`, { cache: "no-store" });
+  const json = await res.json();
+  return json.data;
 }
 
 async function getProducts(searchParams: Record<string, string>) {
-  const { products, productVariants, categories } = await import("@/lib/db/schema-pg");
-  const { eq, and, like, or, sql } = await import("drizzle-orm");
-
-  const page = Math.max(1, parseInt(searchParams.page || "1"));
-  const limit = 12;
-  const category = searchParams.category;
-  const type = searchParams.type;
-  const search = searchParams.search;
-  const sort = searchParams.sort || "newest";
-  const inStock = searchParams.in_stock;
-
-  const conditions: any[] = [eq(products.isActive, true)];
-  if (type) conditions.push(eq(products.productType, type));
-
-  if (category) {
-    const cat = await (db as any).query.categories.findFirst({
-      where: eq(categories.slug, category),
-    });
-    if (cat) conditions.push(eq(products.categoryId, cat.id));
-  }
-
-  if (search) {
-    conditions.push(or(like(products.name, `%${search}%`), like(products.description, `%${search}%`))!);
-  }
-
-  const allProducts = await (db as any)
-    .select({
-      id: products.id,
-      name: products.name,
-      slug: products.slug,
-      shortDescription: products.shortDescription,
-      imageUrl: products.imageUrl,
-      productType: products.productType,
-      isFeatured: products.isFeatured,
-      createdAt: products.createdAt,
-      categoryId: categories.id,
-      categoryName: categories.name,
-      categorySlug: categories.slug,
-      minPrice: sql`MIN(${productVariants.price})`,
-      maxStock: sql`MAX(${productVariants.stock})`,
-      variantCount: sql`COUNT(${productVariants.id})`,
-    })
-    .from(products)
-    .innerJoin(categories, eq(products.categoryId, categories.id))
-    .innerJoin(productVariants, and(eq(productVariants.productId, products.id), eq(productVariants.isActive, true)))
-    .where(and(...conditions))
-    .groupBy(
-      products.id, products.name, products.slug, products.shortDescription,
-      products.imageUrl, products.productType, products.isFeatured, products.createdAt,
-      categories.id, categories.name, categories.slug
-    );
-
-  let filtered = allProducts;
-  if (inStock === "true") filtered = filtered.filter((p: any) => p.maxStock > 0);
-
-  filtered.sort((a: any, b: any) => {
-    switch (sort) {
-      case "price_asc": return a.minPrice - b.minPrice;
-      case "price_desc": return b.minPrice - a.minPrice;
-      case "name_asc": return a.name.localeCompare(b.name);
-      case "name_desc": return b.name.localeCompare(a.name);
-      default: return b.createdAt.localeCompare(a.createdAt);
-    }
-  });
-
-  const total = filtered.length;
-  const totalPages = Math.ceil(total / limit);
-  const paginated = filtered.slice((page - 1) * limit, page * limit);
-
-  const data = paginated.map((p: any) => ({
-    id: p.id, name: p.name, slug: p.slug, shortDescription: p.shortDescription,
-    imageUrl: p.imageUrl, productType: p.productType, isFeatured: p.isFeatured,
-    category: { id: p.categoryId, name: p.categoryName, slug: p.categorySlug },
-    priceFrom: p.minPrice, inStock: p.maxStock > 0, variantsCount: p.variantCount,
-  }));
-
-  return { products: data, pagination: { page, limit, total, totalPages } };
+  const baseUrl = await getBaseUrl();
+  const params = new URLSearchParams(searchParams);
+  const res = await fetch(`${baseUrl}/api/products?${params}`, { cache: "no-store" });
+  const json = await res.json();
+  return json.data;
 }
 
 export default async function ProductsPage({

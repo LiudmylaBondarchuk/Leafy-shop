@@ -243,6 +243,7 @@ export async function POST(request: NextRequest) {
       shippingCost,
       total,
       shippingMethod: data.shipping.method,
+      paymentMethod: data.payment.method,
       shippingAddress: `${data.shipping.street}, ${data.shipping.zip} ${data.shipping.city}`,
     }).catch(() => {});
 

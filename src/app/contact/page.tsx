@@ -17,8 +17,8 @@ export default function ContactPage() {
           </div>
           <div>
             <h3 className="font-semibold text-gray-900 mb-1">Email</h3>
-            <a href="mailto:hello@leafy-shop.com" className="text-green-700 hover:text-green-800 text-sm">
-              hello@leafy-shop.com
+            <a href="mailto:support@leafyshop.eu" className="text-green-700 hover:text-green-800 text-sm">
+              support@leafyshop.eu
             </a>
             <p className="text-xs text-gray-400 mt-1">We reply within 24 hours</p>
           </div>

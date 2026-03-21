@@ -24,6 +24,7 @@ const ROLE_COLORS: Record<string, string> = {
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<any[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchUsers = () => {
@@ -35,7 +36,12 @@ export default function AdminUsersPage() {
       });
   };
 
-  useEffect(() => { fetchUsers(); }, []);
+  useEffect(() => {
+    fetchUsers();
+    fetch("/api/auth/me").then((r) => r.json()).then((json) => {
+      if (json.data?.user) setCurrentUserId(Number(json.data.user.sub));
+    });
+  }, []);
 
   const handleToggleActive = async (id: number, name: string, activate: boolean) => {
     const res = await fetch(`/api/admin/users/${id}`, {
@@ -115,20 +121,24 @@ export default function AdminUsersPage() {
                         )}
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <div className="flex justify-end gap-1">
-                          <Link href={`/admin/users/${u.id}/edit`}>
-                            <Button variant="ghost" size="sm"><Pencil className="h-3.5 w-3.5" /></Button>
-                          </Link>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleToggleActive(u.id, u.name, !u.isActive)}
-                          >
-                            <span className={`text-xs font-medium ${u.isActive ? "text-orange-500" : "text-green-600"}`}>
-                              {u.isActive ? "Deactivate" : "Activate"}
-                            </span>
-                          </Button>
-                        </div>
+                        {u.id === currentUserId ? (
+                          <span className="text-xs text-gray-400">You</span>
+                        ) : (
+                          <div className="flex justify-end gap-1">
+                            <Link href={`/admin/users/${u.id}/edit`}>
+                              <Button variant="ghost" size="sm"><Pencil className="h-3.5 w-3.5" /></Button>
+                            </Link>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleToggleActive(u.id, u.name, !u.isActive)}
+                            >
+                              <span className={`text-xs font-medium ${u.isActive ? "text-orange-500" : "text-green-600"}`}>
+                                {u.isActive ? "Deactivate" : "Activate"}
+                              </span>
+                            </Button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   );

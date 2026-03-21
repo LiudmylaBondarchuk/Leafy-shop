@@ -79,6 +79,7 @@ export async function PATCH(
       order.orderNumber,
       newStatus,
       order.shippingMethod,
+      order.paymentMethod,
       note
     ).catch(() => {});
 

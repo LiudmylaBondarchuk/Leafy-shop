@@ -315,10 +315,14 @@ export default function ProductDetailPage() {
                 href={`/products/${p.slug}`}
                 className="group bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-all"
               >
-                <div className={`h-32 flex items-center justify-center text-3xl ${
-                  p.productType === "tea" ? "bg-green-50" : "bg-amber-50"
-                }`}>
-                  {p.productType === "tea" ? "🍵" : "☕"}
+                <div className="relative h-32 overflow-hidden">
+                  {p.imageUrl ? (
+                    <Image src={p.imageUrl} alt={p.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="25vw" />
+                  ) : (
+                    <div className={`h-full flex items-center justify-center text-3xl ${p.productType === "tea" ? "bg-green-50" : "bg-amber-50"}`}>
+                      {p.productType === "tea" ? "🍵" : "☕"}
+                    </div>
+                  )}
                 </div>
                 <div className="p-3">
                   <h3 className="font-medium text-sm text-gray-900 group-hover:text-green-700">{p.name}</h3>

@@ -24,15 +24,30 @@ export default function AdminDiscountsPage() {
 
   useEffect(() => { fetchCodes(); }, []);
 
-  const handleDeactivate = async (id: number, code: string) => {
-    if (!confirm(`Deactivate code "${code}"?`)) return;
+  const handleToggleActive = async (id: number, code: string, activate: boolean) => {
+    const res = await fetch(`/api/admin/discounts/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isActive: activate }),
+    });
+    const json = await res.json();
+    if (json.data) {
+      toast.success(`"${code}" ${activate ? "activated" : "deactivated"}`);
+      fetchCodes();
+    } else {
+      toast.error(`Failed to ${activate ? "activate" : "deactivate"}`);
+    }
+  };
+
+  const handleDelete = async (id: number, code: string) => {
+    if (!confirm(`Delete code "${code}" permanently?`)) return;
     const res = await fetch(`/api/admin/discounts/${id}`, { method: "DELETE" });
     const json = await res.json();
     if (json.data) {
-      toast.success(`"${code}" deactivated`);
+      toast.success(`"${code}" deleted`);
       fetchCodes();
     } else {
-      toast.error("Failed to deactivate");
+      toast.error("Failed to delete");
     }
   };
 
@@ -115,15 +130,22 @@ export default function AdminDiscountsPage() {
                         <Badge variant={status.variant}>{status.label}</Badge>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <div className="flex justify-end gap-2">
+                        <div className="flex justify-end gap-1">
                           <Link href={`/admin/discounts/${code.id}/edit`}>
                             <Button variant="ghost" size="sm"><Pencil className="h-3.5 w-3.5" /></Button>
                           </Link>
-                          {code.isActive && (
-                            <Button variant="ghost" size="sm" onClick={() => handleDeactivate(code.id, code.code)}>
-                              <Trash2 className="h-3.5 w-3.5 text-red-500" />
-                            </Button>
-                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleToggleActive(code.id, code.code, !code.isActive)}
+                          >
+                            <span className={`text-xs font-medium ${code.isActive ? "text-orange-500" : "text-green-600"}`}>
+                              {code.isActive ? "Deactivate" : "Activate"}
+                            </span>
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleDelete(code.id, code.code)}>
+                            <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                          </Button>
                         </div>
                       </td>
                     </tr>

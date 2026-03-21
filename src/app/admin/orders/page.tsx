@@ -13,8 +13,18 @@ export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  // Read URL params on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlStatus = params.get("status");
+    if (urlStatus) setStatusFilter(urlStatus);
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
+    if (!mounted) return;
     const params = new URLSearchParams();
     if (statusFilter) params.set("status", statusFilter);
     if (search) params.set("search", search);
@@ -25,7 +35,7 @@ export default function AdminOrdersPage() {
         setOrders(json.data?.orders || []);
         setLoading(false);
       });
-  }, [statusFilter, search]);
+  }, [statusFilter, search, mounted]);
 
   return (
     <div>
@@ -50,6 +60,11 @@ export default function AdminOrdersPage() {
           placeholder="Search by order #, email..."
           className="rounded-lg border border-gray-300 px-3 py-2 text-sm w-64"
         />
+        {statusFilter && (
+          <button onClick={() => setStatusFilter("")} className="text-sm text-green-700 hover:text-green-800">
+            Clear filter
+          </button>
+        )}
       </div>
 
       {/* Table */}

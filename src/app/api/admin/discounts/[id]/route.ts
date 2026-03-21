@@ -89,10 +89,9 @@ export async function DELETE(
 
   try {
     const { id } = await params;
-    await db.update(discountCodes)
-      .set({ isActive: false })
+    await db.delete(discountCodes)
       .where(eq(discountCodes.id, parseInt(id)));
-    return apiSuccess({ message: "Discount code deactivated" });
+    return apiSuccess({ message: "Discount code deleted" });
   } catch (error) {
     console.error("DELETE /api/admin/discounts/[id] error:", error);
     return apiError("Failed to deactivate discount code", 500);

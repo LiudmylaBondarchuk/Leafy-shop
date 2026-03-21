@@ -111,7 +111,7 @@ export async function POST(request: Request) {
       email.trim().toLowerCase(),
       name.trim(),
       generatedPassword,
-      `${appUrl}/admin/login`,
+      `${appUrl}/management/login`,
       role,
     ).catch(() => {});
 

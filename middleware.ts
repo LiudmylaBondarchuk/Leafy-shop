@@ -10,8 +10,8 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Skip login page and public API
-  if (pathname === "/admin/login") return NextResponse.next();
-  if (pathname === "/admin/change-password") return NextResponse.next();
+  if (pathname === "/management/login") return NextResponse.next();
+  if (pathname === "/management/change-password") return NextResponse.next();
   if (pathname.startsWith("/api/auth/")) return NextResponse.next();
   if (pathname.startsWith("/api/products")) return NextResponse.next();
   if (pathname.startsWith("/api/categories")) return NextResponse.next();
@@ -25,14 +25,14 @@ export async function middleware(request: NextRequest) {
   if (pathname === "/api/health") return NextResponse.next();
 
   // Protect admin pages and admin API
-  if (pathname.startsWith("/admin") || pathname.startsWith("/api/admin")) {
+  if (pathname.startsWith("/management") || pathname.startsWith("/api/admin")) {
     const token = request.cookies.get("admin_token")?.value;
 
     if (!token) {
       if (pathname.startsWith("/api/")) {
         return NextResponse.json({ error: "UNAUTHORIZED", message: "Not authenticated" }, { status: 401 });
       }
-      return NextResponse.redirect(new URL("/admin/login", request.url));
+      return NextResponse.redirect(new URL("/management/login", request.url));
     }
 
     try {
@@ -42,7 +42,7 @@ export async function middleware(request: NextRequest) {
       if (pathname.startsWith("/api/")) {
         return NextResponse.json({ error: "UNAUTHORIZED", message: "Invalid or expired token" }, { status: 401 });
       }
-      return NextResponse.redirect(new URL("/admin/login", request.url));
+      return NextResponse.redirect(new URL("/management/login", request.url));
     }
   }
 
@@ -50,5 +50,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*"],
+  matcher: ["/management/:path*", "/api/admin/:path*"],
 };

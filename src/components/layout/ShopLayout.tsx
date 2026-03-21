@@ -6,7 +6,7 @@ import { Footer } from "./Footer";
 
 export function ShopLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isAdmin = pathname.startsWith("/admin");
+  const isAdmin = pathname.startsWith("/management");
 
   if (isAdmin) {
     return <>{children}</>;

@@ -143,8 +143,32 @@ export default async function ProductsPage({
             </div>
           )}
           {pagination.totalPages > 1 && (
-            <div className="mt-8 text-center text-sm text-gray-500">
-              Page {pagination.page} of {pagination.totalPages}
+            <div className="mt-8 flex justify-center items-center gap-2">
+              {pagination.page > 1 && (
+                <a
+                  href={`/products?${new URLSearchParams({ ...params, page: String(pagination.page - 1) }).toString()}`}
+                  className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 hover:bg-gray-100"
+                >
+                  ← Previous
+                </a>
+              )}
+              {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((p) => (
+                <a
+                  key={p}
+                  href={`/products?${new URLSearchParams({ ...params, page: String(p) }).toString()}`}
+                  className={`px-3 py-1.5 text-sm rounded-lg ${p === pagination.page ? "bg-green-700 text-white" : "border border-gray-300 hover:bg-gray-100 text-gray-700"}`}
+                >
+                  {p}
+                </a>
+              ))}
+              {pagination.page < pagination.totalPages && (
+                <a
+                  href={`/products?${new URLSearchParams({ ...params, page: String(pagination.page + 1) }).toString()}`}
+                  className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 hover:bg-gray-100"
+                >
+                  Next →
+                </a>
+              )}
             </div>
           )}
         </div>

@@ -23,7 +23,7 @@ export default function AnalyticsPage() {
 
   const fetchData = () => {
     setLoading(true);
-    let url = "/api/management/analytics";
+    let url = "/api/admin/analytics";
     const params = new URLSearchParams();
 
     if (dateRange === "custom") {

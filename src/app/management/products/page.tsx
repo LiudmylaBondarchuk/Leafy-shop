@@ -7,16 +7,20 @@ import { Card } from "@/components/ui/Card";
 import { ProductImage } from "@/components/products/ProductImage";
 import { BestsellerBadge } from "@/components/products/BestsellerBadge";
 import { formatPrice } from "@/lib/utils";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
 
   const fetchProducts = () => {
-    fetch("/api/management/products/list")
+    fetch("/api/admin/products/list")
       .then((r) => r.json())
       .then((json) => {
         setProducts(json.data || []);
@@ -30,7 +34,7 @@ export default function AdminProductsPage() {
 
   const handleDeactivate = async () => {
     if (!deleteModal) return;
-    const res = await fetch(`/api/management/products/${deleteModal.id}`, { method: "DELETE" });
+    const res = await fetch(`/api/admin/products/${deleteModal.id}`, { method: "DELETE" });
     const json = await res.json();
     if (json.data) {
       toast.success(`"${deleteModal.name}" deactivated`);
@@ -40,6 +44,24 @@ export default function AdminProductsPage() {
     }
     setDeleteModal(null);
   };
+
+  const categories = [...new Set(products.map((p) => p.category?.name).filter(Boolean))].sort();
+
+  const filtered = products.filter((p) => {
+    if (search) {
+      const q = search.toLowerCase();
+      if (!p.name.toLowerCase().includes(q) && !p.sku?.toLowerCase().includes(q)) return false;
+    }
+    if (categoryFilter && p.category?.name !== categoryFilter) return false;
+    if (typeFilter && p.productType !== typeFilter) return false;
+    if (statusFilter === "active" && !p.isActive) return false;
+    if (statusFilter === "inactive" && p.isActive) return false;
+    if (statusFilter === "in_stock" && (!p.isActive || !p.inStock)) return false;
+    if (statusFilter === "out_of_stock" && (!p.isActive || p.inStock)) return false;
+    return true;
+  });
+
+  const hasFilters = search || categoryFilter || typeFilter || statusFilter;
 
   return (
     <div>
@@ -52,9 +74,46 @@ export default function AdminProductsPage() {
         </Link>
       </div>
 
+      {/* Filters */}
+      <div className="flex flex-wrap gap-3 mb-6">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by name or SKU..."
+            className="rounded-lg border border-gray-300 pl-9 pr-3 py-2 text-sm w-full sm:w-56"
+          />
+        </div>
+        <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm">
+          <option value="">All categories</option>
+          {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm">
+          <option value="">All types</option>
+          <option value="tea">Tea</option>
+          <option value="coffee">Coffee</option>
+        </select>
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm">
+          <option value="">All statuses</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+          <option value="in_stock">In stock</option>
+          <option value="out_of_stock">Out of stock</option>
+        </select>
+        {hasFilters && (
+          <button onClick={() => { setSearch(""); setCategoryFilter(""); setTypeFilter(""); setStatusFilter(""); }} className="text-sm text-green-700 hover:text-green-800">
+            Clear filters
+          </button>
+        )}
+      </div>
+
       <Card className="overflow-hidden">
         {loading ? (
           <div className="p-8 text-center text-gray-400">Loading...</div>
+        ) : filtered.length === 0 ? (
+          <div className="p-8 text-center text-gray-400">{hasFilters ? "No products match your filters." : "No products yet."}</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[640px]">
@@ -70,7 +129,7 @@ export default function AdminProductsPage() {
                 </tr>
               </thead>
               <tbody>
-                {products.map((p: any) => (
+                {filtered.map((p: any) => (
                   <tr key={p.id} className={`border-t border-gray-100 hover:bg-gray-50 ${!p.isActive ? "opacity-40" : ""}`}>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">

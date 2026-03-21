@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
         or(
           like(orders.orderNumber, `%${search}%`),
           like(orders.customerEmail, `%${search}%`),
+          like(orders.customerFirstName, `%${search}%`),
           like(orders.customerLastName, `%${search}%`)
         )!
       );

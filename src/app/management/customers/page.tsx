@@ -16,7 +16,7 @@ export default function AdminCustomersPage() {
     const params = new URLSearchParams();
     if (search) params.set("search", search);
 
-    fetch(`/api/management/customers?${params}`)
+    fetch(`/api/admin/customers?${params}`)
       .then((r) => r.json())
       .then((json) => {
         setCustomers(json.data || []);

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ROLE_LABELS } from "@/constants/permissions";
 import type { Role } from "@/constants/permissions";
-import { Plus, Pencil, Shield, ShieldCheck, TestTube, KeyRound } from "lucide-react";
+import { Plus, Pencil, Shield, ShieldCheck, TestTube, KeyRound, Search } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -26,9 +26,12 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
 
   const fetchUsers = () => {
-    fetch("/api/management/users")
+    fetch("/api/admin/users")
       .then((r) => r.json())
       .then((json) => {
         setUsers(json.data || []);
@@ -44,7 +47,7 @@ export default function AdminUsersPage() {
   }, []);
 
   const handleToggleActive = async (id: number, name: string, activate: boolean) => {
-    const res = await fetch(`/api/management/users/${id}`, {
+    const res = await fetch(`/api/admin/users/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ isActive: activate }),
@@ -58,6 +61,19 @@ export default function AdminUsersPage() {
     }
   };
 
+  const filtered = users.filter((u) => {
+    if (search) {
+      const q = search.toLowerCase();
+      if (!u.name.toLowerCase().includes(q) && !u.email.toLowerCase().includes(q)) return false;
+    }
+    if (roleFilter && u.role !== roleFilter) return false;
+    if (statusFilter === "active" && !u.isActive) return false;
+    if (statusFilter === "inactive" && u.isActive) return false;
+    return true;
+  });
+
+  const hasFilters = search || roleFilter || statusFilter;
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -67,11 +83,41 @@ export default function AdminUsersPage() {
         </Link>
       </div>
 
+      {/* Filters */}
+      <div className="flex flex-wrap gap-3 mb-6">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by name or email..."
+            className="rounded-lg border border-gray-300 pl-9 pr-3 py-2 text-sm w-full sm:w-56"
+          />
+        </div>
+        <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm">
+          <option value="">All roles</option>
+          <option value="admin">Admin</option>
+          <option value="manager">Manager</option>
+          <option value="tester">Tester</option>
+        </select>
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm">
+          <option value="">All statuses</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+        {hasFilters && (
+          <button onClick={() => { setSearch(""); setRoleFilter(""); setStatusFilter(""); }} className="text-sm text-green-700 hover:text-green-800">
+            Clear filters
+          </button>
+        )}
+      </div>
+
       <Card className="overflow-hidden">
         {loading ? (
           <div className="p-8 text-center text-gray-400">Loading...</div>
-        ) : users.length === 0 ? (
-          <div className="p-8 text-center text-gray-400">No users found.</div>
+        ) : filtered.length === 0 ? (
+          <div className="p-8 text-center text-gray-400">{hasFilters ? "No users match your filters." : "No users found."}</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[600px]">
@@ -86,7 +132,7 @@ export default function AdminUsersPage() {
                 </tr>
               </thead>
               <tbody>
-                {users.map((u: any) => {
+                {filtered.map((u: any) => {
                   const Icon = ROLE_ICONS[u.role] || Shield;
                   return (
                     <tr key={u.id} className={`border-t border-gray-100 hover:bg-gray-50 ${!u.isActive ? "opacity-40" : ""}`}>
@@ -133,7 +179,7 @@ export default function AdminUsersPage() {
                               size="sm"
                               title="Reset password"
                               onClick={async () => {
-                                const res = await fetch("/api/management/users/reset-password", {
+                                const res = await fetch("/api/admin/users/reset-password", {
                                   method: "POST",
                                   headers: { "Content-Type": "application/json" },
                                   body: JSON.stringify({ userId: u.id }),

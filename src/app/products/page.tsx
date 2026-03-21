@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import { db } from "@/lib/db";
 
 async function getCategories() {
-  const { categories, products } = await import("@/lib/db/schema");
+  const { categories, products } = await import("@/lib/db/schema-pg");
   const { eq, count, and } = await import("drizzle-orm");
 
   const result = await (db as any)
@@ -24,7 +24,7 @@ async function getCategories() {
 }
 
 async function getProducts(searchParams: Record<string, string>) {
-  const { products, productVariants, categories } = await import("@/lib/db/schema");
+  const { products, productVariants, categories } = await import("@/lib/db/schema-pg");
   const { eq, and, like, or, sql } = await import("drizzle-orm");
 
   const page = Math.max(1, parseInt(searchParams.page || "1"));

@@ -38,6 +38,17 @@ export async function PUT(
     const body = await request.json();
     const { code, description, type, value, minOrderValue, maxDiscount, categoryId, usageLimit, startsAt, expiresAt, isActive } = body;
 
+    // Tester can only edit their own discounts
+    const testerCheckUser = await db.query.adminUsers.findFirst({
+      where: eq(adminUsers.id, Number(admin.sub)),
+    });
+    if (testerCheckUser?.role === "tester") {
+      const discount = await db.query.discountCodes.findFirst({ where: eq(discountCodes.id, parseInt(id)) });
+      if (discount?.createdBy !== Number(admin.sub)) {
+        return apiError("You can only edit discounts you created.", 403, "FORBIDDEN");
+      }
+    }
+
     // If only toggling isActive, skip full validation
     const isToggleOnly = Object.keys(body).length === 1 && "isActive" in body;
 
@@ -117,7 +128,17 @@ export async function DELETE(
       where: eq(discountCodes.id, discountId),
     });
 
-    await db.delete(discountCodes)
+    // Tester can only delete their own discounts
+    const delUser = await db.query.adminUsers.findFirst({
+      where: eq(adminUsers.id, Number(admin.sub)),
+    });
+    if (delUser?.role === "tester" && discount?.createdBy !== Number(admin.sub)) {
+      return apiError("You can only delete discounts you created.", 403, "FORBIDDEN");
+    }
+
+    // Soft delete
+    await db.update(discountCodes)
+      .set({ deletedAt: new Date().toISOString(), isActive: false })
       .where(eq(discountCodes.id, discountId));
 
     // Audit log

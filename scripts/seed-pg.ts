@@ -64,7 +64,7 @@ async function seed() {
       variants: [{ weightGrams: 100, price: 2990, sku: "ASM-TGF-100", stock: 25 }, { weightGrams: 250, price: 5990, sku: "ASM-TGF-250", stock: 15 }],
     },
     {
-      product: { categoryId: catMap["black-tea"], name: "Darjeeling First Flush", slug: "darjeeling-first-flush", description: "The 'Champagne of Teas'. First flush picking from the Himalayan foothills. Light, floral, and muscatel character.", shortDescription: "The champagne of teas from the Himalayas", imageUrl: "https://images.unsplash.com/photo-1558160074-4d93e8e073a1?w=600&h=600&fit=crop", productType: "tea", origin: "India, Darjeeling", brewTempMin: 85, brewTempMax: 95, brewTimeMin: 120, brewTimeMax: 240, flavorNotes: "Floral, muscatel, light" },
+      product: { categoryId: catMap["black-tea"], name: "Darjeeling First Flush", slug: "darjeeling-first-flush", description: "The 'Champagne of Teas'. First flush picking from the Himalayan foothills. Light, floral, and muscatel character.", shortDescription: "The champagne of teas from the Himalayas", imageUrl: "https://images.unsplash.com/photo-1594631252845-29fc4cc8cde9?w=600&h=600&fit=crop", productType: "tea", origin: "India, Darjeeling", brewTempMin: 85, brewTempMax: 95, brewTimeMin: 120, brewTimeMax: 240, flavorNotes: "Floral, muscatel, light" },
       variants: [{ weightGrams: 100, price: 3990, sku: "DAR-FF-100", stock: 10 }, { weightGrams: 250, price: 7990, sku: "DAR-FF-250", stock: 5 }],
     },
     {
@@ -72,7 +72,7 @@ async function seed() {
       variants: [{ weightGrams: 50, price: 3490, sku: "PMT-050", stock: 15 }, { weightGrams: 100, price: 5990, sku: "PMT-100", stock: 10 }],
     },
     {
-      product: { categoryId: catMap["white-tea"], name: "Silver Needle", slug: "silver-needle", description: "The most prized white tea, made exclusively from unopened buds covered in fine white hair. Exquisitely delicate with a sweet, honeyed flavor.", shortDescription: "Exquisite bud-only white tea", imageUrl: "https://images.unsplash.com/photo-1563911892437-0e9c6fba5ec9?w=600&h=600&fit=crop", productType: "tea", origin: "China, Fujian", brewTempMin: 70, brewTempMax: 80, brewTimeMin: 240, brewTimeMax: 420, flavorNotes: "Honey, sweet, ethereal" },
+      product: { categoryId: catMap["white-tea"], name: "Silver Needle", slug: "silver-needle", description: "The most prized white tea, made exclusively from unopened buds covered in fine white hair. Exquisitely delicate with a sweet, honeyed flavor.", shortDescription: "Exquisite bud-only white tea", imageUrl: "https://images.unsplash.com/photo-1523920290228-4f321a939b4c?w=600&h=600&fit=crop", productType: "tea", origin: "China, Fujian", brewTempMin: 70, brewTempMax: 80, brewTimeMin: 240, brewTimeMax: 420, flavorNotes: "Honey, sweet, ethereal" },
       variants: [{ weightGrams: 50, price: 4990, sku: "SN-050", stock: 3 }, { weightGrams: 100, price: 8990, sku: "SN-100", stock: 2 }],
     },
     {
@@ -80,7 +80,7 @@ async function seed() {
       variants: [{ weightGrams: 100, price: 1490, sku: "FP-100", stock: 50 }, { weightGrams: 250, price: 2990, sku: "FP-250", stock: 35 }, { weightGrams: 500, price: 4990, sku: "FP-500", stock: 20 }],
     },
     {
-      product: { categoryId: catMap["herbal-tea"], name: "Forest Berry Mix", slug: "forest-berry-mix", description: "A rich blend of wild forest berries including blueberry, elderberry, and blackberry. Deep, fruity aroma with a naturally sweet taste.", shortDescription: "Wild forest berry infusion", imageUrl: "https://images.unsplash.com/photo-1597481499750-3bc118b34d3d?w=600&h=600&fit=crop", productType: "tea", origin: "Germany (blend)", brewTempMin: 95, brewTempMax: 100, brewTimeMin: 300, brewTimeMax: 600, flavorNotes: "Berry, sweet, deep" },
+      product: { categoryId: catMap["herbal-tea"], name: "Forest Berry Mix", slug: "forest-berry-mix", description: "A rich blend of wild forest berries including blueberry, elderberry, and blackberry. Deep, fruity aroma with a naturally sweet taste.", shortDescription: "Wild forest berry infusion", imageUrl: "https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=600&h=600&fit=crop", productType: "tea", origin: "Germany (blend)", brewTempMin: 95, brewTempMax: 100, brewTimeMin: 300, brewTimeMax: 600, flavorNotes: "Berry, sweet, deep" },
       variants: [{ weightGrams: 100, price: 1490, sku: "FBM-100", stock: 40 }, { weightGrams: 250, price: 2990, sku: "FBM-250", stock: 0 }],
     },
     {
@@ -88,7 +88,7 @@ async function seed() {
       variants: [{ weightGrams: 250, grindType: "whole_bean", price: 4990, sku: "ETH-YIR-250-WB", stock: 35 }, { weightGrams: 250, grindType: "medium", price: 5290, sku: "ETH-YIR-250-MED", stock: 20 }, { weightGrams: 500, grindType: "whole_bean", price: 8990, sku: "ETH-YIR-500-WB", stock: 15 }],
     },
     {
-      product: { categoryId: catMap["single-origin-coffee"], name: "Colombia Supremo", slug: "colombia-supremo", description: "A well-balanced Colombian coffee with caramel sweetness and a nutty finish. Medium roast, perfect for everyday enjoyment.", shortDescription: "Balanced Colombian with caramel and nuts", imageUrl: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefda?w=600&h=600&fit=crop", productType: "coffee", origin: "Colombia, Huila", brewTempMin: 92, brewTempMax: 96, flavorNotes: "Caramel, nutty, chocolate" },
+      product: { categoryId: catMap["single-origin-coffee"], name: "Colombia Supremo", slug: "colombia-supremo", description: "A well-balanced Colombian coffee with caramel sweetness and a nutty finish. Medium roast, perfect for everyday enjoyment.", shortDescription: "Balanced Colombian with caramel and nuts", imageUrl: "https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=600&h=600&fit=crop", productType: "coffee", origin: "Colombia, Huila", brewTempMin: 92, brewTempMax: 96, flavorNotes: "Caramel, nutty, chocolate" },
       variants: [{ weightGrams: 250, grindType: "whole_bean", price: 4490, sku: "COL-SUP-250-WB", stock: 28 }, { weightGrams: 250, grindType: "medium", price: 4790, sku: "COL-SUP-250-MED", stock: 18 }, { weightGrams: 500, grindType: "whole_bean", price: 7990, sku: "COL-SUP-500-WB", stock: 12 }],
     },
     {

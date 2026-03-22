@@ -3,6 +3,7 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import { ShopLayout } from "@/components/layout/ShopLayout";
 import { CookieConsent } from "@/components/layout/CookieConsent";
+import { GTMScript } from "@/components/layout/GTMScript";
 
 export const metadata: Metadata = {
   title: "Leafy — Premium Teas & Coffees",
@@ -24,6 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen text-gray-900 antialiased">
+        <GTMScript />
         <ShopLayout>{children}</ShopLayout>
         <Toaster position="top-right" richColors />
         <CookieConsent />

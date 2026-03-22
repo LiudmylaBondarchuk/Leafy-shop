@@ -24,6 +24,7 @@ export default function AdminProductsPage() {
   const perPage = 20;
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [userRole, setUserRole] = useState("");
+  const [badgeCfg, setBadgeCfg] = useState<{ label: string; color: string }>({ label: "Bestseller", color: "green" });
 
   useEffect(() => {
     fetch("/api/auth/me").then((r) => r.json()).then((json) => {
@@ -32,6 +33,7 @@ export default function AdminProductsPage() {
         setUserRole(json.data.user.role || "");
       }
     });
+    fetch("/api/badge-config").then((r) => r.json()).then((j) => { if (j.data) setBadgeCfg(j.data); }).catch(() => {});
   }, []);
 
   const fetchProducts = () => {
@@ -330,7 +332,7 @@ export default function AdminProductsPage() {
                         <div>
                           <p className="font-medium text-gray-900">{p.name}</p>
                           <div className="flex gap-1 mt-0.5">
-                            {p.isFeatured && <BestsellerBadge />}
+                            {p.isFeatured && <BestsellerBadge label={badgeCfg.label} color={badgeCfg.color} />}
                           </div>
                         </div>
                       </div>

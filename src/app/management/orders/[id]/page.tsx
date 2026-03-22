@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, formatDateTime } from "@/lib/utils";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from "@/constants/order-statuses";
 import type { OrderStatus } from "@/constants/order-statuses";
 import { toast } from "sonner";
@@ -100,7 +100,7 @@ export default function AdminOrderDetailPage() {
         <div className="flex-1 min-w-0">
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 break-all">Order {order.orderNumber}</h1>
           <p className="text-sm text-gray-500">
-            Placed on {new Date(order.createdAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}
+            Placed on {formatDateTime(order.createdAt)}
           </p>
         </div>
         <Badge className={ORDER_STATUS_COLORS[order.status as OrderStatus]}>
@@ -328,7 +328,7 @@ export default function AdminOrderDetailPage() {
                       {ORDER_STATUS_LABELS[entry.toStatus as OrderStatus]}
                     </p>
                     <p className="text-xs text-gray-500">
-                      {new Date(entry.createdAt).toLocaleString("en-US", { dateStyle: "short", timeStyle: "short" })}
+                      {formatDateTime(entry.createdAt)}
                       {entry.changedBy && ` · ${entry.changedBy}`}
                     </p>
                     {entry.note && <p className="text-xs text-gray-500 italic mt-0.5">{entry.note}</p>}

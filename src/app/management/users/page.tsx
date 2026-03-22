@@ -49,6 +49,7 @@ export default function AdminUsersPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [resetModal, setResetModal] = useState<{ id: number; name: string; email: string } | null>(null);
   const [resetting, setResetting] = useState(false);
+  const [toggleModal, setToggleModal] = useState<{ id: number; name: string; activate: boolean } | null>(null);
 
   const fetchUsers = () => {
     fetch("/api/admin/users")
@@ -211,7 +212,7 @@ export default function AdminUsersPage() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleToggleActive(u.id, u.name, !u.isActive)}
+                              onClick={() => setToggleModal({ id: u.id, name: u.name, activate: !u.isActive })}
                             >
                               <span className={`text-xs font-medium ${u.isActive ? "text-orange-500" : "text-green-600"}`}>
                                 {u.isActive ? "Deactivate" : "Activate"}
@@ -260,7 +261,7 @@ export default function AdminUsersPage() {
                       <Button variant="ghost" size="sm" title="Reset password" onClick={() => setResetModal({ id: u.id, name: u.name, email: u.email })}>
                         <KeyRound className="h-3.5 w-3.5 text-blue-500" />
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleToggleActive(u.id, u.name, !u.isActive)}>
+                      <Button variant="ghost" size="sm" onClick={() => setToggleModal({ id: u.id, name: u.name, activate: !u.isActive })}>
                         <span className={`text-xs font-medium ${u.isActive ? "text-orange-500" : "text-green-600"}`}>
                           {u.isActive ? "Deactivate" : "Activate"}
                         </span>
@@ -322,6 +323,35 @@ export default function AdminUsersPage() {
                 }
               }}>
                 Reset & Send Email
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Activate/Deactivate confirmation modal */}
+      {toggleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setToggleModal(null)}>
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-sm mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
+              {toggleModal.activate ? "Activate" : "Deactivate"} User
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Are you sure you want to {toggleModal.activate ? "activate" : "deactivate"} <strong>{toggleModal.name}</strong>?
+              {!toggleModal.activate && " This user will no longer be able to log in."}
+            </p>
+            <div className="flex gap-3">
+              <Button variant="secondary" size="sm" className="flex-1" onClick={() => setToggleModal(null)}>Cancel</Button>
+              <Button
+                size="sm"
+                className="flex-1"
+                variant={toggleModal.activate ? "primary" : "destructive"}
+                onClick={() => {
+                  handleToggleActive(toggleModal.id, toggleModal.name, toggleModal.activate);
+                  setToggleModal(null);
+                }}
+              >
+                {toggleModal.activate ? "Activate" : "Deactivate"}
               </Button>
             </div>
           </div>

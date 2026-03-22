@@ -38,7 +38,7 @@ export function Footer() {
           <div>
             <h3 className="text-sm font-semibold text-white mb-3">Information</h3>
             <ul className="space-y-2">
-              {[SITE_LINKS.trackOrder, SITE_LINKS.about, SITE_LINKS.contact, SITE_LINKS.terms].map((link) => (
+              {[SITE_LINKS.trackOrder, SITE_LINKS.about, SITE_LINKS.contact, SITE_LINKS.terms, SITE_LINKS.privacy].map((link) => (
                 <li key={link.href + link.label}>
                   <Link href={link.href} className="text-sm text-green-300 hover:text-white transition-colors">{link.label}</Link>
                 </li>

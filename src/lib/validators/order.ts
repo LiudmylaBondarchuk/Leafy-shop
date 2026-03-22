@@ -29,7 +29,7 @@ export const orderSchema = z.object({
   }),
 
   payment: z.object({
-    method: z.enum(["blik", "card", "transfer", "cod", "paypal"]),
+    method: z.enum(["cod", "paypal"]),
   }),
 
   invoice: z.object({

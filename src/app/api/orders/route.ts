@@ -9,6 +9,7 @@ import { sendOrderConfirmationEmail } from "@/lib/email";
 import { getAdminFromCookie } from "@/lib/auth";
 import { getSettings } from "@/lib/settings";
 import { NextRequest } from "next/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET(request: NextRequest) {
   try {
@@ -52,6 +53,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.headers.get("x-forwarded-for") || "unknown";
+    const { success } = rateLimit(`orders:${ip}`, 10, 60000);
+    if (!success) return apiError("Too many requests. Please try again later.", 429);
+
     const body = await request.json();
 
     // Validate input

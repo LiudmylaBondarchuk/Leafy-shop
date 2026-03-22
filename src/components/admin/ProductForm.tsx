@@ -209,7 +209,7 @@ export function ProductForm({ productId }: ProductFormProps) {
 
       if (json.data) {
         toast.success(productId ? "Product updated" : "Product created");
-        router.push("/admin/products");
+        router.push("/management/products");
       } else {
         toast.error(json.message || "Failed to save product");
       }
@@ -361,7 +361,7 @@ export function ProductForm({ productId }: ProductFormProps) {
 
       {/* Actions */}
       <div className="flex gap-3">
-        <Button variant="secondary" onClick={() => router.push("/admin/products")}>Cancel</Button>
+        <Button variant="secondary" onClick={() => router.push("/management/products")}>Cancel</Button>
         <Button onClick={handleSubmit} loading={saving}>
           {productId ? "Save Changes" : "Create Product"}
         </Button>

@@ -36,9 +36,11 @@ export default async function ProductsPage({
   const [categoriesList, data, cfg] = await Promise.all([getCategories(), getProducts(params), getSettings()]);
   const { products: productList, pagination } = data;
 
+  const pageTitle = params.type === "tea" ? "Teas" : params.type === "coffee" ? "Coffees" : "All Products";
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">All Products</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">{pageTitle}</h1>
       <div className="flex flex-col lg:flex-row gap-8">
         <aside className="w-full lg:w-64 shrink-0">
           <Suspense>

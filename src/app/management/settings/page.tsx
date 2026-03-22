@@ -130,43 +130,27 @@ export default function SettingsPage() {
 
         {/* Email overview table */}
         <div className="mt-4 pt-4 border-t border-gray-100">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Emails sent by the system</h3>
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="text-gray-400">
-                <th className="text-left py-1 font-medium">Email type</th>
-                <th className="text-left py-1 font-medium">From address</th>
-                <th className="text-left py-1 font-medium">When sent</th>
-              </tr>
-            </thead>
-            <tbody className="text-gray-600">
-              <tr className="border-t border-gray-50">
-                <td className="py-1.5">Order Confirmation</td>
-                <td className="py-1.5 font-mono text-[11px]">{settings["email.orders_from"] || "orders@leafyshop.eu"}</td>
-                <td className="py-1.5">Customer places an order</td>
-              </tr>
-              <tr className="border-t border-gray-50">
-                <td className="py-1.5">Status Update (paid, shipped, delivered, etc.)</td>
-                <td className="py-1.5 font-mono text-[11px]">{settings["email.noreply_from"] || "noreply@leafyshop.eu"}</td>
-                <td className="py-1.5">Order status changes</td>
-              </tr>
-              <tr className="border-t border-gray-50">
-                <td className="py-1.5">Welcome (new user)</td>
-                <td className="py-1.5 font-mono text-[11px]">{settings["email.noreply_from"] || "noreply@leafyshop.eu"}</td>
-                <td className="py-1.5">Admin creates a new user</td>
-              </tr>
-              <tr className="border-t border-gray-50">
-                <td className="py-1.5">Password Reset</td>
-                <td className="py-1.5 font-mono text-[11px]">{settings["email.noreply_from"] || "noreply@leafyshop.eu"}</td>
-                <td className="py-1.5">Admin resets user password</td>
-              </tr>
-              <tr className="border-t border-gray-50">
-                <td className="py-1.5">Invoice (seller contact)</td>
-                <td className="py-1.5 font-mono text-[11px]">{settings["email.invoices_from"] || "invoices@leafyshop.eu"}</td>
-                <td className="py-1.5">Shown on invoice document</td>
-              </tr>
-            </tbody>
-          </table>
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">All emails sent by the system</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {[
+              { type: "Order Confirmation", from: settings["email.orders_from"] || "orders@leafyshop.eu", trigger: "Customer places order", color: "bg-green-50 border-green-200" },
+              { type: "Payment Confirmed", from: settings["email.noreply_from"] || "noreply@leafyshop.eu", trigger: "Payment received", color: "bg-green-50 border-green-200" },
+              { type: "Order Processing", from: settings["email.noreply_from"] || "noreply@leafyshop.eu", trigger: "Status → Processing", color: "bg-yellow-50 border-yellow-200" },
+              { type: "Order Shipped", from: settings["email.noreply_from"] || "noreply@leafyshop.eu", trigger: "Status → Shipped", color: "bg-purple-50 border-purple-200" },
+              { type: "Order Delivered", from: settings["email.noreply_from"] || "noreply@leafyshop.eu", trigger: "Status → Delivered", color: "bg-green-50 border-green-200" },
+              { type: "Order Cancelled", from: settings["email.noreply_from"] || "noreply@leafyshop.eu", trigger: "Order cancelled", color: "bg-red-50 border-red-200" },
+              { type: "Return Processed", from: settings["email.noreply_from"] || "noreply@leafyshop.eu", trigger: "Return confirmed", color: "bg-orange-50 border-orange-200" },
+              { type: "Invoice", from: settings["email.invoices_from"] || "invoices@leafyshop.eu", trigger: "Shown on invoice PDF", color: "bg-gray-50 border-gray-200" },
+              { type: "Welcome (new user)", from: settings["email.noreply_from"] || "noreply@leafyshop.eu", trigger: "Admin creates user", color: "bg-blue-50 border-blue-200" },
+              { type: "Password Reset", from: settings["email.noreply_from"] || "noreply@leafyshop.eu", trigger: "Admin resets password", color: "bg-blue-50 border-blue-200" },
+            ].map((e) => (
+              <div key={e.type} className={`rounded-lg border p-2.5 ${e.color}`}>
+                <p className="text-xs font-medium text-gray-900">{e.type}</p>
+                <p className="text-[11px] font-mono text-gray-500 mt-0.5">{e.from}</p>
+                <p className="text-[11px] text-gray-400 mt-0.5">{e.trigger}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </Card>
 

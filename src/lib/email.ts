@@ -263,9 +263,15 @@ export async function sendOrderStatusEmail(
       <p style="margin:8px 0 0;font-size:14px;color:#666">${config.message}</p>
     </div>
     ${note ? `<p style="color:#666;font-size:14px"><strong>Note:</strong> ${note}</p>` : ""}
-    ${["delivered", "cancelled", "returned"].includes(newStatus)
-      ? ""
-      : `<p style="color:#666;font-size:13px">Track your order: <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://leafyshop.eu"}/order/status" style="color:#15803d">Track your order →</a></p>`
+    ${newStatus === "cancelled" || newStatus === "returned"
+      ? `<p style="text-align:center;margin:16px 0">
+          <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://leafyshop.eu"}/products" style="display:inline-block;background:#15803d;color:white;padding:10px 24px;border-radius:8px;text-decoration:none;font-weight:600">Shop Again →</a>
+        </p>`
+      : newStatus === "delivered"
+        ? `<p style="text-align:center;margin:16px 0">
+            <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://leafyshop.eu"}/products" style="display:inline-block;background:#15803d;color:white;padding:10px 24px;border-radius:8px;text-decoration:none;font-weight:600">Browse More Products →</a>
+          </p>`
+        : `<p style="color:#666;font-size:13px">Track your order: <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://leafyshop.eu"}/order/status" style="color:#15803d">Track your order →</a></p>`
     }
   `, storeName, cfg["email.tpl.footer"]);
 

@@ -137,6 +137,7 @@ export default function AdminUsersPage() {
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Email</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Role</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Permissions</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500">Last Login</th>
                   <th className="text-center px-4 py-3 font-medium text-gray-500">Status</th>
                   <th className="text-right px-4 py-3 font-medium text-gray-500">Actions</th>
                 </tr>
@@ -168,6 +169,12 @@ export default function AdminUsersPage() {
                         ) : (
                           <span className="text-gray-300">None</span>
                         )}
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 text-xs">
+                        {u.lastLoginAt
+                          ? new Date(u.lastLoginAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })
+                          : <span className="text-gray-300">Never</span>
+                        }
                       </td>
                       <td className="px-4 py-3 text-center">
                         {u.isActive ? (

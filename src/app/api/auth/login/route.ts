@@ -28,6 +28,9 @@ export async function POST(request: Request) {
       return apiError("Invalid email or password", 401, "INVALID_CREDENTIALS");
     }
 
+    // Update last login
+    await db.update(adminUsers).set({ lastLoginAt: new Date().toISOString() }).where(eq(adminUsers.id, user.id));
+
     const token = await signToken({ sub: user.id, email: user.email, name: user.name });
 
     const cookieStore = await cookies();

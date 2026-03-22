@@ -102,8 +102,8 @@ export default function CartPage() {
     return (
       <div className="max-w-5xl mx-auto px-4 py-24 text-center">
         <ShoppingCart className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty</h1>
-        <p className="text-gray-500 mb-6">Add some products to get started.</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Your cart is empty</h1>
+        <p className="text-gray-500 dark:text-gray-400 mb-6">Add some products to get started.</p>
         <Link href="/products">
           <Button>Browse Products</Button>
         </Link>
@@ -260,15 +260,15 @@ export default function CartPage() {
               </div>
 
               {freeShippingRemaining > 0 && (
-                <p className="text-xs text-gray-500 pt-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400 pt-1">
                   Add {formatPrice(freeShippingRemaining)} more for free shipping
                 </p>
               )}
 
-              <div className="border-t border-gray-200 pt-2 mt-2">
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
                 <div className="flex justify-between text-base">
                   <span className="font-semibold">Total</span>
-                  <span className="font-bold text-green-800">
+                  <span className="font-bold text-green-800 dark:text-green-400">
                     {formatPrice(calculation?.total || subtotal + 1499)}
                   </span>
                 </div>

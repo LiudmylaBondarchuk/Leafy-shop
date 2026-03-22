@@ -88,17 +88,17 @@ export default function AdminDashboardPage() {
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          <div className="flex gap-1 bg-gray-100 rounded-lg p-1 overflow-x-auto max-w-full">
+          <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1 overflow-x-auto max-w-full">
             {(["today", "week", "month", "all", "custom"] as DateRange[]).map((range) => (
               <button
                 key={range}
                 onClick={() => setDateRange(range)}
                 className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
                   dateRange === range
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
+                    ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                 }`}
               >
                 {dateRangeLabels[range]}
@@ -107,9 +107,9 @@ export default function AdminDashboardPage() {
           </div>
           {dateRange === "custom" && (
             <div className="flex items-center gap-2">
-              <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} className="rounded-lg border border-gray-300 px-2 py-1 text-xs" />
+              <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} className="rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 px-2 py-1 text-xs" />
               <span className="text-xs text-gray-400">to</span>
-              <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} className="rounded-lg border border-gray-300 px-2 py-1 text-xs" />
+              <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} className="rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 px-2 py-1 text-xs" />
             </div>
           )}
         </div>
@@ -119,26 +119,26 @@ export default function AdminDashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <Card className="p-5">
           <div className="flex items-center gap-4">
-            <div className="p-3 rounded-lg text-blue-600 bg-blue-100">
+            <div className="p-3 rounded-lg text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40">
               <ShoppingBag className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Orders</p>
-              <p className="text-xl font-bold text-gray-900">{filteredOrders.length}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Orders</p>
+              <p className="text-xl font-bold text-gray-900 dark:text-gray-100">{filteredOrders.length}</p>
             </div>
           </div>
         </Card>
 
         <Link href="/management/orders?status=new">
-          <Card className="p-5 hover:border-yellow-300 transition-colors cursor-pointer">
+          <Card className="p-5 hover:border-yellow-300 dark:hover:border-yellow-600 transition-colors cursor-pointer">
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-lg text-yellow-600 bg-yellow-100">
+              <div className="p-3 rounded-lg text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/40">
                 <Clock className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Pending</p>
-                <p className="text-xl font-bold text-gray-900">{pendingOrders}</p>
-                {pendingOrders > 0 && <p className="text-xs text-yellow-600">Needs attention →</p>}
+                <p className="text-sm text-gray-500 dark:text-gray-400">Pending</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-gray-100">{pendingOrders}</p>
+                {pendingOrders > 0 && <p className="text-xs text-yellow-600 dark:text-yellow-400">Needs attention →</p>}
               </div>
             </div>
           </Card>
@@ -146,25 +146,25 @@ export default function AdminDashboardPage() {
 
         <Card className="p-5">
           <div className="flex items-center gap-4">
-            <div className="p-3 rounded-lg text-green-600 bg-green-100">
+            <div className="p-3 rounded-lg text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/40">
               <DollarSign className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Revenue</p>
-              <p className="text-xl font-bold text-gray-900">{formatPrice(totalRevenue)}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Revenue</p>
+              <p className="text-xl font-bold text-gray-900 dark:text-gray-100">{formatPrice(totalRevenue)}</p>
             </div>
           </div>
         </Card>
 
         <Link href="/management/products">
-          <Card className="p-5 hover:border-purple-300 transition-colors cursor-pointer">
+          <Card className="p-5 hover:border-purple-300 dark:hover:border-purple-600 transition-colors cursor-pointer">
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-lg text-purple-600 bg-purple-100">
+              <div className="p-3 rounded-lg text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/40">
                 <Package className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Products</p>
-                <p className="text-xl font-bold text-gray-900">{totalProducts}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Products</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-gray-100">{totalProducts}</p>
               </div>
             </div>
           </Card>
@@ -175,7 +175,7 @@ export default function AdminDashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Status breakdown */}
         <Card className="p-5">
-          <h2 className="font-semibold text-gray-900 mb-4">Orders by Status</h2>
+          <h2 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Orders by Status</h2>
           <div className="space-y-2">
             {ORDER_STATUSES.map((status) => {
               const count = statusCounts[status] || 0;
@@ -184,14 +184,14 @@ export default function AdminDashboardPage() {
                 <Link
                   key={status}
                   href={`/management/orders?status=${status}`}
-                  className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <Badge className={ORDER_STATUS_COLORS[status as OrderStatus]}>
                       {ORDER_STATUS_LABELS[status as OrderStatus]}
                     </Badge>
                   </div>
-                  <span className={`text-sm font-medium ${count > 0 ? "text-gray-900" : "text-gray-300"}`}>
+                  <span className={`text-sm font-medium ${count > 0 ? "text-gray-900 dark:text-gray-100" : "text-gray-300 dark:text-gray-600"}`}>
                     {count}
                   </span>
                 </Link>
@@ -202,37 +202,37 @@ export default function AdminDashboardPage() {
 
         {/* Needs attention */}
         <Card className="p-5">
-          <h2 className="font-semibold text-gray-900 mb-4">Needs Attention</h2>
+          <h2 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Needs Attention</h2>
           <div className="space-y-3">
             {pendingOrders > 0 && (
-              <Link href="/management/orders?status=new" className="flex items-center gap-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg hover:bg-yellow-100 transition-colors">
-                <AlertCircle className="h-5 w-5 text-yellow-600" />
+              <Link href="/management/orders?status=new" className="flex items-center gap-3 p-3 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-900/50 transition-colors">
+                <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
                 <div>
-                  <p className="text-sm font-medium text-yellow-800">{pendingOrders} new order{pendingOrders > 1 ? "s" : ""} waiting</p>
-                  <p className="text-xs text-yellow-600">Click to review →</p>
+                  <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300">{pendingOrders} new order{pendingOrders > 1 ? "s" : ""} waiting</p>
+                  <p className="text-xs text-yellow-600 dark:text-yellow-400">Click to review →</p>
                 </div>
               </Link>
             )}
             {processingOrders > 0 && (
-              <Link href="/management/orders?status=processing" className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors">
-                <Package className="h-5 w-5 text-blue-600" />
+              <Link href="/management/orders?status=processing" className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors">
+                <Package className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 <div>
-                  <p className="text-sm font-medium text-blue-800">{processingOrders} order{processingOrders > 1 ? "s" : ""} being prepared</p>
-                  <p className="text-xs text-blue-600">Click to view →</p>
+                  <p className="text-sm font-medium text-blue-800 dark:text-blue-300">{processingOrders} order{processingOrders > 1 ? "s" : ""} being prepared</p>
+                  <p className="text-xs text-blue-600 dark:text-blue-400">Click to view →</p>
                 </div>
               </Link>
             )}
             {shippedOrders > 0 && (
-              <Link href="/management/orders?status=shipped" className="flex items-center gap-3 p-3 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors">
-                <TrendingUp className="h-5 w-5 text-purple-600" />
+              <Link href="/management/orders?status=shipped" className="flex items-center gap-3 p-3 bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-800 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors">
+                <TrendingUp className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                 <div>
-                  <p className="text-sm font-medium text-purple-800">{shippedOrders} order{shippedOrders > 1 ? "s" : ""} in transit</p>
-                  <p className="text-xs text-purple-600">Click to view →</p>
+                  <p className="text-sm font-medium text-purple-800 dark:text-purple-300">{shippedOrders} order{shippedOrders > 1 ? "s" : ""} in transit</p>
+                  <p className="text-xs text-purple-600 dark:text-purple-400">Click to view →</p>
                 </div>
               </Link>
             )}
             {pendingOrders === 0 && processingOrders === 0 && shippedOrders === 0 && (
-              <p className="text-sm text-gray-400 py-4 text-center">All caught up! No orders need attention.</p>
+              <p className="text-sm text-gray-400 dark:text-gray-500 py-4 text-center">All caught up! No orders need attention.</p>
             )}
           </div>
         </Card>
@@ -241,43 +241,43 @@ export default function AdminDashboardPage() {
       {/* Recent orders */}
       <Card className="p-5">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-gray-900">Recent Orders</h2>
-          <Link href="/management/orders" className="text-sm text-green-700 hover:text-green-800">
+          <h2 className="font-semibold text-gray-900 dark:text-gray-100">Recent Orders</h2>
+          <Link href="/management/orders" className="text-sm text-green-700 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300">
             View all →
           </Link>
         </div>
 
         {filteredOrders.length === 0 ? (
-          <p className="text-sm text-gray-500 py-4">No orders in this period.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 py-4">No orders in this period.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[600px]">
               <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-2 pr-4 font-medium text-gray-500">Order</th>
-                  <th className="text-left py-2 pr-4 font-medium text-gray-500">Date</th>
-                  <th className="text-left py-2 pr-4 font-medium text-gray-500">Customer</th>
-                  <th className="text-left py-2 pr-4 font-medium text-gray-500">Payment</th>
-                  <th className="text-left py-2 pr-4 font-medium text-gray-500">Status</th>
-                  <th className="text-right py-2 font-medium text-gray-500">Total</th>
+                <tr className="border-b border-gray-200 dark:border-gray-700">
+                  <th className="text-left py-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Order</th>
+                  <th className="text-left py-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Date</th>
+                  <th className="text-left py-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Customer</th>
+                  <th className="text-left py-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Payment</th>
+                  <th className="text-left py-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Status</th>
+                  <th className="text-right py-2 font-medium text-gray-500 dark:text-gray-400">Total</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredOrders.slice(0, 10).map((order: any) => (
-                  <tr key={order.id || order.orderNumber} className="border-b border-gray-100 last:border-0">
+                  <tr key={order.id || order.orderNumber} className="border-b border-gray-100 dark:border-gray-700 last:border-0">
                     <td className="py-3 pr-4">
-                      <Link href={`/management/orders/${order.id}`} className="font-mono text-green-700 hover:text-green-800">
+                      <Link href={`/management/orders/${order.id}`} className="font-mono text-green-700 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300">
                         {order.orderNumber}
                       </Link>
                     </td>
-                    <td className="py-3 pr-4 text-gray-500 text-xs">
+                    <td className="py-3 pr-4 text-gray-500 dark:text-gray-400 text-xs">
                       {formatDateShort(order.createdAt)}
                     </td>
-                    <td className="py-3 pr-4 text-gray-600">
+                    <td className="py-3 pr-4 text-gray-600 dark:text-gray-300">
                       {order.customerFirstName} {order.customerLastName}
                     </td>
                     <td className="py-3 pr-4">
-                      <span className="text-xs text-gray-500">{order.paymentMethod === "cod" ? "COD" : "PayPal"}</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">{order.paymentMethod === "cod" ? "COD" : "PayPal"}</span>
                     </td>
                     <td className="py-3 pr-4">
                       <Link href={`/management/orders?status=${order.status}`}>

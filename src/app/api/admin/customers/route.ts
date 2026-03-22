@@ -135,17 +135,8 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Match with customer accounts + add registered customers without orders
-    const allAccounts = await db.select({
-      id: customersTable.id,
-      email: customersTable.email,
-      firstName: customersTable.firstName,
-      lastName: customersTable.lastName,
-      phone: customersTable.phone,
-      deletedAt: customersTable.deletedAt,
-      createdAt: customersTable.createdAt,
-    }).from(customersTable);
-
+    // Match with customer accounts
+    const allAccounts = await db.select({ id: customersTable.id, email: customersTable.email, deletedAt: customersTable.deletedAt }).from(customersTable);
     const accountMap = new Map<string, number>();
     for (const a of allAccounts) {
       if (!(a as any).deletedAt) accountMap.set((a.email as string).toLowerCase(), a.id as number);
@@ -155,30 +146,6 @@ export async function GET(request: NextRequest) {
       if (accId !== undefined) {
         c.hasAccount = true;
         c.accountId = accId;
-      }
-    }
-
-    // Add registered customers who have no orders yet
-    for (const a of allAccounts) {
-      if ((a as any).deletedAt) continue;
-      const emailLower = (a.email as string).toLowerCase();
-      const alreadyExists = customers.some((c) => c.email.toLowerCase() === emailLower);
-      if (!alreadyExists) {
-        const key = `${emailLower}|${(a.firstName as string).toLowerCase()}|${(a.lastName as string).toLowerCase()}|${a.phone || ""}`;
-        customers.push({
-          id: Buffer.from(key).toString("base64url"),
-          email: a.email as string,
-          phone: (a.phone as string) || "",
-          firstName: a.firstName as string,
-          lastName: a.lastName as string,
-          orderCount: 0,
-          totalSpent: 0,
-          lastOrderDate: a.createdAt as string,
-          lastOrderNumber: "",
-          hasAccount: true,
-          accountId: a.id as number,
-          similarCustomers: [],
-        });
       }
     }
 

@@ -37,6 +37,8 @@ export default function RegisterPage() {
       errs.email = "Please enter a valid email address";
     if (!form.password || form.password.length < 8)
       errs.password = "Password must be at least 8 characters";
+    else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(form.password))
+      errs.password = "Password must contain uppercase, lowercase and a number";
     if (form.password !== form.confirmPassword)
       errs.confirmPassword = "Passwords do not match";
     setErrors(errs);
@@ -64,8 +66,7 @@ export default function RegisterPage() {
 
       if (res.ok && json.data) {
         toast.success("Account created successfully!");
-        router.push("/account");
-        router.refresh();
+        window.location.href = "/account";
       } else {
         const msg = json.message || "Registration failed";
         setErrors({ form: msg });

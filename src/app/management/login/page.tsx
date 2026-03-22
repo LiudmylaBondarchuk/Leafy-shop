@@ -76,14 +76,14 @@ export default function ManagementLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <Leaf className="h-8 w-8 text-green-700" />
-            <span className="text-2xl font-bold text-green-900">Leafy</span>
+            <Leaf className="h-8 w-8 text-green-700 dark:text-green-400" />
+            <span className="text-2xl font-bold text-green-900 dark:text-green-300">Leafy</span>
           </div>
-          <p className="text-sm text-gray-500">Management Panel</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Management Panel</p>
         </div>
 
         {/* Mode selector */}
@@ -93,7 +93,7 @@ export default function ManagementLoginPage() {
             className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-medium transition-colors ${
               mode === "admin"
                 ? "bg-green-700 text-white"
-                : "bg-white border border-gray-200 text-gray-600 hover:border-gray-300"
+                : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
             }`}
           >
             <Shield className="h-4 w-4" />
@@ -104,7 +104,7 @@ export default function ManagementLoginPage() {
             className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-medium transition-colors ${
               mode === "tester"
                 ? "bg-purple-600 text-white"
-                : "bg-white border border-gray-200 text-gray-600 hover:border-gray-300"
+                : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
             }`}
           >
             <FlaskConical className="h-4 w-4" />
@@ -114,10 +114,10 @@ export default function ManagementLoginPage() {
 
         {/* Admin/Manager login */}
         {mode === "admin" && (
-          <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-4">
+          <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 space-y-4">
             <Input label="Email" id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="your@email.com" />
             <Input label="Password" id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
-            {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
+            {error && <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">{error}</p>}
             <Button type="submit" className="w-full" loading={loading}>Sign In</Button>
           </form>
         )}
@@ -126,7 +126,7 @@ export default function ManagementLoginPage() {
         {mode === "tester" && (
           <div className="space-y-4">
             {/* Info box */}
-            <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 text-sm text-purple-800">
+            <div className="bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-800 rounded-xl p-4 text-sm text-purple-800 dark:text-purple-300">
               <h3 className="font-semibold mb-2">Test Mode</h3>
               <p className="mb-2">You can log in with tester permissions. In test mode:</p>
               <ul className="list-disc pl-5 space-y-1 text-xs">
@@ -139,25 +139,25 @@ export default function ManagementLoginPage() {
 
             {/* Generate password */}
             {!generatedPassword ? (
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 text-center">
-                <p className="text-sm text-gray-600 mb-4">Click to generate a one-time test password</p>
+              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 text-center">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Click to generate a one-time test password</p>
                 <Button onClick={handleGenerateTestPassword} loading={generating} className="bg-purple-600 hover:bg-purple-700">
                   <FlaskConical className="mr-2 h-4 w-4" />
                   Generate Test Password
                 </Button>
-                {error && <p className="text-sm text-red-600 mt-3">{error}</p>}
+                {error && <p className="text-sm text-red-600 dark:text-red-400 mt-3">{error}</p>}
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-4">
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm">
-                  <p className="text-green-800 font-medium mb-1">Password generated!</p>
-                  {testerName && <p className="text-green-700">Account: <strong>{testerName}</strong></p>}
-                  <p className="text-green-700">Email: <code className="bg-green-100 px-1 rounded">{email}</code></p>
-                  <p className="text-green-700">Password: <code className="bg-green-100 px-1 rounded">{generatedPassword}</code></p>
+              <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 space-y-4">
+                <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg p-3 text-sm">
+                  <p className="text-green-800 dark:text-green-300 font-medium mb-1">Password generated!</p>
+                  {testerName && <p className="text-green-700 dark:text-green-400">Account: <strong>{testerName}</strong></p>}
+                  <p className="text-green-700 dark:text-green-400">Email: <code className="bg-green-100 dark:bg-green-900/50 px-1 rounded">{email}</code></p>
+                  <p className="text-green-700 dark:text-green-400">Password: <code className="bg-green-100 dark:bg-green-900/50 px-1 rounded">{generatedPassword}</code></p>
                 </div>
                 <Input label="Email" id="testerEmail" type="email" value={email} disabled />
                 <Input label="Password" id="testerPassword" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
+                {error && <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">{error}</p>}
                 <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700" loading={loading}>Sign In as Tester</Button>
               </form>
             )}

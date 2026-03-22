@@ -93,7 +93,7 @@ export async function POST(request: Request) {
 
     return apiSuccess(created, 201);
   } catch (error) {
-    console.error("POST /api/admin/discounts error:", error);
+    console.error("POST /api/admin/discounts error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to create discount code", 500);
   }
 }

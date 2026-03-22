@@ -181,7 +181,7 @@ export async function GET(
       headers: { "Content-Type": "text/html" },
     });
   } catch (error) {
-    console.error("GET /api/invoices/[orderId] error:", error);
+    console.error("GET /api/invoices/[orderId] error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to generate invoice", 500);
   }
 }

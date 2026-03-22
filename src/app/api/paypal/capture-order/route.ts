@@ -39,11 +39,11 @@ export async function POST(request: Request) {
         transactionId: captureData.purchase_units?.[0]?.payments?.captures?.[0]?.id,
       });
     } else {
-      console.error("PayPal capture failed:", captureData);
+      console.error("PayPal capture failed:", captureData?.message || "Unknown error");
       return apiError("Payment was not completed", 400, "PAYMENT_FAILED");
     }
   } catch (error) {
-    console.error("PayPal capture error:", error);
+    console.error("PayPal capture error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to capture payment", 500);
   }
 }

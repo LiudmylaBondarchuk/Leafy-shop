@@ -32,7 +32,7 @@ export async function GET(
 
     return apiSuccess({ ...order, availableTransitions });
   } catch (error) {
-    console.error("GET /api/orders/[id] error:", error);
+    console.error("GET /api/orders/[id] error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to fetch order", 500);
   }
 }
@@ -69,7 +69,7 @@ export async function PATCH(
 
     return apiSuccess({ id: parseInt(id), internalNotes });
   } catch (error) {
-    console.error("PATCH /api/orders/[id] error:", error);
+    console.error("PATCH /api/orders/[id] error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to update order", 500);
   }
 }

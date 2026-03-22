@@ -27,7 +27,7 @@ export async function logAudit(entry: AuditLogEntry) {
       isTestData: entry.isTestData || false,
     });
   } catch (error) {
-    console.error("[AUDIT] Failed to log:", error);
+    console.error("[AUDIT] Failed to log:", error instanceof Error ? error.message : "Unknown error");
   }
 }
 

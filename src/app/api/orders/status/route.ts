@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
       isPaid: order.statusHistory.some((h: any) => h.toStatus === "paid"),
     });
   } catch (error) {
-    console.error("GET /api/orders/status error:", error);
+    console.error("GET /api/orders/status error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to fetch order status", 500);
   }
 }

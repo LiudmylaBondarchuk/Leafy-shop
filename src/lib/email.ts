@@ -1,6 +1,10 @@
 import { Resend } from "resend";
 import { getSettings } from "@/lib/settings";
 
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null;
@@ -65,13 +69,13 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
   const storeName = cfg["store.name"] || "Leafy Tea & Coffee Ltd.";
   const storeEmail = cfg["store.email"] || "support@leafyshop.eu";
   const orderGreeting = (cfg["email.tpl.order_greeting"] || "Hi {name}, thank you for your order!")
-    .replace("{name}", data.customerName);
+    .replace("{name}", escapeHtml(data.customerName));
 
   const itemsHtml = data.items
     .map(
       (item) =>
         `<tr>
-          <td style="padding:8px;border-bottom:1px solid #eee">${item.productName}<br><small style="color:#666">${item.variantDesc}</small></td>
+          <td style="padding:8px;border-bottom:1px solid #eee">${escapeHtml(item.productName)}<br><small style="color:#666">${escapeHtml(item.variantDesc)}</small></td>
           <td style="padding:8px;border-bottom:1px solid #eee;text-align:center">${item.quantity}</td>
           <td style="padding:8px;border-bottom:1px solid #eee;text-align:right">$${(item.totalPrice / 100).toFixed(2)}</td>
         </tr>`
@@ -115,7 +119,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
 
   const html = emailWrapper(`
     <h2 style="color:#1a4d1a;margin-top:0">${orderGreeting}</h2>
-    <p>Your order <strong>${data.orderNumber}</strong> has been ${isPaid ? "paid and confirmed" : "received"}.</p>
+    <p>Your order <strong>${escapeHtml(data.orderNumber)}</strong> has been ${isPaid ? "paid and confirmed" : "received"}.</p>
 
     ${deliveryMessage}
 
@@ -143,7 +147,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
     <div style="background:#f9fafb;padding:16px;border-radius:8px;margin:16px 0;font-size:14px">
       <p style="margin:0 0 4px"><strong>Delivery:</strong></p>
       <p style="margin:0;color:#666">${shippingMessage}</p>
-      <p style="margin:4px 0 0;color:#666">${data.shippingAddress}</p>
+      <p style="margin:4px 0 0;color:#666">${escapeHtml(data.shippingAddress)}</p>
       <p style="margin:8px 0 0"><strong>Payment:</strong> ${paymentLabel}</p>
     </div>
 
@@ -167,7 +171,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
     });
     console.log("[EMAIL] Order confirmation sent to", data.customerEmail);
   } catch (error) {
-    console.error("[EMAIL] Failed to send order confirmation:", error);
+    console.error("[EMAIL] Failed to send order confirmation:", error instanceof Error ? error.message : "Unknown error");
   }
 }
 
@@ -198,27 +202,27 @@ export async function sendOrderStatusEmail(
 
   // Read customizable templates from settings
   const tpl = (key: string, fallback: string) => (cfg[`email.tpl.${key}`] || fallback)
-    .replace(/\{name\}/g, customerName)
-    .replace(/\{orderNumber\}/g, orderNumber)
-    .replace(/\{storeEmail\}/g, storeEmail);
+    .replace(/\{name\}/g, escapeHtml(customerName))
+    .replace(/\{orderNumber\}/g, escapeHtml(orderNumber))
+    .replace(/\{storeEmail\}/g, escapeHtml(storeEmail));
 
   const statusConfig: Record<string, { subject: string; heading: string; message: string; color: string; bgColor: string }> = {
     paid: {
-      subject: `Payment Confirmed — Order ${orderNumber}`,
+      subject: `Payment Confirmed — Order ${escapeHtml(orderNumber)}`,
       heading: "Payment Confirmed ✓",
       message: tpl("status_paid", "Your payment has been received. We'll start preparing your order shortly."),
       color: "#15803d",
       bgColor: "#f0fdf4",
     },
     processing: {
-      subject: `Order ${orderNumber} — Being Prepared`,
+      subject: `Order ${escapeHtml(orderNumber)} — Being Prepared`,
       heading: "Your Order is Being Prepared",
       message: tpl("status_processing", "Our team is carefully packing your teas and coffees. We'll notify you once it's shipped."),
       color: "#a16207",
       bgColor: "#fefce8",
     },
     shipped: {
-      subject: `Order ${orderNumber} — Shipped!`,
+      subject: `Order ${escapeHtml(orderNumber)} — Shipped!`,
       heading: "Your Order Has Been Shipped! 📦",
       message: tpl("status_shipped", shippingMethod === "inpost"
         ? `Your package is on its way to your InPost Parcel Locker. You'll receive a code to pick it up.`
@@ -229,14 +233,14 @@ export async function sendOrderStatusEmail(
       bgColor: "#f5f3ff",
     },
     delivered: {
-      subject: `Order ${orderNumber} — Delivered`,
+      subject: `Order ${escapeHtml(orderNumber)} — Delivered`,
       heading: "Your Order Has Been Delivered ✓",
       message: tpl("status_delivered", `We hope you enjoy your products! If you have any questions, don't hesitate to contact us at ${storeEmail}.`),
       color: "#15803d",
       bgColor: "#f0fdf4",
     },
     cancelled: {
-      subject: `Order ${orderNumber} — Cancelled`,
+      subject: `Order ${escapeHtml(orderNumber)} — Cancelled`,
       heading: "Your Order Has Been Cancelled",
       message: tpl("status_cancelled", paymentMethod === "cod"
         ? "Your order has been cancelled. Since no payment was made, no refund is needed. All reserved items have been returned to stock."
@@ -245,7 +249,7 @@ export async function sendOrderStatusEmail(
       bgColor: "#fef2f2",
     },
     returned: {
-      subject: `Order ${orderNumber} — Return Processed`,
+      subject: `Order ${escapeHtml(orderNumber)} — Return Processed`,
       heading: "Your Return Has Been Processed",
       message: tpl("status_returned", "We've received your return. Your refund will be processed within 5–10 business days."),
       color: "#ea580c",
@@ -257,14 +261,14 @@ export async function sendOrderStatusEmail(
   if (!config) return;
 
   const html = emailWrapper(`
-    <h2 style="color:#1a4d1a;margin-top:0">Hi ${customerName},</h2>
-    <p>Here's an update on your order <strong>${orderNumber}</strong>:</p>
+    <h2 style="color:#1a4d1a;margin-top:0">Hi ${escapeHtml(customerName)},</h2>
+    <p>Here's an update on your order <strong>${escapeHtml(orderNumber)}</strong>:</p>
     <div style="background:${config.bgColor};padding:16px;border-radius:8px;text-align:center;margin:16px 0">
       <span style="font-size:20px;font-weight:bold;color:${config.color}">${config.heading}</span>
       <p style="margin:8px 0 0;font-size:14px;color:#666">${config.message}</p>
     </div>
-    ${newStatus === "shipped" && trackingNumber ? `<div style="background:#f9fafb;padding:12px 16px;border-radius:8px;margin:16px 0;font-size:14px"><strong>Tracking Number:</strong> <code style="background:#e5e7eb;padding:2px 6px;border-radius:4px">${trackingNumber}</code></div>` : ""}
-    ${note ? `<p style="color:#666;font-size:14px"><strong>Note:</strong> ${note}</p>` : ""}
+    ${newStatus === "shipped" && trackingNumber ? `<div style="background:#f9fafb;padding:12px 16px;border-radius:8px;margin:16px 0;font-size:14px"><strong>Tracking Number:</strong> <code style="background:#e5e7eb;padding:2px 6px;border-radius:4px">${escapeHtml(trackingNumber)}</code></div>` : ""}
+    ${note ? `<p style="color:#666;font-size:14px"><strong>Note:</strong> ${escapeHtml(note)}</p>` : ""}
     ${newStatus === "cancelled" || newStatus === "returned"
       ? `<p style="text-align:center;margin:16px 0">
           <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://leafyshop.eu"}/products" style="display:inline-block;background:#15803d;color:white;padding:10px 24px;border-radius:8px;text-decoration:none;font-weight:600">Shop Again →</a>
@@ -286,7 +290,7 @@ export async function sendOrderStatusEmail(
     });
     console.log("[EMAIL] Status update sent to", customerEmail);
   } catch (error) {
-    console.error("[EMAIL] Failed to send status email:", error);
+    console.error("[EMAIL] Failed to send status email:", error instanceof Error ? error.message : "Unknown error");
   }
 }
 
@@ -307,11 +311,11 @@ export async function sendWelcomeEmail(
   const storeName = cfg["store.name"] || "Leafy Tea & Coffee Ltd.";
 
   const html = emailWrapper(`
-    <h2 style="color:#1a4d1a;margin-top:0">Welcome to Leafy Management, ${name}!</h2>
+    <h2 style="color:#1a4d1a;margin-top:0">Welcome to Leafy Management, ${escapeHtml(name)}!</h2>
     <p>Your account has been created. Here are your login details:</p>
     <div style="background:#f9fafb;padding:16px;border-radius:8px;margin:16px 0;font-size:14px">
-      <p style="margin:0 0 8px"><strong>Email:</strong> ${email}</p>
-      <p style="margin:0 0 8px"><strong>Temporary Password:</strong> <code style="background:#e5e7eb;padding:2px 6px;border-radius:4px;font-size:13px">${password}</code></p>
+      <p style="margin:0 0 8px"><strong>Email:</strong> ${escapeHtml(email)}</p>
+      <p style="margin:0 0 8px"><strong>Temporary Password:</strong> <code style="background:#e5e7eb;padding:2px 6px;border-radius:4px;font-size:13px">${escapeHtml(password)}</code></p>
       <p style="margin:0"><strong>Role:</strong> ${role.charAt(0).toUpperCase() + role.slice(1)}</p>
     </div>
     <div style="background:#fff7ed;border:1px solid #fed7aa;padding:12px 16px;border-radius:8px;margin:16px 0;font-size:13px;color:#9a3412">
@@ -331,7 +335,7 @@ export async function sendWelcomeEmail(
     });
     console.log("[EMAIL] Welcome email sent to", email);
   } catch (error) {
-    console.error("[EMAIL] Failed to send welcome email:", error);
+    console.error("[EMAIL] Failed to send welcome email:", error instanceof Error ? error.message : "Unknown error");
   }
 }
 
@@ -352,10 +356,10 @@ export async function sendPasswordResetEmail(
 
   const html = emailWrapper(`
     <h2 style="color:#1a4d1a;margin-top:0">Password Reset</h2>
-    <p>Hi ${name}, your password has been reset by an administrator.</p>
+    <p>Hi ${escapeHtml(name)}, your password has been reset by an administrator.</p>
     <div style="background:#f9fafb;padding:16px;border-radius:8px;margin:16px 0;font-size:14px">
-      <p style="margin:0 0 8px"><strong>Email:</strong> ${email}</p>
-      <p style="margin:0"><strong>New Temporary Password:</strong> <code style="background:#e5e7eb;padding:2px 6px;border-radius:4px;font-size:13px">${password}</code></p>
+      <p style="margin:0 0 8px"><strong>Email:</strong> ${escapeHtml(email)}</p>
+      <p style="margin:0"><strong>New Temporary Password:</strong> <code style="background:#e5e7eb;padding:2px 6px;border-radius:4px;font-size:13px">${escapeHtml(password)}</code></p>
     </div>
     <div style="background:#fff7ed;border:1px solid #fed7aa;padding:12px 16px;border-radius:8px;margin:16px 0;font-size:13px;color:#9a3412">
       ⚠️ You will be required to change your password on next login.
@@ -374,6 +378,6 @@ export async function sendPasswordResetEmail(
     });
     console.log("[EMAIL] Password reset email sent to", email);
   } catch (error) {
-    console.error("[EMAIL] Failed to send reset email:", error);
+    console.error("[EMAIL] Failed to send reset email:", error instanceof Error ? error.message : "Unknown error");
   }
 }

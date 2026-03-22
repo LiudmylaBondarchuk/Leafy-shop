@@ -53,7 +53,7 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
-    console.error("POST /api/customer/login error:", error);
+    console.error("POST /api/customer/login error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Login failed", 500);
   }
 }

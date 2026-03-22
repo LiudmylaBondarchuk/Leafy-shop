@@ -3,7 +3,7 @@ import { discountCodes, adminUsers } from "@/lib/db/schema-pg";
 import { eq } from "drizzle-orm";
 import { getAdminFromCookie } from "@/lib/auth";
 import { apiSuccess, apiError } from "@/lib/utils";
-import { logAudit } from "@/lib/audit";
+import { logAudit, detectChanges } from "@/lib/audit";
 
 export async function GET(
   _request: Request,
@@ -48,6 +48,9 @@ export async function PUT(
         return apiError("You can only edit discounts you created.", 403, "FORBIDDEN");
       }
     }
+
+    // Fetch old for change detection
+    const oldDiscount = await db.query.discountCodes.findFirst({ where: eq(discountCodes.id, parseInt(id)) });
 
     // If only toggling isActive, skip full validation
     const isToggleOnly = Object.keys(body).length === 1 && "isActive" in body;
@@ -101,7 +104,7 @@ export async function PUT(
       entityType: "discount",
       entityId: parseInt(id),
       entityName: updated?.code || "Unknown",
-      changes: { update: { old: null, new: updateData } },
+      changes: detectChanges(oldDiscount || {}, updateData, ["code", "type", "value", "isActive", "expiresAt"]),
       isTestData: requestingUser?.role === "tester",
     });
 

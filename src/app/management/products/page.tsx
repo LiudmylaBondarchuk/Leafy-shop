@@ -19,6 +19,8 @@ export default function AdminProductsPage() {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [page, setPage] = useState(1);
+  const perPage = 20;
 
   const fetchProducts = () => {
     fetch("/api/admin/products/list")
@@ -124,6 +126,12 @@ export default function AdminProductsPage() {
     return true;
   });
 
+  const totalPages = Math.ceil(filtered.length / perPage);
+  const paginated = filtered.slice((page - 1) * perPage, page * perPage);
+
+  // Reset page when filters change
+  useEffect(() => { setPage(1); }, [search, categoryFilter, typeFilter, statusFilter]);
+
   const hasFilters = search || categoryFilter || typeFilter || statusFilter;
 
   return (
@@ -189,7 +197,7 @@ export default function AdminProductsPage() {
       <Card className="overflow-hidden">
         {loading ? (
           <div className="p-8 text-center text-gray-400">Loading...</div>
-        ) : filtered.length === 0 ? (
+        ) : paginated.length === 0 ? (
           <div className="p-8 text-center text-gray-400">{hasFilters ? "No products match your filters." : "No products yet."}</div>
         ) : (
           <div className="overflow-x-auto">
@@ -206,7 +214,7 @@ export default function AdminProductsPage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((p: any) => (
+                {paginated.map((p: any) => (
                   <tr key={p.id} className={`border-t border-gray-100 hover:bg-gray-50 ${!p.isActive ? "opacity-40" : ""}`}>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
@@ -263,6 +271,38 @@ export default function AdminProductsPage() {
           </div>
         )}
       </Card>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4">
+          <p className="text-sm text-gray-500">{filtered.length} product{filtered.length !== 1 ? "s" : ""} total</p>
+          <div className="flex gap-1">
+            <button
+              onClick={() => setPage(Math.max(1, page - 1))}
+              disabled={page === 1}
+              className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPage(p)}
+                className={`px-3 py-1.5 text-sm rounded-lg border ${p === page ? "bg-green-700 text-white border-green-700" : "border-gray-300 hover:bg-gray-100"}`}
+              >
+                {p}
+              </button>
+            ))}
+            <button
+              onClick={() => setPage(Math.min(totalPages, page + 1))}
+              disabled={page === totalPages}
+              className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Deactivate confirmation modal */}
       {deleteModal && (

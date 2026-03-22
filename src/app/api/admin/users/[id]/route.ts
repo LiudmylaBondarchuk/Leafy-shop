@@ -5,7 +5,7 @@ import { hashSync } from "bcryptjs";
 import { getAdminFromCookie } from "@/lib/auth";
 import { hasPermission } from "@/constants/permissions";
 import { apiSuccess, apiError } from "@/lib/utils";
-import { logAudit } from "@/lib/audit";
+import { logAudit, detectChanges } from "@/lib/audit";
 
 export async function GET(
   _request: Request,
@@ -115,7 +115,11 @@ export async function PUT(
       entityType: "user",
       entityId: userId,
       entityName: targetUser.name || "Unknown",
-      changes: { update: { old: null, new: updateData } },
+      changes: detectChanges(
+        { name: targetUser.name, role: targetUser.role, isActive: targetUser.isActive, permissions: targetUser.permissions },
+        { name: updateData.name, role: updateData.role, isActive: updateData.isActive, permissions: updateData.permissions },
+        ["name", "role", "isActive", "permissions"]
+      ),
       isTestData: requestingUser?.role === "tester",
     });
 

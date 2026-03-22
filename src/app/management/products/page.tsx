@@ -22,6 +22,17 @@ export default function AdminProductsPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [page, setPage] = useState(1);
   const perPage = 20;
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [userRole, setUserRole] = useState("");
+
+  useEffect(() => {
+    fetch("/api/auth/me").then((r) => r.json()).then((json) => {
+      if (json.data?.user) {
+        setCurrentUserId(Number(json.data.user.sub));
+        setUserRole(json.data.user.role || "");
+      }
+    });
+  }, []);
 
   const fetchProducts = () => {
     fetch("/api/admin/products/list")
@@ -344,16 +355,20 @@ export default function AdminProductsPage() {
                       )}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <div className="flex justify-end gap-2">
-                        <Link href={`/management/products/${p.id}/edit`}>
-                          <Button variant="ghost" size="sm">
-                            <Pencil className="h-3.5 w-3.5" />
+                      {userRole === "tester" && p.createdBy !== currentUserId ? (
+                        <span className="text-xs text-gray-300">Not yours</span>
+                      ) : (
+                        <div className="flex justify-end gap-2">
+                          <Link href={`/management/products/${p.id}/edit`}>
+                            <Button variant="ghost" size="sm">
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                          </Link>
+                          <Button variant="ghost" size="sm" onClick={() => setDeleteModal({ id: p.id, name: p.name })}>
+                            <Trash2 className="h-3.5 w-3.5 text-red-500" />
                           </Button>
-                        </Link>
-                        <Button variant="ghost" size="sm" onClick={() => setDeleteModal({ id: p.id, name: p.name })}>
-                          <Trash2 className="h-3.5 w-3.5 text-red-500" />
-                        </Button>
-                      </div>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}

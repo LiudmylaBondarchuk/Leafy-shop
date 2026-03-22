@@ -30,6 +30,7 @@ export async function GET() {
       role: adminUsers.role,
       permissions: adminUsers.permissions,
       isActive: adminUsers.isActive,
+      lastLoginAt: adminUsers.lastLoginAt,
       createdAt: adminUsers.createdAt,
     }).from(adminUsers).orderBy(desc(adminUsers.createdAt));
 

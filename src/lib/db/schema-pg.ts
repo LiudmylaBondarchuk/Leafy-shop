@@ -167,6 +167,7 @@ export const adminUsers = pgTable("admin_users", {
   permissions: text("permissions").notNull().default("[]"),
   mustChangePassword: boolean("must_change_password").notNull().default(false),
   isActive: boolean("is_active").notNull().default(true),
+  lastLoginAt: text("last_login_at"),
   deletedAt: text("deleted_at"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });

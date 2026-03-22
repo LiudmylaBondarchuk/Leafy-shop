@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Leaf, TestTube, Shield } from "lucide-react";
+import { Leaf, FlaskConical, Shield } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -107,7 +107,7 @@ export default function ManagementLoginPage() {
                 : "bg-white border border-gray-200 text-gray-600 hover:border-gray-300"
             }`}
           >
-            <TestTube className="h-4 w-4" />
+            <FlaskConical className="h-4 w-4" />
             Tester
           </button>
         </div>
@@ -142,7 +142,7 @@ export default function ManagementLoginPage() {
               <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 text-center">
                 <p className="text-sm text-gray-600 mb-4">Click to generate a one-time test password</p>
                 <Button onClick={handleGenerateTestPassword} loading={generating} className="bg-purple-600 hover:bg-purple-700">
-                  <TestTube className="mr-2 h-4 w-4" />
+                  <FlaskConical className="mr-2 h-4 w-4" />
                   Generate Test Password
                 </Button>
                 {error && <p className="text-sm text-red-600 mt-3">{error}</p>}
@@ -154,7 +154,6 @@ export default function ManagementLoginPage() {
                   {testerName && <p className="text-green-700">Account: <strong>{testerName}</strong></p>}
                   <p className="text-green-700">Email: <code className="bg-green-100 px-1 rounded">{email}</code></p>
                   <p className="text-green-700">Password: <code className="bg-green-100 px-1 rounded">{generatedPassword}</code></p>
-                  <p className="text-green-600 text-xs mt-1">Name and email are fixed. Only the password changes each time.</p>
                 </div>
                 <Input label="Email" id="testerEmail" type="email" value={email} disabled />
                 <Input label="Password" id="testerPassword" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />

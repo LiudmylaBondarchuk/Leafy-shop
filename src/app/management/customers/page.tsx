@@ -17,6 +17,7 @@ export default function AdminCustomersPage() {
   const [search, setSearch] = useState("");
   const [accountFilter, setAccountFilter] = useState("");
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState("");
   const [editModal, setEditModal] = useState<{ accountId: number; email: string; firstName: string; lastName: string; phone: string; shippingStreet: string; shippingCity: string; shippingZip: string; shippingCountry: string } | null>(null);
   const [editSaving, setEditSaving] = useState(false);
   const [sendingReset, setSendingReset] = useState(false);
@@ -35,7 +36,12 @@ export default function AdminCustomersPage() {
 
   useEffect(() => {
     fetchCustomers();
+    fetch("/api/auth/me").then((r) => r.json()).then((json) => {
+      if (json.data?.user) setUserRole(json.data.user.role || "");
+    });
   }, [search]);
+
+  const canEdit = userRole === "admin" || userRole === "manager";
 
   const filtered = customers.filter((c) => {
     if (accountFilter === "with" && !c.hasAccount) return false;
@@ -141,7 +147,10 @@ export default function AdminCustomersPage() {
                         {c.hasAccount && (
                           <button
                             onClick={async () => {
-                              // Load full customer data including address
+                              if (!canEdit) {
+                                toast.error("You don't have permission to edit customers");
+                                return;
+                              }
                               try {
                                 const res = await fetch(`/api/admin/customers/account?id=${c.accountId}`);
                                 const json = await res.json();
@@ -185,25 +194,29 @@ export default function AdminCustomersPage() {
 
       {/* Edit account modal */}
       {editModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 overflow-y-auto py-8" onClick={() => { if (!editSaving) setEditModal(null); }}>
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md mx-4 shadow-xl w-full" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 overflow-y-auto py-8" onClick={() => { if (!editSaving) setEditModal(null); }}>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md mx-4 my-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-6 pb-0">
               <h3 className="font-semibold text-gray-900 dark:text-gray-100">Edit Customer Account</h3>
               <button onClick={() => setEditModal(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"><X className="h-4 w-4" /></button>
             </div>
-            <div className="space-y-3">
-              <Input label="Email" id="editEmail" type="email" value={editModal.email} onChange={(e) => setEditModal({ ...editModal, email: e.target.value })} />
+
+            <div className="p-6 space-y-3">
+              {/* Personal Info */}
+              <Input label="Email" id="editEmail" type="email" value={editModal.email} onChange={(e) => setEditModal({ ...editModal, email: e.target.value })} disabled={userRole === "manager"} />
               <div className="grid grid-cols-2 gap-3">
                 <Input label="First name" id="editFirstName" value={editModal.firstName} onChange={(e) => setEditModal({ ...editModal, firstName: e.target.value })} />
                 <Input label="Last name" id="editLastName" value={editModal.lastName} onChange={(e) => setEditModal({ ...editModal, lastName: e.target.value })} />
               </div>
               <Input label="Phone" id="editPhone" value={editModal.phone} onChange={(e) => setEditModal({ ...editModal, phone: e.target.value })} />
+
+              {/* Shipping Address */}
               <hr className="border-gray-200 dark:border-gray-700" />
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Shipping Address</p>
-              <Input label="Street & number" id="editStreet" value={editModal.shippingStreet} onChange={(e) => setEditModal({ ...editModal, shippingStreet: e.target.value })} />
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Shipping Address</p>
+              <Input label="Street & number" id="editStreet" value={editModal.shippingStreet} onChange={(e) => setEditModal({ ...editModal, shippingStreet: e.target.value })} placeholder="ul. Marszałkowska 12/5" />
               <div className="grid grid-cols-2 gap-3">
-                <Input label="City" id="editCity" value={editModal.shippingCity} onChange={(e) => setEditModal({ ...editModal, shippingCity: e.target.value })} />
-                <Input label="Zip code" id="editZip" value={editModal.shippingZip} onChange={(e) => setEditModal({ ...editModal, shippingZip: e.target.value })} />
+                <Input label="City" id="editCity" value={editModal.shippingCity} onChange={(e) => setEditModal({ ...editModal, shippingCity: e.target.value })} placeholder="Warsaw" />
+                <Input label="Zip code" id="editZip" value={editModal.shippingZip} onChange={(e) => setEditModal({ ...editModal, shippingZip: e.target.value })} placeholder="00-001" />
               </div>
               <div>
                 <label htmlFor="editCountry" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Country</label>
@@ -212,41 +225,49 @@ export default function AdminCustomersPage() {
                 </select>
               </div>
             </div>
-            <div className="flex gap-3 mt-5">
-              <Button variant="secondary" size="sm" className="flex-1" onClick={() => setEditModal(null)} disabled={editSaving}>Cancel</Button>
-              <Button size="sm" className="flex-1" loading={editSaving} onClick={handleEditSave}>Save Changes</Button>
+
+            {/* Actions */}
+            <div className="px-6 pb-4">
+              <div className="flex gap-3">
+                <Button variant="secondary" size="sm" className="flex-1" onClick={() => setEditModal(null)} disabled={editSaving}>Cancel</Button>
+                <Button size="sm" className="flex-1" loading={editSaving} onClick={handleEditSave}>Save Changes</Button>
+              </div>
             </div>
-            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full"
-                loading={sendingReset}
-                onClick={async () => {
-                  setSendingReset(true);
-                  try {
-                    const res = await fetch("/api/admin/customers/account", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ accountId: editModal.accountId }),
-                    });
-                    const json = await res.json();
-                    if (json.data) {
-                      toast.success(json.data.message || "Password reset link sent");
-                    } else {
-                      toast.error(json.message || "Failed to send reset link");
+
+            {/* Password reset - admin only */}
+            {userRole === "admin" && (
+              <div className="px-6 pb-6 pt-2 border-t border-gray-200 dark:border-gray-700">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full"
+                  loading={sendingReset}
+                  onClick={async () => {
+                    setSendingReset(true);
+                    try {
+                      const res = await fetch("/api/admin/customers/account", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ accountId: editModal.accountId }),
+                      });
+                      const json = await res.json();
+                      if (json.data) {
+                        toast.success(json.data.message || "Password reset link sent");
+                      } else {
+                        toast.error(json.message || "Failed to send reset link");
+                      }
+                    } catch {
+                      toast.error("Failed to send reset link");
+                    } finally {
+                      setSendingReset(false);
                     }
-                  } catch {
-                    toast.error("Failed to send reset link");
-                  } finally {
-                    setSendingReset(false);
-                  }
-                }}
-              >
-                <KeyRound className="h-4 w-4 mr-2" />
-                Send Password Reset Link
-              </Button>
-            </div>
+                  }}
+                >
+                  <KeyRound className="h-4 w-4 mr-2" />
+                  Send Password Reset Link
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       )}

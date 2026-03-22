@@ -6,3 +6,4 @@ out/
 dist/
 test-results/
 playwright-report/
+TEST-SCENARIOS.md

@@ -12,6 +12,8 @@ export async function GET(request: NextRequest) {
       return apiSuccess([]);
     }
 
+    const searchTerm = q.trim().toLowerCase();
+
     const results = await db
       .select({
         id: products.id,
@@ -28,8 +30,8 @@ export async function GET(request: NextRequest) {
           eq(products.isActive, true),
           eq(products.isTestData, false),
           or(
-            like(products.name, `%${q}%`),
-            like(products.description, `%${q}%`)
+            sql`LOWER(${products.name}) LIKE ${'%' + searchTerm + '%'}`,
+            sql`LOWER(${products.description}) LIKE ${'%' + searchTerm + '%'}`
           )
         )
       )

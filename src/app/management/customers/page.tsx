@@ -6,18 +6,20 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { formatPrice, formatDateShort } from "@/lib/utils";
-import { AlertTriangle, Search, Pencil, X } from "lucide-react";
+import { AlertTriangle, Search, Pencil, X, KeyRound } from "lucide-react";
 import Link from "next/link";
 import { TableSkeleton } from "@/components/ui/Skeleton";
 import { toast } from "sonner";
+import { COUNTRIES } from "@/constants/countries";
 
 export default function AdminCustomersPage() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [accountFilter, setAccountFilter] = useState("");
   const [loading, setLoading] = useState(true);
-  const [editModal, setEditModal] = useState<{ accountId: number; firstName: string; lastName: string; phone: string } | null>(null);
+  const [editModal, setEditModal] = useState<{ accountId: number; email: string; firstName: string; lastName: string; phone: string; shippingStreet: string; shippingCity: string; shippingZip: string; shippingCountry: string } | null>(null);
   const [editSaving, setEditSaving] = useState(false);
+  const [sendingReset, setSendingReset] = useState(false);
 
   const fetchCustomers = () => {
     const params = new URLSearchParams();
@@ -138,7 +140,27 @@ export default function AdminCustomersPage() {
                       <div className="flex items-center justify-center gap-1">
                         {c.hasAccount && (
                           <button
-                            onClick={() => setEditModal({ accountId: c.accountId, firstName: c.firstName, lastName: c.lastName, phone: c.phone })}
+                            onClick={async () => {
+                              // Load full customer data including address
+                              try {
+                                const res = await fetch(`/api/admin/customers/account?id=${c.accountId}`);
+                                const json = await res.json();
+                                const d = json.data;
+                                setEditModal({
+                                  accountId: c.accountId,
+                                  email: d?.email || c.email,
+                                  firstName: d?.firstName || c.firstName,
+                                  lastName: d?.lastName || c.lastName,
+                                  phone: d?.phone || c.phone || "",
+                                  shippingStreet: d?.shippingStreet || "",
+                                  shippingCity: d?.shippingCity || "",
+                                  shippingZip: d?.shippingZip || "",
+                                  shippingCountry: d?.shippingCountry || "PL",
+                                });
+                              } catch {
+                                setEditModal({ accountId: c.accountId, email: c.email, firstName: c.firstName, lastName: c.lastName, phone: c.phone || "", shippingStreet: "", shippingCity: "", shippingZip: "", shippingCountry: "PL" });
+                              }
+                            }}
                             className="text-blue-500 hover:text-blue-700"
                             title="Edit account"
                           >
@@ -163,20 +185,67 @@ export default function AdminCustomersPage() {
 
       {/* Edit account modal */}
       {editModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => { if (!editSaving) setEditModal(null); }}>
-          <div className="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-xl w-full" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 overflow-y-auto py-8" onClick={() => { if (!editSaving) setEditModal(null); }}>
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md mx-4 shadow-xl w-full" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-900">Edit Customer Account</h3>
-              <button onClick={() => setEditModal(null)} className="text-gray-400 hover:text-gray-600"><X className="h-4 w-4" /></button>
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100">Edit Customer Account</h3>
+              <button onClick={() => setEditModal(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"><X className="h-4 w-4" /></button>
             </div>
             <div className="space-y-3">
-              <Input label="First name" id="editFirstName" value={editModal.firstName} onChange={(e) => setEditModal({ ...editModal, firstName: e.target.value })} />
-              <Input label="Last name" id="editLastName" value={editModal.lastName} onChange={(e) => setEditModal({ ...editModal, lastName: e.target.value })} />
+              <Input label="Email" id="editEmail" type="email" value={editModal.email} onChange={(e) => setEditModal({ ...editModal, email: e.target.value })} />
+              <div className="grid grid-cols-2 gap-3">
+                <Input label="First name" id="editFirstName" value={editModal.firstName} onChange={(e) => setEditModal({ ...editModal, firstName: e.target.value })} />
+                <Input label="Last name" id="editLastName" value={editModal.lastName} onChange={(e) => setEditModal({ ...editModal, lastName: e.target.value })} />
+              </div>
               <Input label="Phone" id="editPhone" value={editModal.phone} onChange={(e) => setEditModal({ ...editModal, phone: e.target.value })} />
+              <hr className="border-gray-200 dark:border-gray-700" />
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Shipping Address</p>
+              <Input label="Street & number" id="editStreet" value={editModal.shippingStreet} onChange={(e) => setEditModal({ ...editModal, shippingStreet: e.target.value })} />
+              <div className="grid grid-cols-2 gap-3">
+                <Input label="City" id="editCity" value={editModal.shippingCity} onChange={(e) => setEditModal({ ...editModal, shippingCity: e.target.value })} />
+                <Input label="Zip code" id="editZip" value={editModal.shippingZip} onChange={(e) => setEditModal({ ...editModal, shippingZip: e.target.value })} />
+              </div>
+              <div>
+                <label htmlFor="editCountry" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Country</label>
+                <select id="editCountry" value={editModal.shippingCountry} onChange={(e) => setEditModal({ ...editModal, shippingCountry: e.target.value })} className="w-full rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600">
+                  {COUNTRIES.map((c) => (<option key={c.code} value={c.code}>{c.name}</option>))}
+                </select>
+              </div>
             </div>
-            <div className="flex gap-3 mt-4">
+            <div className="flex gap-3 mt-5">
               <Button variant="secondary" size="sm" className="flex-1" onClick={() => setEditModal(null)} disabled={editSaving}>Cancel</Button>
-              <Button size="sm" className="flex-1" loading={editSaving} onClick={handleEditSave}>Save</Button>
+              <Button size="sm" className="flex-1" loading={editSaving} onClick={handleEditSave}>Save Changes</Button>
+            </div>
+            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full"
+                loading={sendingReset}
+                onClick={async () => {
+                  setSendingReset(true);
+                  try {
+                    const res = await fetch("/api/admin/customers/account", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ accountId: editModal.accountId }),
+                    });
+                    const json = await res.json();
+                    if (json.data) {
+                      toast.success(json.data.message || "Password reset link sent");
+                    } else {
+                      toast.error(json.message || "Failed to send reset link");
+                    }
+                  } catch {
+                    toast.error("Failed to send reset link");
+                  } finally {
+                    setSendingReset(false);
+                  }
+                }}
+              >
+                <KeyRound className="h-4 w-4 mr-2" />
+                Send Password Reset Link
+              </Button>
             </div>
           </div>
         </div>

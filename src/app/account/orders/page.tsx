@@ -35,7 +35,7 @@ export default function OrdersPage() {
         const res = await fetch("/api/customer/orders");
         if (res.ok) {
           const json = await res.json();
-          setOrders(json.data || []);
+          setOrders(json.data?.orders || []);
         }
       } catch {
         // handled silently

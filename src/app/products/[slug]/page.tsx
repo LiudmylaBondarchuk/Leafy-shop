@@ -53,10 +53,12 @@ export default function ProductDetailPage() {
   const [selectedWeight, setSelectedWeight] = useState(0);
   const [selectedGrind, setSelectedGrind] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [badgeCfg, setBadgeCfg] = useState<{ label: string; color: string }>({ label: "Bestseller", color: "green" });
   const addItem = useCartStore((s) => s.addItem);
   const cartItems = useCartStore((s) => s.items);
 
   useEffect(() => {
+    fetch("/api/badge-config").then((r) => r.json()).then((j) => { if (j.data) setBadgeCfg(j.data); }).catch(() => {});
     fetch(`/api/products/${slug}`)
       .then((r) => r.json())
       .then((json) => {
@@ -182,7 +184,7 @@ export default function ProductDetailPage() {
         <div>
           <div className="flex gap-2 mb-3">
             <Badge>{product.category.name}</Badge>
-            {product.isFeatured && <BestsellerBadge />}
+            {product.isFeatured && <BestsellerBadge label={badgeCfg.label} color={badgeCfg.color} />}
           </div>
 
           <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>

@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { toast } from "sonner";
-import { Store, Mail, TestTube, Info, Tag, Plus, Pencil, Trash2, X } from "lucide-react";
+import { Store, Mail, TestTube, Info, Tag, Plus, Pencil, Trash2, X, Star, FileText } from "lucide-react";
 
 function Tooltip({ text }: { text: string }) {
   return (
@@ -205,6 +205,147 @@ export default function SettingsPage() {
             ))}
           </div>
         )}
+      </Card>
+
+      {/* Product Badges */}
+      <Card className="p-5 space-y-4 mb-6">
+        <div className="flex items-center gap-2 mb-2">
+          <Star className="h-5 w-5 text-gray-500" />
+          <h2 className="font-semibold text-gray-900">Product Badges</h2>
+          <Tooltip text="Badges displayed on product cards in the store. The Featured badge appears on products marked as 'Bestseller' in the product form." />
+        </div>
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Input label="Featured badge label" id="badgeFeatured" value={settings["badge.featured.label"] || "Bestseller"} onChange={(e) => updateSetting("badge.featured.label", e.target.value)} />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Featured badge color</label>
+              <select
+                value={settings["badge.featured.color"] || "green"}
+                onChange={(e) => updateSetting("badge.featured.color", e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              >
+                <option value="green">Green</option>
+                <option value="amber">Amber / Gold</option>
+                <option value="blue">Blue</option>
+                <option value="purple">Purple</option>
+                <option value="red">Red</option>
+                <option value="pink">Pink</option>
+              </select>
+            </div>
+          </div>
+          <p className="text-xs text-gray-400">This badge appears on products marked as "Featured" (★ Bestseller checkbox in product form). Change the label and color to customize how it appears in the store.</p>
+          <div className="flex items-center gap-3 pt-2">
+            <span className="text-xs text-gray-500">Preview:</span>
+            {(() => {
+              const label = settings["badge.featured.label"] || "Bestseller";
+              const color = settings["badge.featured.color"] || "green";
+              const colorMap: Record<string, string> = {
+                green: "bg-green-100 text-green-800 border-green-300",
+                amber: "bg-amber-100 text-amber-800 border-amber-300",
+                blue: "bg-blue-100 text-blue-800 border-blue-300",
+                purple: "bg-purple-100 text-purple-800 border-purple-300",
+                red: "bg-red-100 text-red-800 border-red-300",
+                pink: "bg-pink-100 text-pink-800 border-pink-300",
+              };
+              const starMap: Record<string, string> = {
+                green: "text-amber-500", amber: "text-amber-600", blue: "text-blue-500",
+                purple: "text-purple-500", red: "text-red-500", pink: "text-pink-500",
+              };
+              return (
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${colorMap[color] || colorMap.green}`}>
+                  <span className={starMap[color] || starMap.green}>★</span>
+                  {label}
+                </span>
+              );
+            })()}
+          </div>
+        </div>
+      </Card>
+
+      {/* Email Templates */}
+      <Card className="p-5 space-y-4 mb-6">
+        <div className="flex items-center gap-2 mb-2">
+          <FileText className="h-5 w-5 text-gray-500" />
+          <h2 className="font-semibold text-gray-900">Email Templates</h2>
+          <Tooltip text="Customize the text content of emails sent to customers. Use {name} for customer name, {orderNumber} for order number, {total} for order total." />
+        </div>
+        <p className="text-xs text-gray-400">Variables: <code className="bg-gray-100 px-1 rounded">{"{name}"}</code> <code className="bg-gray-100 px-1 rounded">{"{orderNumber}"}</code> <code className="bg-gray-100 px-1 rounded">{"{total}"}</code> <code className="bg-gray-100 px-1 rounded">{"{paymentMethod}"}</code> <code className="bg-gray-100 px-1 rounded">{"{shippingMethod}"}</code></p>
+
+        <div className="space-y-4 pt-2">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Order confirmation — greeting</label>
+            <textarea
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              rows={2}
+              value={settings["email.tpl.order_greeting"] || "Hi {name}, thank you for your order!"}
+              onChange={(e) => updateSetting("email.tpl.order_greeting", e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Status: Paid</label>
+            <textarea
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              rows={2}
+              value={settings["email.tpl.status_paid"] || "Your payment has been received. We'll start preparing your order shortly."}
+              onChange={(e) => updateSetting("email.tpl.status_paid", e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Status: Processing</label>
+            <textarea
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              rows={2}
+              value={settings["email.tpl.status_processing"] || "Our team is carefully packing your teas and coffees. We'll notify you once it's shipped."}
+              onChange={(e) => updateSetting("email.tpl.status_processing", e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Status: Shipped</label>
+            <textarea
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              rows={2}
+              value={settings["email.tpl.status_shipped"] || "Your package is on its way! It should arrive within 2–4 business days."}
+              onChange={(e) => updateSetting("email.tpl.status_shipped", e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Status: Delivered</label>
+            <textarea
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              rows={2}
+              value={settings["email.tpl.status_delivered"] || "We hope you enjoy your products! If you have any questions, don't hesitate to contact us."}
+              onChange={(e) => updateSetting("email.tpl.status_delivered", e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Status: Cancelled</label>
+            <textarea
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              rows={2}
+              value={settings["email.tpl.status_cancelled"] || "Your order has been cancelled. All reserved items have been returned to stock."}
+              onChange={(e) => updateSetting("email.tpl.status_cancelled", e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Status: Returned</label>
+            <textarea
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              rows={2}
+              value={settings["email.tpl.status_returned"] || "We've received your return. Your refund will be processed within 5–10 business days."}
+              onChange={(e) => updateSetting("email.tpl.status_returned", e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email footer text</label>
+            <Input
+              label=""
+              id="emailFooter"
+              value={settings["email.tpl.footer"] || ""}
+              onChange={(e) => updateSetting("email.tpl.footer", e.target.value)}
+              placeholder="e.g. Thank you for choosing Leafy!"
+            />
+          </div>
+        </div>
       </Card>
 
       {/* Tester Limits */}

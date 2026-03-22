@@ -15,10 +15,12 @@ interface ProductCardProps {
   priceFrom: number;
   isFeatured: boolean;
   inStock: boolean;
+  badgeLabel?: string;
+  badgeColor?: string;
 }
 
 export function ProductCard({
-  name, slug, shortDescription, imageUrl, productType, category, priceFrom, isFeatured, inStock,
+  name, slug, shortDescription, imageUrl, productType, category, priceFrom, isFeatured, inStock, badgeLabel, badgeColor,
 }: ProductCardProps) {
   return (
     <Link
@@ -39,7 +41,7 @@ export function ProductCard({
       <div className="p-4">
         <div className="flex gap-1.5 mb-2 flex-wrap">
           <Badge variant="default">{category.name}</Badge>
-          {isFeatured && <BestsellerBadge />}
+          {isFeatured && <BestsellerBadge label={badgeLabel} color={badgeColor} />}
           {!inStock && <OutOfStockBadge />}
         </div>
 

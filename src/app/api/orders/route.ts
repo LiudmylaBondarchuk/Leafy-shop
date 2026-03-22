@@ -264,11 +264,27 @@ export async function POST(request: NextRequest) {
         note: "Order placed",
       });
 
-    // Decrement stock
+    // Decrement stock with re-check to prevent overselling
     for (const v of variantRows) {
-      await db.update(productVariants)
+      const result = await db.update(productVariants)
         .set({ stock: sql`${productVariants.stock} - ${v.quantity}` })
-        .where(eq(productVariants.id, v.id));
+        .where(and(eq(productVariants.id, v.id), sql`${productVariants.stock} >= ${v.quantity}`))
+        .returning();
+
+      if (result.length === 0) {
+        // Stock was insufficient (concurrent order took it) — cancel this order
+        await db.update(orders)
+          .set({ status: "cancelled", updatedAt: new Date().toISOString() })
+          .where(eq(orders.id, order.id));
+        await db.insert(orderStatusHistory).values({
+          orderId: order.id,
+          fromStatus: "new",
+          toStatus: "cancelled",
+          changedBy: "system",
+          note: `Auto-cancelled: ${v.productName} went out of stock`,
+        });
+        return apiError(`${v.productName} just went out of stock. Please try again.`, 409, "OUT_OF_STOCK");
+      }
     }
 
     // Check for critical low stock and send instant alert

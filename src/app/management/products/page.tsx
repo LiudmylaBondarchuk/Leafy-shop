@@ -224,7 +224,7 @@ export default function AdminProductsPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Products</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Products</h1>
         <div className="flex gap-2">
           <Button size="sm" variant="secondary" onClick={handleExportCSV}>
             <Download className="h-4 w-4 mr-1" /> Export
@@ -241,7 +241,7 @@ export default function AdminProductsPage() {
         </div>
       </div>
       <div className="flex gap-2 mb-4">
-        <button onClick={downloadTemplate} className="text-xs text-green-700 hover:text-green-800 underline">
+        <button onClick={downloadTemplate} className="text-xs text-green-700 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 underline">
           Download CSV template
         </button>
       </div>
@@ -249,25 +249,25 @@ export default function AdminProductsPage() {
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-6">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name or SKU..."
-            className="rounded-lg border border-gray-300 pl-9 pr-3 py-2 text-sm w-full sm:w-56"
+            className="rounded-lg border border-gray-300 dark:border-gray-600 pl-9 pr-3 py-2 text-sm w-full sm:w-56 dark:bg-gray-800 dark:text-gray-100"
           />
         </div>
-        <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm">
+        <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm dark:text-gray-100">
           <option value="">All categories</option>
           {categories.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
-        <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm">
+        <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm dark:text-gray-100">
           <option value="">All types</option>
           <option value="tea">Tea</option>
           <option value="coffee">Coffee</option>
         </select>
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm">
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm dark:text-gray-100">
           <option value="">All statuses</option>
           <option value="active">Active</option>
           <option value="inactive">Inactive</option>
@@ -275,7 +275,7 @@ export default function AdminProductsPage() {
           <option value="out_of_stock">Out of stock</option>
         </select>
         {hasFilters && (
-          <button onClick={() => { setSearch(""); setCategoryFilter(""); setTypeFilter(""); setStatusFilter(""); }} className="text-sm text-green-700 hover:text-green-800">
+          <button onClick={() => { setSearch(""); setCategoryFilter(""); setTypeFilter(""); setStatusFilter(""); }} className="text-sm text-green-700 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300">
             Clear filters
           </button>
         )}
@@ -285,13 +285,13 @@ export default function AdminProductsPage() {
         {loading ? (
           <TableSkeleton />
         ) : paginated.length === 0 ? (
-          <div className="p-8 text-center text-gray-400">{hasFilters ? "No products match your filters." : "No products yet."}</div>
+          <div className="p-8 text-center text-gray-400 dark:text-gray-500">{hasFilters ? "No products match your filters." : "No products yet."}</div>
         ) : (
           <>
           {/* Desktop table */}
           <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-sm min-w-[640px]">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
                   <th className="px-4 py-3 w-10">
                     <input
@@ -299,27 +299,27 @@ export default function AdminProductsPage() {
                       checked={allVisibleSelected}
                       ref={(el) => { if (el) el.indeterminate = someVisibleSelected; }}
                       onChange={toggleSelectAll}
-                      className="rounded border-gray-300 text-green-700 focus:ring-green-500 cursor-pointer"
+                      className="rounded border-gray-300 dark:border-gray-600 text-green-700 focus:ring-green-500 cursor-pointer"
                     />
                   </th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Product</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Category</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Type</th>
-                  <th className="text-right px-4 py-3 font-medium text-gray-500">Price from</th>
-                  <th className="text-right px-4 py-3 font-medium text-gray-500">Stock</th>
-                  <th className="text-center px-4 py-3 font-medium text-gray-500">Status</th>
-                  <th className="text-right px-4 py-3 font-medium text-gray-500">Actions</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Product</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Category</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Type</th>
+                  <th className="text-right px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Price from</th>
+                  <th className="text-right px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Stock</th>
+                  <th className="text-center px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Status</th>
+                  <th className="text-right px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {paginated.map((p: any) => (
-                  <tr key={p.id} className={`border-t border-gray-100 hover:bg-gray-50 ${!p.isActive ? "opacity-40" : ""}`}>
+                  <tr key={p.id} className={`border-t border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 ${!p.isActive ? "opacity-40" : ""}`}>
                     <td className="px-4 py-3">
                       <input
                         type="checkbox"
                         checked={selectedIds.has(p.id)}
                         onChange={() => toggleSelect(p.id)}
-                        className="rounded border-gray-300 text-green-700 focus:ring-green-500 cursor-pointer"
+                        className="rounded border-gray-300 dark:border-gray-600 text-green-700 focus:ring-green-500 cursor-pointer"
                       />
                     </td>
                     <td className="px-4 py-3">
@@ -332,21 +332,21 @@ export default function AdminProductsPage() {
                           className="rounded-lg"
                         />
                         <div>
-                          <p className="font-medium text-gray-900">{p.name}</p>
+                          <p className="font-medium text-gray-900 dark:text-gray-100">{p.name}</p>
                           <div className="flex gap-1 mt-0.5">
                             {p.isFeatured && <BestsellerBadge label={badgeCfg.label} color={badgeCfg.color} />}
                           </div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-gray-600">{p.category?.name}</td>
+                    <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{p.category?.name}</td>
                     <td className="px-4 py-3">
                       <Badge variant={p.productType === "tea" ? "success" : "warning"}>
                         {p.productType}
                       </Badge>
                     </td>
                     <td className="px-4 py-3 text-right font-medium">{formatPrice(p.priceFrom)}</td>
-                    <td className="px-4 py-3 text-right text-gray-600">
+                    <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-400">
                       {p.totalStock ?? "—"}
                     </td>
                     <td className="px-4 py-3 text-center">
@@ -379,13 +379,13 @@ export default function AdminProductsPage() {
           {/* Mobile card layout */}
           <div className="sm:hidden space-y-3 p-3">
             {paginated.map((p: any) => (
-              <div key={p.id} className={`border border-gray-200 rounded-lg p-3 ${!p.isActive ? "opacity-40" : ""}`}>
+              <div key={p.id} className={`border border-gray-200 dark:border-gray-700 rounded-lg p-3 ${!p.isActive ? "opacity-40" : ""}`}>
                 <div className="flex items-start gap-3">
                   <input
                     type="checkbox"
                     checked={selectedIds.has(p.id)}
                     onChange={() => toggleSelect(p.id)}
-                    className="rounded border-gray-300 text-green-700 focus:ring-green-500 cursor-pointer mt-1"
+                    className="rounded border-gray-300 dark:border-gray-600 text-green-700 focus:ring-green-500 cursor-pointer mt-1"
                   />
                   <ProductImage
                     src={p.imageUrl}
@@ -395,15 +395,15 @@ export default function AdminProductsPage() {
                     className="rounded-lg"
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 truncate">{p.name}</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-100 truncate">{p.name}</p>
                     {p.isFeatured && <BestsellerBadge label={badgeCfg.label} color={badgeCfg.color} />}
-                    <p className="text-xs text-gray-500 mt-0.5">{p.category?.name}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{p.category?.name}</p>
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 mt-2 text-sm">
                   <Badge variant={p.productType === "tea" ? "success" : "warning"}>{p.productType}</Badge>
                   <span className="font-medium">{formatPrice(p.priceFrom)}</span>
-                  <span className="text-gray-500">Stock: {p.totalStock ?? "—"}</span>
+                  <span className="text-gray-500 dark:text-gray-400">Stock: {p.totalStock ?? "—"}</span>
                   {!p.isActive ? (
                     <Badge variant="default">Inactive</Badge>
                   ) : p.inStock ? (
@@ -412,7 +412,7 @@ export default function AdminProductsPage() {
                     <Badge variant="error">Out of stock</Badge>
                   )}
                 </div>
-                <div className="flex justify-end gap-2 mt-2 border-t border-gray-100 pt-2">
+                <div className="flex justify-end gap-2 mt-2 border-t border-gray-100 dark:border-gray-700 pt-2">
                   <Link href={`/management/products/${p.id}/edit`}>
                     <Button variant="ghost" size="sm"><Pencil className="h-3.5 w-3.5" /></Button>
                   </Link>
@@ -430,12 +430,12 @@ export default function AdminProductsPage() {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-4">
-          <p className="text-sm text-gray-500">{filtered.length} product{filtered.length !== 1 ? "s" : ""} total</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{filtered.length} product{filtered.length !== 1 ? "s" : ""} total</p>
           <div className="flex gap-1">
             <button
               onClick={() => setPage(Math.max(1, page - 1))}
               disabled={page === 1}
-              className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed dark:text-gray-100"
             >
               Previous
             </button>
@@ -443,7 +443,7 @@ export default function AdminProductsPage() {
               <button
                 key={p}
                 onClick={() => setPage(p)}
-                className={`px-3 py-1.5 text-sm rounded-lg border ${p === page ? "bg-green-700 text-white border-green-700" : "border-gray-300 hover:bg-gray-100"}`}
+                className={`px-3 py-1.5 text-sm rounded-lg border ${p === page ? "bg-green-700 text-white border-green-700" : "border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-100"}`}
               >
                 {p}
               </button>
@@ -451,7 +451,7 @@ export default function AdminProductsPage() {
             <button
               onClick={() => setPage(Math.min(totalPages, page + 1))}
               disabled={page === totalPages}
-              className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed dark:text-gray-100"
             >
               Next
             </button>
@@ -462,14 +462,14 @@ export default function AdminProductsPage() {
       {/* Deactivate confirmation modal */}
       {deleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setDeleteModal(null)}>
-          <div className="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-sm mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 rounded-full bg-red-100">
+              <div className="p-2 rounded-full bg-red-100 dark:bg-red-900/30">
                 <Trash2 className="h-5 w-5 text-red-600" />
               </div>
-              <h3 className="font-semibold text-gray-900">Deactivate Product</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100">Deactivate Product</h3>
             </div>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
               Are you sure you want to deactivate <strong>{deleteModal.name}</strong>? It will be hidden from the store but can be reactivated later.
             </p>
             <div className="flex gap-3">
@@ -487,14 +487,14 @@ export default function AdminProductsPage() {
       {/* Bulk deactivate confirmation modal */}
       {bulkDeactivateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setBulkDeactivateModal(false)}>
-          <div className="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-sm mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 rounded-full bg-red-100">
+              <div className="p-2 rounded-full bg-red-100 dark:bg-red-900/30">
                 <Trash2 className="h-5 w-5 text-red-600" />
               </div>
-              <h3 className="font-semibold text-gray-900">Deactivate {selectedIds.size} Products</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100">Deactivate {selectedIds.size} Products</h3>
             </div>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
               Are you sure you want to deactivate <strong>{selectedIds.size}</strong> selected product{selectedIds.size !== 1 ? "s" : ""}? They will be hidden from the store but can be reactivated later.
             </p>
             <div className="flex gap-3">
@@ -511,7 +511,7 @@ export default function AdminProductsPage() {
 
       {/* Floating bulk action bar */}
       {selectedIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-gray-900 text-white rounded-xl shadow-2xl px-5 py-3 flex items-center gap-4">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-gray-900 dark:bg-gray-800 text-white rounded-xl shadow-2xl px-5 py-3 flex items-center gap-4">
           <span className="text-sm font-medium">{selectedIds.size} selected</span>
           <div className="w-px h-5 bg-gray-600" />
           <Button size="sm" variant="destructive" onClick={() => setBulkDeactivateModal(true)}>
@@ -520,7 +520,7 @@ export default function AdminProductsPage() {
           <Button size="sm" variant="secondary" onClick={handleBulkActivate} loading={bulkProcessing}>
             Activate Selected
           </Button>
-          <button onClick={() => setSelectedIds(new Set())} className="text-gray-400 hover:text-white ml-1">
+          <button onClick={() => setSelectedIds(new Set())} className="text-gray-400 dark:text-gray-500 hover:text-white ml-1">
             <X className="h-4 w-4" />
           </button>
         </div>

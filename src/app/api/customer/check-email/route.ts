@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { customers } from "@/lib/db/schema-pg";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { rateLimit } from "@/lib/rate-limit";
 
@@ -11,17 +11,14 @@ export async function POST(request: Request) {
     if (!success) return apiError("Too many requests. Please try again later.", 429);
 
     const body = await request.json();
-    const { email, phone } = body;
+    const { email } = body;
 
-    if (!email || !phone) {
-      return apiError("Email and phone are required", 400, "VALIDATION_ERROR");
+    if (!email) {
+      return apiError("Email is required", 400, "VALIDATION_ERROR");
     }
 
     const customer = await db.query.customers.findFirst({
-      where: and(
-        eq(customers.email, email.trim().toLowerCase()),
-        eq(customers.phone, phone.trim())
-      ),
+      where: eq(customers.email, email.trim().toLowerCase()),
     });
 
     return apiSuccess({ hasAccount: !!customer });

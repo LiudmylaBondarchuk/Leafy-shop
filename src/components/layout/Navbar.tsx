@@ -8,7 +8,7 @@ import { useCartStore } from "@/store/cart-store";
 import { SITE_LINKS } from "@/constants/links";
 import { SearchBar } from "./SearchBar";
 import { ThemeToggle } from "./ThemeToggle";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
 interface CustomerInfo {
@@ -18,6 +18,8 @@ interface CustomerInfo {
 
 export function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -84,15 +86,26 @@ export function Navbar() {
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-6">
-            <Link href={SITE_LINKS.teas.href} className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-green-700 dark:hover:text-green-400 transition-colors">
-              {SITE_LINKS.teas.label}
-            </Link>
-            <Link href={SITE_LINKS.coffees.href} className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-green-700 dark:hover:text-green-400 transition-colors">
-              {SITE_LINKS.coffees.label}
-            </Link>
-            <Link href={SITE_LINKS.products.href} className="text-sm font-medium text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/50 px-3 py-1.5 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/70 transition-colors">
-              {SITE_LINKS.products.label}
-            </Link>
+            {navLinks.map((link) => {
+              const isActive = pathname === link.href.split("?")[0] &&
+                (link.href.includes("?")
+                  ? searchParams.get("type") === new URLSearchParams(link.href.split("?")[1]).get("type")
+                  : !searchParams.get("type"));
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    "text-sm font-medium px-3 py-1.5 rounded-lg transition-colors",
+                    isActive
+                      ? "text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/50"
+                      : "text-gray-600 dark:text-gray-300 hover:text-green-700 dark:hover:text-green-400"
+                  )}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* Right side */}

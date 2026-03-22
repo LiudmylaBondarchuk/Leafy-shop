@@ -57,26 +57,30 @@ export default function AnalyticsPage() {
 
   const { summary, charts } = data;
 
+  const safeMarginPercent = summary.totalRevenue > 0
+    ? Math.round((summary.totalMargin / summary.totalRevenue) * 100)
+    : 0;
+
   const formatTooltipValue = (value: number) => formatPrice(value);
 
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Analytics</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Analytics</h1>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          <div className="flex gap-1 bg-gray-100 rounded-lg p-1 overflow-x-auto max-w-full">
+          <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1 overflow-x-auto max-w-full">
             {(["today", "week", "month", "all", "custom"] as DateRange[]).map((range) => (
               <button key={range} onClick={() => setDateRange(range)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${dateRange === range ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${dateRange === range ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"}`}>
                 {dateRangeLabels[range]}
               </button>
             ))}
           </div>
           {dateRange === "custom" && (
             <div className="flex items-center gap-2">
-              <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} className="rounded-lg border border-gray-300 px-2 py-1 text-xs" />
+              <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-2 py-1 text-xs" />
               <span className="text-xs text-gray-400">to</span>
-              <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} className="rounded-lg border border-gray-300 px-2 py-1 text-xs" />
+              <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-2 py-1 text-xs" />
             </div>
           )}
         </div>
@@ -86,37 +90,37 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <Card className="p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-green-100 text-green-700 shrink-0"><DollarSign className="h-4 w-4" /></div>
+            <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 shrink-0"><DollarSign className="h-4 w-4" /></div>
             <div className="min-w-0">
-              <p className="text-xs text-gray-500">Revenue</p>
-              <p className="text-lg font-bold text-gray-900 truncate">{formatPrice(summary.totalRevenue)}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Revenue</p>
+              <p className="text-lg font-bold text-gray-900 dark:text-gray-100 truncate">{formatPrice(summary.totalRevenue)}</p>
             </div>
           </div>
         </Card>
         <Card className="p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-red-100 text-red-700 shrink-0"><Package className="h-4 w-4" /></div>
+            <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 shrink-0"><Package className="h-4 w-4" /></div>
             <div className="min-w-0">
-              <p className="text-xs text-gray-500">Cost</p>
-              <p className="text-lg font-bold text-gray-900 truncate">{formatPrice(summary.totalCost)}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Cost</p>
+              <p className="text-lg font-bold text-gray-900 dark:text-gray-100 truncate">{formatPrice(summary.totalCost)}</p>
             </div>
           </div>
         </Card>
         <Card className="p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-blue-100 text-blue-700 shrink-0"><TrendingUp className="h-4 w-4" /></div>
+            <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 shrink-0"><TrendingUp className="h-4 w-4" /></div>
             <div className="min-w-0">
-              <p className="text-xs text-gray-500">Margin</p>
-              <p className="text-lg font-bold text-gray-900 truncate">{formatPrice(summary.totalMargin)}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Margin</p>
+              <p className="text-lg font-bold text-gray-900 dark:text-gray-100 truncate">{formatPrice(summary.totalMargin)}</p>
             </div>
           </div>
         </Card>
         <Card className="p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-purple-100 text-purple-700 shrink-0"><Percent className="h-4 w-4" /></div>
+            <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 shrink-0"><Percent className="h-4 w-4" /></div>
             <div className="min-w-0">
-              <p className="text-xs text-gray-500">Margin %</p>
-              <p className="text-lg font-bold text-gray-900 truncate">{summary.marginPercent}%</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Margin %</p>
+              <p className="text-lg font-bold text-gray-900 dark:text-gray-100 truncate">{safeMarginPercent}%</p>
             </div>
           </div>
         </Card>
@@ -125,39 +129,39 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <Card className="p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-yellow-100 text-yellow-700"><ShoppingBag className="h-4 w-4" /></div>
+            <div className="p-2 rounded-lg bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400"><ShoppingBag className="h-4 w-4" /></div>
             <div>
-              <p className="text-xs text-gray-500">Orders</p>
-              <p className="text-lg font-bold text-gray-900">{summary.activeOrders}</p>
-              <p className="text-xs text-gray-400">avg {formatPrice(summary.avgOrderValue)}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Orders</p>
+              <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{summary.activeOrders}</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500">avg {formatPrice(summary.avgOrderValue)}</p>
             </div>
           </div>
         </Card>
         <Card className="p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-cyan-100 text-cyan-700"><Users className="h-4 w-4" /></div>
+            <div className="p-2 rounded-lg bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-400"><Users className="h-4 w-4" /></div>
             <div>
-              <p className="text-xs text-gray-500">Customers</p>
-              <p className="text-lg font-bold text-gray-900">{summary.uniqueCustomers}</p>
-              <p className="text-xs text-gray-400">{summary.returningCustomers} returning</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Customers</p>
+              <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{summary.uniqueCustomers}</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500">{summary.returningCustomers} returning</p>
             </div>
           </div>
         </Card>
         <Card className="p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-orange-100 text-orange-700"><Truck className="h-4 w-4" /></div>
+            <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400"><Truck className="h-4 w-4" /></div>
             <div>
-              <p className="text-xs text-gray-500">Shipping</p>
-              <p className="text-lg font-bold text-gray-900">{formatPrice(summary.totalShipping)}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Shipping</p>
+              <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{formatPrice(summary.totalShipping)}</p>
             </div>
           </div>
         </Card>
         <Card className="p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-pink-100 text-pink-700"><Tag className="h-4 w-4" /></div>
+            <div className="p-2 rounded-lg bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-400"><Tag className="h-4 w-4" /></div>
             <div>
-              <p className="text-xs text-gray-500">Discounts Given</p>
-              <p className="text-lg font-bold text-gray-900">{formatPrice(summary.totalDiscount)}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Discounts Given</p>
+              <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{formatPrice(summary.totalDiscount)}</p>
             </div>
           </div>
         </Card>
@@ -166,7 +170,7 @@ export default function AnalyticsPage() {
       {/* Revenue Chart */}
       {charts.revenueChart.length > 0 && (
         <Card className="p-5 mb-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Revenue Over Time</h2>
+          <h2 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Revenue Over Time</h2>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={charts.revenueChart}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -182,7 +186,7 @@ export default function AnalyticsPage() {
       {/* Orders Chart */}
       {charts.revenueChart.length > 0 && (
         <Card className="p-5 mb-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Orders Per Day</h2>
+          <h2 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Orders Per Day</h2>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={charts.revenueChart}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -199,7 +203,7 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         {/* Status breakdown */}
         <Card className="p-5">
-          <h3 className="font-semibold text-gray-900 mb-3 text-sm">By Status</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-sm">By Status</h3>
           <ResponsiveContainer width="100%" height={180}>
             <PieChart>
               <Pie data={charts.statusBreakdown} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={65} innerRadius={35}>
@@ -223,7 +227,7 @@ export default function AnalyticsPage() {
 
         {/* Payment methods */}
         <Card className="p-5">
-          <h3 className="font-semibold text-gray-900 mb-3 text-sm">Payment Methods</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-sm">Payment Methods</h3>
           <ResponsiveContainer width="100%" height={180}>
             <PieChart>
               <Pie data={charts.paymentBreakdown} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={65} innerRadius={35}>
@@ -247,7 +251,7 @@ export default function AnalyticsPage() {
 
         {/* Shipping methods */}
         <Card className="p-5">
-          <h3 className="font-semibold text-gray-900 mb-3 text-sm">Shipping Methods</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-sm">Shipping Methods</h3>
           <ResponsiveContainer width="100%" height={180}>
             <PieChart>
               <Pie data={charts.shippingBreakdown} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={65} innerRadius={35}>
@@ -271,7 +275,7 @@ export default function AnalyticsPage() {
 
         {/* Category breakdown */}
         <Card className="p-5">
-          <h3 className="font-semibold text-gray-900 mb-3 text-sm">Tea vs Coffee</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-sm">Tea vs Coffee</h3>
           <ResponsiveContainer width="100%" height={180}>
             <PieChart>
               <Pie data={charts.categoryBreakdown} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={65} innerRadius={35}>
@@ -297,7 +301,7 @@ export default function AnalyticsPage() {
       {/* Top Products */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="p-5">
-          <h3 className="font-semibold text-gray-900 mb-3">Top Products by Quantity</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">Top Products by Quantity</h3>
           {charts.topProductsByQty.length === 0 ? (
             <p className="text-sm text-gray-400">No sales data</p>
           ) : (
@@ -306,9 +310,9 @@ export default function AnalyticsPage() {
                 <div key={p.name} className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <span className="text-xs font-medium text-gray-400 w-5">{i + 1}.</span>
-                    <span className="text-sm text-gray-900">{p.name}</span>
+                    <span className="text-sm text-gray-900 dark:text-gray-100">{p.name}</span>
                   </div>
-                  <span className="text-sm font-medium text-gray-600">{p.quantity} sold</span>
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">{p.quantity} sold</span>
                 </div>
               ))}
             </div>
@@ -316,7 +320,7 @@ export default function AnalyticsPage() {
         </Card>
 
         <Card className="p-5">
-          <h3 className="font-semibold text-gray-900 mb-3">Top Products by Revenue</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">Top Products by Revenue</h3>
           {charts.topProductsByRevenue.length === 0 ? (
             <p className="text-sm text-gray-400">No sales data</p>
           ) : (
@@ -325,9 +329,9 @@ export default function AnalyticsPage() {
                 <div key={p.name} className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <span className="text-xs font-medium text-gray-400 w-5">{i + 1}.</span>
-                    <span className="text-sm text-gray-900">{p.name}</span>
+                    <span className="text-sm text-gray-900 dark:text-gray-100">{p.name}</span>
                   </div>
-                  <span className="text-sm font-medium text-gray-600">{formatPrice(p.revenue)}</span>
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">{formatPrice(p.revenue)}</span>
                 </div>
               ))}
             </div>

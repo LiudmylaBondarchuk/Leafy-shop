@@ -180,9 +180,19 @@ export default function SettingsPage() {
           <Input label="Default VAT rate (%)" id="storeVatRate" type="number" value={settings["store.vat_rate"] || "23"} onChange={(e) => updateSetting("store.vat_rate", e.target.value)} />
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Applied to all orders. Set to 0 to disable VAT.</p>
         </div>
-        <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
-          <Input label="GTM Container ID" id="storeGtmId" value={settings["store.gtm_id"] || ""} onChange={(e) => updateSetting("store.gtm_id", e.target.value)} placeholder="GTM-XXXXXXX" />
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Enter your GTM container ID to enable analytics. Leave empty to disable.</p>
+        <div className="pt-2 border-t border-gray-100 dark:border-gray-700 space-y-4">
+          <div>
+            <Input label="GTM Container ID" id="storeGtmId" value={settings["store.gtm_id"] || ""} onChange={(e) => updateSetting("store.gtm_id", e.target.value)} placeholder="GTM-XXXXXXX" />
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Google Tag Manager container. Manages all tracking scripts in one place.</p>
+          </div>
+          <div>
+            <Input label="Google Analytics 4 (GA4) Measurement ID" id="storeGa4Id" value={settings["store.ga4_id"] || ""} onChange={(e) => updateSetting("store.ga4_id", e.target.value)} placeholder="G-XXXXXXXXXX" />
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Direct GA4 tracking. Leave empty if using GTM for analytics.</p>
+          </div>
+          <div>
+            <Input label="Facebook / Meta Pixel ID" id="storeFbPixel" value={settings["store.fb_pixel_id"] || ""} onChange={(e) => updateSetting("store.fb_pixel_id", e.target.value)} placeholder="1234567890" />
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Tracks conversions from Facebook and Instagram ads.</p>
+          </div>
         </div>
       </Card>
 

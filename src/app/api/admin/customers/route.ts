@@ -3,6 +3,7 @@ import { orders } from "@/lib/db/schema-pg";
 import { getAdminFromCookie } from "@/lib/auth";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { NextRequest } from "next/server";
+import { sql } from "drizzle-orm";
 
 interface CustomerRecord {
   id: string; // composite key
@@ -24,41 +25,72 @@ export async function GET(request: NextRequest) {
   try {
     const search = request.nextUrl.searchParams.get("search") || "";
 
-    const allOrders: any[] = await db.select().from(orders);
+    // Use SQL aggregation instead of loading all orders into memory
+    const aggregated = await db
+      .select({
+        customerEmail: orders.customerEmail,
+        customerPhone: orders.customerPhone,
+        customerFirstName: orders.customerFirstName,
+        customerLastName: orders.customerLastName,
+        orderCount: sql<number>`count(*)`.as("order_count"),
+        totalSpent: sql<number>`coalesce(sum(case when ${orders.status} not in ('cancelled', 'returned') then ${orders.total} else 0 end), 0)`.as("total_spent"),
+        lastOrderDate: sql<string>`max(${orders.createdAt})`.as("last_order_date"),
+      })
+      .from(orders)
+      .groupBy(
+        orders.customerEmail,
+        orders.customerFirstName,
+        orders.customerLastName,
+        orders.customerPhone,
+      );
 
-    // Group by unique combination: email + firstName + lastName + phone
-    const customerMap = new Map<string, CustomerRecord>();
+    // Build customer records
+    const customers: CustomerRecord[] = [];
 
-    for (const o of allOrders) {
+    for (const row of aggregated) {
+      const key = `${row.customerEmail.toLowerCase()}|${row.customerFirstName.toLowerCase()}|${row.customerLastName.toLowerCase()}|${row.customerPhone}`;
+
+      customers.push({
+        id: Buffer.from(key).toString("base64url"),
+        email: row.customerEmail,
+        phone: row.customerPhone,
+        firstName: row.customerFirstName,
+        lastName: row.customerLastName,
+        orderCount: Number(row.orderCount),
+        totalSpent: Number(row.totalSpent),
+        lastOrderDate: row.lastOrderDate,
+        lastOrderNumber: "", // filled below
+        similarCustomers: [],
+      });
+    }
+
+    // Fetch last order number for each customer (one query for the latest order per group)
+    // We use a lightweight lookup: get orders sorted by createdAt desc, then match
+    const latestOrders = await db
+      .select({
+        customerEmail: orders.customerEmail,
+        customerFirstName: orders.customerFirstName,
+        customerLastName: orders.customerLastName,
+        customerPhone: orders.customerPhone,
+        orderNumber: orders.orderNumber,
+        createdAt: orders.createdAt,
+      })
+      .from(orders)
+      .orderBy(sql`${orders.createdAt} desc`);
+
+    const assignedKeys = new Set<string>();
+    for (const o of latestOrders) {
       const key = `${o.customerEmail.toLowerCase()}|${o.customerFirstName.toLowerCase()}|${o.customerLastName.toLowerCase()}|${o.customerPhone}`;
+      if (assignedKeys.has(key)) continue;
+      assignedKeys.add(key);
 
-      if (customerMap.has(key)) {
-        const existing = customerMap.get(key)!;
-        existing.orderCount++;
-        existing.totalSpent += ["cancelled", "returned"].includes(o.status) ? 0 : o.total;
-        if (o.createdAt > existing.lastOrderDate) {
-          existing.lastOrderDate = o.createdAt;
-          existing.lastOrderNumber = o.orderNumber;
-        }
-      } else {
-        customerMap.set(key, {
-          id: Buffer.from(key).toString("base64url"),
-          email: o.customerEmail,
-          phone: o.customerPhone,
-          firstName: o.customerFirstName,
-          lastName: o.customerLastName,
-          orderCount: 1,
-          totalSpent: ["cancelled", "returned"].includes(o.status) ? 0 : o.total,
-          lastOrderDate: o.createdAt,
-          lastOrderNumber: o.orderNumber,
-          similarCustomers: [],
-        });
+      const customer = customers.find((c) => c.id === Buffer.from(key).toString("base64url"));
+      if (customer) {
+        customer.lastOrderNumber = o.orderNumber;
       }
     }
 
     // Detect similar customers (same email or same phone but different name)
-    const customers = Array.from(customerMap.values());
-
     for (const c of customers) {
       for (const other of customers) {
         if (c.id === other.id) continue;

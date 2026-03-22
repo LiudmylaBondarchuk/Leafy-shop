@@ -24,6 +24,8 @@ export default function CheckoutPage() {
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const [confirmEmail, setConfirmEmail] = useState("");
+
   const [form, setForm] = useState({
     firstName: "", lastName: "", email: "", phone: "",
     country: "PL",
@@ -51,6 +53,11 @@ export default function CheckoutPage() {
     setErrors((e) => ({ ...e, [field]: "" }));
   };
 
+  const updateConfirmEmail = (value: string) => {
+    setConfirmEmail(value);
+    setErrors((e) => ({ ...e, confirmEmail: "" }));
+  };
+
   const validateStep = (s: number): boolean => {
     const errs: Record<string, string> = {};
 
@@ -61,6 +68,8 @@ export default function CheckoutPage() {
       if (!form.lastName.trim() || form.lastName.trim().length < 2) errs.lastName = "Last name must be at least 2 characters";
       else if (!nameRegex.test(form.lastName.trim())) errs.lastName = "Last name contains invalid characters";
       if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = "Invalid email address";
+      if (!confirmEmail.trim()) errs.confirmEmail = "Please confirm your email address";
+      else if (form.email.trim().toLowerCase() !== confirmEmail.trim().toLowerCase()) errs.confirmEmail = "Email addresses do not match";
 
       const phoneClean = form.phone.replace(/\s/g, "");
       if (!phoneClean || phoneClean.length !== selectedCountry.phoneDigits) {
@@ -195,6 +204,7 @@ export default function CheckoutPage() {
           </div>
 
           <Input label="Email *" id="email" type="email" value={form.email} onChange={(e) => updateField("email", e.target.value)} error={errors.email} placeholder="john@example.com" />
+          <Input label="Confirm email *" id="confirmEmail" type="email" value={confirmEmail} onChange={(e) => updateConfirmEmail(e.target.value)} error={errors.confirmEmail} placeholder="john@example.com" />
 
           {/* Country */}
           <div>

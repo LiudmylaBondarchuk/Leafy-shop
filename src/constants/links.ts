@@ -1,6 +1,6 @@
 export const SITE_LINKS = {
   terms: { href: "/terms", label: "Terms & Conditions" },
-  privacy: { href: "/terms", label: "Privacy Policy" },
+  privacy: { href: "/privacy", label: "Privacy Policy" },
   about: { href: "/about", label: "About Us" },
   contact: { href: "/contact", label: "Contact" },
   trackOrder: { href: "/order/status", label: "Track Order" },

@@ -49,6 +49,8 @@ export default function AdminLogsPage() {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [userRole, setUserRole] = useState("");
   const [clearModal, setClearModal] = useState(false);
+  const [page, setPage] = useState(1);
+  const perPage = 20;
 
   useEffect(() => {
     fetch("/api/admin/logs")
@@ -69,6 +71,9 @@ export default function AdminLogsPage() {
     return true;
   });
 
+  const totalPages = Math.ceil(filtered.length / perPage);
+  const paginated = filtered.slice((page - 1) * perPage, page * perPage);
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -86,20 +91,20 @@ export default function AdminLogsPage() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-6">
-        <select value={filter.entityType} onChange={(e) => setFilter({ ...filter, entityType: e.target.value })} className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-gray-200 px-3 py-2 text-sm">
+        <select value={filter.entityType} onChange={(e) => { setFilter({ ...filter, entityType: e.target.value }); setPage(1); }} className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-gray-200 px-3 py-2 text-sm">
           <option value="">All types</option>
           <option value="product">Products</option>
           <option value="order">Orders</option>
           <option value="discount">Discounts</option>
           <option value="user">Users</option>
         </select>
-        <select value={filter.userRole} onChange={(e) => setFilter({ ...filter, userRole: e.target.value })} className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-gray-200 px-3 py-2 text-sm">
+        <select value={filter.userRole} onChange={(e) => { setFilter({ ...filter, userRole: e.target.value }); setPage(1); }} className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-gray-200 px-3 py-2 text-sm">
           <option value="">All roles</option>
           <option value="admin">Admin</option>
           <option value="manager">Manager</option>
           <option value="tester">Tester</option>
         </select>
-        <select value={filter.action} onChange={(e) => setFilter({ ...filter, action: e.target.value })} className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-gray-200 px-3 py-2 text-sm">
+        <select value={filter.action} onChange={(e) => { setFilter({ ...filter, action: e.target.value }); setPage(1); }} className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 dark:text-gray-200 px-3 py-2 text-sm">
           <option value="">All actions</option>
           <option value="create">Create</option>
           <option value="update">Update</option>
@@ -107,7 +112,7 @@ export default function AdminLogsPage() {
           <option value="status_change">Status Change</option>
         </select>
         {(filter.entityType || filter.userRole || filter.action) && (
-          <button onClick={() => setFilter({ entityType: "", userRole: "", action: "" })} className="text-sm text-green-700 hover:text-green-800">
+          <button onClick={() => { setFilter({ entityType: "", userRole: "", action: "" }); setPage(1); }} className="text-sm text-green-700 hover:text-green-800">
             Clear filters
           </button>
         )}
@@ -120,7 +125,7 @@ export default function AdminLogsPage() {
           <div className="p-8 text-center text-gray-400 dark:text-gray-500">No activity logs found.</div>
         ) : (
           <div className="divide-y divide-gray-100 dark:divide-gray-700">
-            {filtered.map((log: any) => {
+            {paginated.map((log: any) => {
               const Icon = ENTITY_ICONS[log.entityType] || Package;
               const isExpanded = expandedId === log.id;
               return (
@@ -175,6 +180,44 @@ export default function AdminLogsPage() {
           </div>
         )}
       </Card>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4 text-sm">
+          <p className="text-gray-500 dark:text-gray-400">
+            Showing {(page - 1) * perPage + 1}–{Math.min(page * perPage, filtered.length)} of {filtered.length} logs
+          </p>
+          <div className="flex gap-1">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page <= 1}
+              className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-40"
+            >
+              ← Prev
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+              .map((p, idx, arr) => (
+                <span key={p}>
+                  {idx > 0 && arr[idx - 1] !== p - 1 && <span className="px-1 text-gray-400">…</span>}
+                  <button
+                    onClick={() => setPage(p)}
+                    className={`px-3 py-1.5 rounded-lg ${p === page ? "bg-green-700 text-white" : "border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"}`}
+                  >
+                    {p}
+                  </button>
+                </span>
+              ))}
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
+              className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-40"
+            >
+              Next →
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Clear all modal */}
       {clearModal && (

@@ -65,6 +65,7 @@ export async function GET(request: NextRequest) {
         date: h.createdAt,
         note: h.note,
       })),
+      trackingNumber: order.trackingNumber || null,
       canCancel,
       canReturn,
       orderId: order.id,

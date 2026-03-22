@@ -181,6 +181,7 @@ export async function sendOrderStatusEmail(
   note?: string,
   changedBy?: string,
   productTypes?: string[],
+  trackingNumber?: string,
 ) {
   if (!resend) {
     console.log("[EMAIL] Resend not configured — skipping status email to", customerEmail);
@@ -262,6 +263,7 @@ export async function sendOrderStatusEmail(
       <span style="font-size:20px;font-weight:bold;color:${config.color}">${config.heading}</span>
       <p style="margin:8px 0 0;font-size:14px;color:#666">${config.message}</p>
     </div>
+    ${newStatus === "shipped" && trackingNumber ? `<div style="background:#f9fafb;padding:12px 16px;border-radius:8px;margin:16px 0;font-size:14px"><strong>Tracking Number:</strong> <code style="background:#e5e7eb;padding:2px 6px;border-radius:4px">${trackingNumber}</code></div>` : ""}
     ${note ? `<p style="color:#666;font-size:14px"><strong>Note:</strong> ${note}</p>` : ""}
     ${newStatus === "cancelled" || newStatus === "returned"
       ? `<p style="text-align:center;margin:16px 0">

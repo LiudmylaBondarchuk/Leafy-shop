@@ -42,6 +42,7 @@ interface OrderData {
   history: { status: string; date: string; note: string | null }[];
   canCancel: boolean;
   canReturn: boolean;
+  trackingNumber: string | null;
   orderId: number;
   wantsInvoice: boolean;
   isPaid: boolean;
@@ -146,6 +147,16 @@ function OrderStatusContent() {
                 {ORDER_STATUS_LABELS[order.status as OrderStatus] || order.status}
               </Badge>
             </div>
+
+            {/* Tracking number */}
+            {order.trackingNumber && (
+              <div className="mt-4 bg-purple-50 border border-purple-200 rounded-lg p-3">
+                <p className="text-sm text-purple-800">
+                  <strong>Tracking Number:</strong>{" "}
+                  <span className="font-mono">{order.trackingNumber}</span>
+                </p>
+              </div>
+            )}
 
             {/* Timeline */}
             <div className="mt-6">

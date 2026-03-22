@@ -4,6 +4,8 @@ import { eq } from "drizzle-orm";
 import type { OrderStatus } from "@/constants/order-statuses";
 import { getTransitionsForOrder } from "@/constants/order-statuses";
 import { apiSuccess, apiError } from "@/lib/utils";
+import { getAdminFromCookie } from "@/lib/auth";
+import { NextRequest } from "next/server";
 
 export async function GET(
   _request: Request,
@@ -32,5 +34,42 @@ export async function GET(
   } catch (error) {
     console.error("GET /api/orders/[id] error:", error);
     return apiError("Failed to fetch order", 500);
+  }
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const admin = await getAdminFromCookie();
+    if (!admin) {
+      return apiError("Unauthorized", 401, "UNAUTHORIZED");
+    }
+
+    const { id } = await params;
+    const body = await request.json();
+    const { internalNotes } = body;
+
+    if (typeof internalNotes !== "string") {
+      return apiError("internalNotes must be a string", 400, "VALIDATION_ERROR");
+    }
+
+    const order = await db.query.orders.findFirst({
+      where: eq(orders.id, parseInt(id)),
+    });
+
+    if (!order) {
+      return apiError("Order not found", 404, "NOT_FOUND");
+    }
+
+    await db.update(orders)
+      .set({ internalNotes, updatedAt: new Date().toISOString() })
+      .where(eq(orders.id, parseInt(id)));
+
+    return apiSuccess({ id: parseInt(id), internalNotes });
+  } catch (error) {
+    console.error("PATCH /api/orders/[id] error:", error);
+    return apiError("Failed to update order", 500);
   }
 }

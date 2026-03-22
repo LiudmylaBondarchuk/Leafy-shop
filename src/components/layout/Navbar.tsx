@@ -65,8 +65,7 @@ export function Navbar() {
       await fetch("/api/customer/logout", { method: "POST" });
       setCustomer(null);
       toast.success("You have been logged out");
-      router.push("/");
-      router.refresh();
+      window.location.href = "/";
     } catch {
       toast.error("Failed to log out");
     }

@@ -23,6 +23,23 @@ const ROLE_COLORS: Record<string, string> = {
   tester: "bg-purple-100 text-purple-800",
 };
 
+function relativeTime(date: string): string {
+  const diff = Date.now() - new Date(date).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  return `${Math.floor(days / 30)}mo ago`;
+}
+
+function permissionsBadge(u: any): string {
+  if (u.role === "admin") return "all";
+  if (u.permissions.length > 0) return String(u.permissions.length);
+  return "0";
+}
+
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
@@ -127,9 +144,7 @@ export default function AdminUsersPage() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">User</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Email</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Role</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Permissions</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Last Login</th>
                   <th className="text-center px-4 py-3 font-medium text-gray-500">Status</th>
                   <th className="text-right px-4 py-3 font-medium text-gray-500">Actions</th>
@@ -138,6 +153,7 @@ export default function AdminUsersPage() {
               <tbody>
                 {filtered.map((u: any) => {
                   const Icon = ROLE_ICONS[u.role] || Shield;
+                  const permCount = permissionsBadge(u);
                   return (
                     <tr key={u.id} className={`border-t border-gray-100 hover:bg-gray-50 ${!u.isActive ? "opacity-40" : ""}`}>
                       <td className="px-4 py-3">
@@ -145,27 +161,25 @@ export default function AdminUsersPage() {
                           <div className="w-8 h-8 rounded-full bg-green-700 text-white flex items-center justify-center text-xs font-medium">
                             {u.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)}
                           </div>
-                          <span className="font-medium text-gray-900">{u.name}</span>
+                          <div>
+                            <span className="font-medium text-gray-900">{u.name}</span>
+                            <p className="text-xs text-gray-400">{u.email}</p>
+                          </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-gray-600">{u.email}</td>
                       <td className="px-4 py-3">
-                        <Badge className={ROLE_COLORS[u.role] || ""}>
-                          {ROLE_LABELS[u.role as Role] || u.role}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3 text-gray-500 text-xs">
-                        {u.role === "admin" ? (
-                          <span className="text-green-600">Full access</span>
-                        ) : u.permissions.length > 0 ? (
-                          <span>{u.permissions.length} permission{u.permissions.length !== 1 ? "s" : ""}</span>
-                        ) : (
-                          <span className="text-gray-300">None</span>
-                        )}
+                        <div className="flex items-center gap-1.5">
+                          <Badge className={ROLE_COLORS[u.role] || ""}>
+                            {ROLE_LABELS[u.role as Role] || u.role}
+                          </Badge>
+                          <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-gray-100 text-[10px] font-medium text-gray-500" title={`${permCount === "all" ? "Full access" : `${permCount} permissions`}`}>
+                            {permCount}
+                          </span>
+                        </div>
                       </td>
                       <td className="px-4 py-3 text-gray-500 text-xs">
                         {u.lastLoginAt
-                          ? new Date(u.lastLoginAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })
+                          ? relativeTime(u.lastLoginAt)
                           : <span className="text-gray-300">Never</span>
                         }
                       </td>

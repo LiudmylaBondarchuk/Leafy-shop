@@ -63,20 +63,20 @@ export default function AdminInvoicesPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Invoices</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Invoices</h1>
 
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <Card className="p-4">
-          <p className="text-xs text-gray-500">Total Invoices</p>
-          <p className="text-xl font-bold text-gray-900">{orders.length}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Total Invoices</p>
+          <p className="text-xl font-bold text-gray-900 dark:text-gray-100">{orders.length}</p>
         </Card>
         <Card className="p-4">
-          <p className="text-xs text-gray-500">Issued (Paid)</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Issued (Paid)</p>
           <p className="text-xl font-bold text-green-700">{orders.filter(isPaid).length}</p>
         </Card>
         <Card className="p-4">
-          <p className="text-xs text-gray-500">Pending (Awaiting Payment)</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Pending (Awaiting Payment)</p>
           <p className="text-xl font-bold text-yellow-600">{orders.filter((o) => !isPaid(o) && o.status !== "cancelled").length}</p>
         </Card>
       </div>
@@ -90,19 +90,19 @@ export default function AdminInvoicesPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name, company, NIP..."
-            className="rounded-lg border border-gray-300 pl-9 pr-3 py-2 text-sm w-full sm:w-64"
+            className="rounded-lg border border-gray-300 dark:border-gray-600 pl-9 pr-3 py-2 text-sm w-full sm:w-64 dark:bg-gray-800 dark:text-gray-100"
           />
         </div>
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm">
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm dark:text-gray-100">
           <option value="">All statuses</option>
           <option value="issued">Issued</option>
           <option value="pending">Pending</option>
           <option value="cancelled">Cancelled</option>
         </select>
         <div className="flex items-center gap-2">
-          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="rounded-lg border border-gray-300 px-3 py-2 text-sm" title="Date from" />
+          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm dark:bg-gray-800 dark:text-gray-100" title="Date from" />
           <span className="text-gray-400 text-sm">–</span>
-          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="rounded-lg border border-gray-300 px-3 py-2 text-sm" title="Date to" />
+          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm dark:bg-gray-800 dark:text-gray-100" title="Date to" />
         </div>
         {hasFilters && (
           <button onClick={() => { setSearch(""); setStatusFilter(""); setDateFrom(""); setDateTo(""); }} className="text-sm text-green-700 hover:text-green-800">
@@ -123,15 +123,15 @@ export default function AdminInvoicesPage() {
           {/* Desktop table */}
           <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-sm min-w-[700px]">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Invoice</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Order</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Customer / Company</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Date</th>
-                  <th className="text-right px-4 py-3 font-medium text-gray-500">Amount</th>
-                  <th className="text-center px-4 py-3 font-medium text-gray-500">Status</th>
-                  <th className="text-right px-4 py-3 font-medium text-gray-500">Action</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Invoice</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Order</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Customer / Company</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Date</th>
+                  <th className="text-right px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Amount</th>
+                  <th className="text-center px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Status</th>
+                  <th className="text-right px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -141,11 +141,11 @@ export default function AdminInvoicesPage() {
                   const invoiceNum = `INV/${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(order.id).padStart(4, "0")}`;
 
                   return (
-                    <tr key={order.id} className="border-t border-gray-100 hover:bg-gray-50">
+                    <tr key={order.id} className="border-t border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <FileText className="h-4 w-4 text-gray-400" />
-                          <span className="font-mono text-sm text-gray-900">{invoiceNum}</span>
+                          <span className="font-mono text-sm text-gray-900 dark:text-gray-100">{invoiceNum}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3">
@@ -155,11 +155,11 @@ export default function AdminInvoicesPage() {
                       </td>
                       <td className="px-4 py-3">
                         <div>
-                          <p className="font-medium text-gray-900 text-sm">{order.invoiceCompany || `${order.customerFirstName} ${order.customerLastName}`}</p>
+                          <p className="font-medium text-gray-900 dark:text-gray-100 text-sm">{order.invoiceCompany || `${order.customerFirstName} ${order.customerLastName}`}</p>
                           {order.invoiceNip && <p className="text-xs text-gray-400">NIP: {order.invoiceNip}</p>}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-gray-500 text-xs">
+                      <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">
                         {formatDate(order.createdAt)}
                       </td>
                       <td className="px-4 py-3 text-right font-medium">{formatPrice(order.total)}</td>
@@ -194,13 +194,13 @@ export default function AdminInvoicesPage() {
               const invoiceNum = `INV/${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(order.id).padStart(4, "0")}`;
 
               return (
-                <div key={order.id} className="border border-gray-200 rounded-lg p-3">
+                <div key={order.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
                   <div className="flex items-center gap-2 text-sm">
                     <FileText className="h-4 w-4 text-gray-400 shrink-0" />
-                    <span className="font-mono text-gray-900 truncate">{invoiceNum}</span>
+                    <span className="font-mono text-gray-900 dark:text-gray-100 truncate">{invoiceNum}</span>
                   </div>
                   <div className="mt-2 text-sm">
-                    <p className="font-medium text-gray-900">{order.invoiceCompany || `${order.customerFirstName} ${order.customerLastName}`}</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-100">{order.invoiceCompany || `${order.customerFirstName} ${order.customerLastName}`}</p>
                     {order.invoiceNip && <p className="text-xs text-gray-400">NIP: {order.invoiceNip}</p>}
                   </div>
                   <div className="flex items-center justify-between mt-2">
@@ -209,7 +209,7 @@ export default function AdminInvoicesPage() {
                     </Link>
                     <span className="font-medium text-sm">{formatPrice(order.total)}</span>
                   </div>
-                  <div className="flex items-center justify-between mt-2 border-t border-gray-100 pt-2">
+                  <div className="flex items-center justify-between mt-2 border-t border-gray-100 dark:border-gray-700 pt-2">
                     {order.status === "cancelled" ? (
                       <Badge variant="error">Cancelled</Badge>
                     ) : paid ? (

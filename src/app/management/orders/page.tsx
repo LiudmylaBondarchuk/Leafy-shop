@@ -74,7 +74,7 @@ export default function AdminOrdersPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Orders</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Orders</h1>
         <Button size="sm" variant="secondary" onClick={handleExportCSV}>
           <Download className="h-4 w-4 mr-1" /> Export CSV
         </Button>
@@ -85,7 +85,7 @@ export default function AdminOrdersPage() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm"
+          className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm"
         >
           <option value="">All statuses</option>
           {ORDER_STATUSES.map((s) => (
@@ -93,13 +93,13 @@ export default function AdminOrdersPage() {
           ))}
         </select>
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by order #, name, email..."
-            className="rounded-lg border border-gray-300 pl-9 pr-3 py-2 text-sm w-full sm:w-64"
+            className="rounded-lg border border-gray-300 dark:border-gray-600 pl-9 pr-3 py-2 text-sm w-full sm:w-64"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -107,15 +107,15 @@ export default function AdminOrdersPage() {
             type="date"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            className="rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
             title="Date from"
           />
-          <span className="text-gray-400 text-sm">–</span>
+          <span className="text-gray-400 dark:text-gray-500 text-sm">–</span>
           <input
             type="date"
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            className="rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm"
             title="Date to"
           />
         </div>
@@ -131,35 +131,35 @@ export default function AdminOrdersPage() {
         {loading ? (
           <TableSkeleton />
         ) : filtered.length === 0 ? (
-          <div className="p-8 text-center text-gray-400">{hasFilters ? "No orders match your filters." : "No orders yet."}</div>
+          <div className="p-8 text-center text-gray-400 dark:text-gray-500">{hasFilters ? "No orders match your filters." : "No orders yet."}</div>
         ) : (
           <>
           {/* Desktop table */}
           <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-sm min-w-[540px]">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Order</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Date</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Customer</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-500">Status</th>
-                  <th className="text-right px-4 py-3 font-medium text-gray-500">Total</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Order</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Date</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Customer</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Status</th>
+                  <th className="text-right px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Total</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((order: any) => (
-                  <tr key={order.id} className="border-t border-gray-100 hover:bg-gray-50">
+                  <tr key={order.id} className="border-t border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     <td className="px-4 py-3">
                       <Link href={`/management/orders/${order.id}`} className="font-mono text-green-700 hover:text-green-800 font-medium">
                         {order.orderNumber}
                       </Link>
                     </td>
-                    <td className="px-4 py-3 text-gray-500">
+                    <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
                       {formatDateShort(order.createdAt)}
                     </td>
                     <td className="px-4 py-3">
                       <div>{order.customerFirstName} {order.customerLastName}</div>
-                      <div className="text-gray-400 text-xs">{order.customerEmail}</div>
+                      <div className="text-gray-400 dark:text-gray-500 text-xs">{order.customerEmail}</div>
                     </td>
                     <td className="px-4 py-3">
                       <Badge className={ORDER_STATUS_COLORS[order.status as OrderStatus]}>
@@ -176,14 +176,14 @@ export default function AdminOrdersPage() {
           {/* Mobile card layout */}
           <div className="sm:hidden space-y-3 p-3">
             {filtered.map((order: any) => (
-              <Link key={order.id} href={`/management/orders/${order.id}`} className="block border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
+              <Link key={order.id} href={`/management/orders/${order.id}`} className="block border border-gray-200 dark:border-gray-700 rounded-lg p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-green-700 font-medium text-sm">{order.orderNumber}</span>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
                     {formatDateShort(order.createdAt)}
                   </span>
                 </div>
-                <p className="text-sm text-gray-900 mt-1">{order.customerFirstName} {order.customerLastName}</p>
+                <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">{order.customerFirstName} {order.customerLastName}</p>
                 <div className="flex items-center justify-between mt-2">
                   <Badge className={ORDER_STATUS_COLORS[order.status as OrderStatus]}>
                     {ORDER_STATUS_LABELS[order.status as OrderStatus] || order.status}

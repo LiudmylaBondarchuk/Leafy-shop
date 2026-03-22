@@ -216,6 +216,7 @@ export async function POST(request: NextRequest) {
         shippingStreet: data.shipping.street.trim(),
         shippingCity: data.shipping.city.trim(),
         shippingZip: data.shipping.zip,
+        shippingCountry: data.shipping.country || null,
         shippingMethod: data.shipping.method,
         shippingCost,
         inpostCode: data.shipping.inpost_code || null,

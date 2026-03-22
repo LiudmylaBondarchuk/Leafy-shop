@@ -1,12 +1,25 @@
 import { db } from "@/lib/db";
-import { settings } from "@/lib/db/schema-pg";
+import { settings, adminUsers } from "@/lib/db/schema-pg";
 import { eq } from "drizzle-orm";
 import { getAdminFromCookie } from "@/lib/auth";
+import { hasPermission } from "@/constants/permissions";
 import { apiSuccess, apiError } from "@/lib/utils";
 
-export async function GET() {
+async function checkPermission(permission: string) {
   const admin = await getAdminFromCookie();
-  if (!admin) return apiError("Unauthorized", 401, "UNAUTHORIZED");
+  if (!admin) return { allowed: false, error: apiError("Unauthorized", 401, "UNAUTHORIZED") };
+  const user = await db.query.adminUsers.findFirst({ where: eq(adminUsers.id, Number(admin.sub)) });
+  if (!user) return { allowed: false, error: apiError("User not found", 404) };
+  const perms = user.permissions ? JSON.parse(user.permissions) : [];
+  if (!hasPermission(user.role, perms, permission)) {
+    return { allowed: false, error: apiError("Insufficient permissions", 403) };
+  }
+  return { allowed: true, error: null };
+}
+
+export async function GET() {
+  const check = await checkPermission("settings.view");
+  if (!check.allowed) return check.error!;
 
   try {
     const allSettings = await db.select().from(settings);
@@ -22,8 +35,8 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
-  const admin = await getAdminFromCookie();
-  if (!admin) return apiError("Unauthorized", 401, "UNAUTHORIZED");
+  const check = await checkPermission("settings.edit");
+  if (!check.allowed) return check.error!;
 
   try {
     const body = await request.json();

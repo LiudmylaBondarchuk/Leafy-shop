@@ -6,11 +6,8 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatPrice(priceInCents: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(priceInCents / 100);
+export function formatPrice(priceInCents: number, currency = "$"): string {
+  return `${currency}${(priceInCents / 100).toFixed(2)}`;
 }
 
 export function slugify(text: string): string {
@@ -31,6 +28,16 @@ export function apiError(message: string, status: number, code?: string) {
     { error: code || "SERVER_ERROR", message },
     { status }
   );
+}
+
+export function formatDate(date: string): string {
+  return new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+export function formatDateTime(date: string): string {
+  return new Date(date).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+export function formatDateShort(date: string): string {
+  return new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 export function generateOrderNumber(date: Date, sequence: number): string {

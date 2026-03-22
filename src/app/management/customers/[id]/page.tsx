@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Spinner } from "@/components/ui/Spinner";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, formatDate, formatDateShort } from "@/lib/utils";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from "@/constants/order-statuses";
 import type { OrderStatus } from "@/constants/order-statuses";
 import { ArrowLeft, Mail, Phone, ShoppingBag, DollarSign, Calendar, AlertTriangle } from "lucide-react";
@@ -37,7 +37,7 @@ export default function CustomerDetailPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{customer.firstName} {customer.lastName}</h1>
-          <p className="text-sm text-gray-500">Customer since {new Date(customer.firstOrderDate).toLocaleDateString("en-US", { month: "long", year: "numeric" })}</p>
+          <p className="text-sm text-gray-500">Customer since {formatDate(customer.firstOrderDate)}</p>
         </div>
       </div>
 
@@ -88,7 +88,7 @@ export default function CustomerDetailPage() {
                   <Calendar className="h-4 w-4" /> Last Order
                 </span>
                 <span className="text-gray-600 text-xs">
-                  {new Date(customer.lastOrderDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                  {formatDate(customer.lastOrderDate)}
                 </span>
               </div>
             </div>
@@ -146,7 +146,7 @@ export default function CustomerDetailPage() {
                           </Link>
                         </td>
                         <td className="py-3 pr-4 text-gray-500 text-xs">
-                          {new Date(o.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                          {formatDateShort(o.createdAt)}
                         </td>
                         <td className="py-3 pr-4 text-xs text-gray-500">
                           {o.paymentMethod === "cod" ? "COD" : "PayPal"}

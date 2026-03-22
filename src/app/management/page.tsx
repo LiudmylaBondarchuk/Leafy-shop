@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, formatDateShort } from "@/lib/utils";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS, ORDER_STATUSES } from "@/constants/order-statuses";
 import type { OrderStatus } from "@/constants/order-statuses";
 import { Package, ShoppingBag, DollarSign, Clock, TrendingUp, AlertCircle } from "lucide-react";
@@ -271,7 +271,7 @@ export default function AdminDashboardPage() {
                       </Link>
                     </td>
                     <td className="py-3 pr-4 text-gray-500 text-xs">
-                      {new Date(order.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      {formatDateShort(order.createdAt)}
                     </td>
                     <td className="py-3 pr-4 text-gray-600">
                       {order.customerFirstName} {order.customerLastName}

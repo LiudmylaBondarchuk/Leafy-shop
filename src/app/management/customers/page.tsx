@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, formatDateShort } from "@/lib/utils";
 import { AlertTriangle, Search, Pencil, X } from "lucide-react";
 import Link from "next/link";
 import { TableSkeleton } from "@/components/ui/Skeleton";
@@ -130,7 +130,7 @@ export default function AdminCustomersPage() {
                     <td className="px-4 py-3 text-right font-medium">{c.orderCount}</td>
                     <td className="px-4 py-3 text-right font-medium">{formatPrice(c.totalSpent)}</td>
                     <td className="px-4 py-3 text-gray-500 text-xs">
-                      {new Date(c.lastOrderDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      {formatDateShort(c.lastOrderDate)}
                     </td>
                     <td className="px-4 py-3 text-center">
                       <div className="flex items-center justify-center gap-1">

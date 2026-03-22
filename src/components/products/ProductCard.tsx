@@ -26,7 +26,7 @@ export function ProductCard({
     <Link
       href={`/products/${slug}`}
       className={cn(
-        "group bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-all",
+        "group bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all",
         !inStock && "opacity-60"
       )}
     >
@@ -45,12 +45,12 @@ export function ProductCard({
           {!inStock && <OutOfStockBadge />}
         </div>
 
-        <h3 className="font-semibold text-gray-900 group-hover:text-green-700 transition-colors mb-1">
+        <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-green-700 dark:group-hover:text-green-400 transition-colors mb-1">
           {name}
         </h3>
 
         {shortDescription && (
-          <p className="text-sm text-gray-500 line-clamp-2 mb-3">{shortDescription}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-3">{shortDescription}</p>
         )}
 
         <p className="text-lg font-bold text-green-800">

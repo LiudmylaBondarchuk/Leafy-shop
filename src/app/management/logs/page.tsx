@@ -7,6 +7,7 @@ import { Package, ShoppingBag, Tag, UserCog, ChevronDown, Trash2 } from "lucide-
 import { Button } from "@/components/ui/Button";
 import { toast } from "sonner";
 import { TableSkeleton } from "@/components/ui/Skeleton";
+import { formatDateTime } from "@/lib/utils";
 
 const ACTION_COLORS: Record<string, string> = {
   create: "bg-green-100 text-green-800",
@@ -165,7 +166,7 @@ export default function AdminLogsPage() {
                     )}
 
                     <p className="text-xs text-gray-400 mt-1">
-                      {new Date(log.createdAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}
+                      {formatDateTime(log.createdAt)}
                     </p>
                   </div>
                 </div>

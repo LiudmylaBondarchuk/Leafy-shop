@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, formatDate } from "@/lib/utils";
 import { FileText, ExternalLink, Search } from "lucide-react";
 import Link from "next/link";
 import { TableSkeleton } from "@/components/ui/Skeleton";
@@ -160,7 +160,7 @@ export default function AdminInvoicesPage() {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-gray-500 text-xs">
-                        {new Date(order.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                        {formatDate(order.createdAt)}
                       </td>
                       <td className="px-4 py-3 text-right font-medium">{formatPrice(order.total)}</td>
                       <td className="px-4 py-3 text-center">

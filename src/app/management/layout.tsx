@@ -6,6 +6,7 @@ import { Leaf, LayoutDashboard, Package, ShoppingBag, Tag, BarChart3, Users, Use
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { hasPermission } from "@/constants/permissions";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 const NAV_ITEMS = [
   { href: "/management", label: "Dashboard", icon: LayoutDashboard, permission: null },
@@ -95,7 +96,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (checking) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-gray-400">Loading...</div>
       </div>
     );
@@ -114,7 +115,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
       {/* Sidebar */}
       <aside className={cn(
         "fixed inset-y-0 left-0 z-50 w-64 bg-green-900 text-white transform transition-transform lg:translate-x-0 overflow-y-auto",
@@ -172,7 +173,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       <div className="flex-1 flex flex-col min-w-0 lg:ml-64">
         {/* Top bar with breadcrumbs + avatar */}
-        <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 flex items-center gap-4">
+        <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-3 flex items-center gap-4">
           <button className="lg:hidden text-gray-500" onClick={() => setSidebarOpen(true)}>
             <Menu className="h-5 w-5" />
           </button>
@@ -181,7 +182,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <span key={crumb.href} className="flex items-center gap-1 whitespace-nowrap">
                 {i > 0 && <ChevronRight className="h-3.5 w-3.5 text-gray-300" />}
                 {i === breadcrumbs.length - 1 ? (
-                  <span className="text-gray-900 font-medium">{crumb.label}</span>
+                  <span className="text-gray-900 dark:text-white font-medium">{crumb.label}</span>
                 ) : (
                   <Link href={crumb.href} className="hover:text-green-700 transition-colors">
                     {crumb.label}
@@ -191,7 +192,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             ))}
           </nav>
           <div className="flex items-center gap-3 shrink-0">
-            <span className="text-xs text-gray-500 hidden sm:block">{adminName}</span>
+            <ThemeToggle />
+            <span className="text-xs text-gray-500 dark:text-gray-400 hidden sm:block">{adminName}</span>
             <div className="w-8 h-8 rounded-full bg-green-700 text-white flex items-center justify-center text-xs font-medium">
               {adminName ? adminName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) : "A"}
             </div>

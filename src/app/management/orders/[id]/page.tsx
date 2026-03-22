@@ -341,6 +341,12 @@ export default function AdminOrderDetailPage() {
           {/* Internal Notes */}
           <Card className="p-5">
             <h2 className="font-semibold mb-3">Internal Notes</h2>
+            {order.internalNotes && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3">
+                <p className="text-xs font-medium text-amber-700 mb-1">Saved notes</p>
+                <p className="text-sm text-gray-800 whitespace-pre-wrap">{order.internalNotes}</p>
+              </div>
+            )}
             <textarea
               value={internalNotes}
               onChange={(e) => setInternalNotes(e.target.value)}

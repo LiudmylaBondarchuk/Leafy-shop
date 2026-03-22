@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { toast } from "sonner";
-import { Store, Mail, TestTube, Info, Tag, Plus, Pencil, Trash2, X, Star, FileText, Bell } from "lucide-react";
+import { Store, Mail, FlaskConical, Info, Tag, Plus, Pencil, Trash2, X, Star, FileText, Bell } from "lucide-react";
 import { CardSkeleton } from "@/components/ui/Skeleton";
 
 function Tooltip({ text }: { text: string }) {
@@ -115,6 +115,10 @@ export default function SettingsPage() {
         <div className="pt-2 border-t border-gray-100">
           <Input label="Default VAT rate (%)" id="storeVatRate" type="number" value={settings["store.vat_rate"] || "23"} onChange={(e) => updateSetting("store.vat_rate", e.target.value)} />
           <p className="text-xs text-gray-400 mt-1">Applied to all orders. Set to 0 to disable VAT.</p>
+        </div>
+        <div className="pt-2 border-t border-gray-100">
+          <Input label="GTM Container ID" id="storeGtmId" value={settings["store.gtm_id"] || ""} onChange={(e) => updateSetting("store.gtm_id", e.target.value)} placeholder="GTM-XXXXXXX" />
+          <p className="text-xs text-gray-400 mt-1">Enter your GTM container ID to enable analytics. Leave empty to disable.</p>
         </div>
       </Card>
 
@@ -386,7 +390,7 @@ export default function SettingsPage() {
       {/* Tester Limits */}
       <Card className="p-5 space-y-4 mb-6">
         <div className="flex items-center gap-2 mb-2">
-          <TestTube className="h-5 w-5 text-gray-500" />
+          <FlaskConical className="h-5 w-5 text-gray-500" />
           <h2 className="font-semibold text-gray-900">Tester Configuration</h2>
           <Tooltip text="Limits for tester accounts. Test data is automatically cleaned up daily at 3:00 AM." />
         </div>
@@ -492,7 +496,7 @@ export default function SettingsPage() {
           <div className="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 rounded-full bg-red-100">
-                <TestTube className="h-5 w-5 text-red-600" />
+                <FlaskConical className="h-5 w-5 text-red-600" />
               </div>
               <h3 className="font-semibold text-gray-900">Clean Up Test Data</h3>
             </div>

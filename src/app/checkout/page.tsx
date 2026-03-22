@@ -275,7 +275,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-8">Checkout</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-8">Checkout</h1>
 
       {/* Stepper */}
       <div className="flex items-center mb-10">
@@ -285,16 +285,16 @@ export default function CheckoutPage() {
               <div className={cn(
                 "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium border-2",
                 i < step ? "bg-green-700 border-green-700 text-white" :
-                i === step ? "border-green-700 text-green-700" :
-                "border-gray-300 text-gray-400"
+                i === step ? "border-green-700 text-green-700 dark:text-green-400 dark:border-green-500" :
+                "border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500"
               )}>
                 {i < step ? <Check className="h-4 w-4" /> : i + 1}
               </div>
-              <span className={cn("text-sm hidden sm:block", i <= step ? "text-gray-900 font-medium" : "text-gray-400")}>
+              <span className={cn("text-sm hidden sm:block", i <= step ? "text-gray-900 dark:text-gray-100 font-medium" : "text-gray-400 dark:text-gray-500")}>
                 {label}
               </span>
             </div>
-            {i < STEPS.length - 1 && <div className={cn("flex-1 h-0.5 mx-3", i < step ? "bg-green-700" : "bg-gray-200")} />}
+            {i < STEPS.length - 1 && <div className={cn("flex-1 h-0.5 mx-3", i < step ? "bg-green-700" : "bg-gray-200 dark:bg-gray-700")} />}
           </div>
         ))}
       </div>
@@ -344,7 +344,7 @@ export default function CheckoutPage() {
 
           {/* Country */}
           <div>
-            <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">Country *</label>
+            <label htmlFor="country" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Country *</label>
             <select
               id="country"
               value={form.country}
@@ -354,7 +354,7 @@ export default function CheckoutPage() {
                 updateField("phone", "");
                 updateField("nip", "");
               }}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
             >
               {COUNTRIES.map((c) => (
                 <option key={c.code} value={c.code}>{c.name}</option>
@@ -364,9 +364,9 @@ export default function CheckoutPage() {
 
           {/* Phone with prefix */}
           <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone *</label>
+            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone *</label>
             <div className="flex">
-              <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 text-sm text-gray-600">
+              <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm text-gray-600 dark:text-gray-300">
                 {selectedCountry.phonePrefix}
               </span>
               <input
@@ -392,7 +392,7 @@ export default function CheckoutPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="zip" className="block text-sm font-medium text-gray-700 mb-1">Zip code *</label>
+              <label htmlFor="zip" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Zip code *</label>
               <input
                 id="zip"
                 value={form.zip}
@@ -449,11 +449,11 @@ export default function CheckoutPage() {
             const labels = { courier: "Courier (DPD)", inpost: "InPost Parcel Locker", pickup: "In-store Pickup" };
             const costs = { courier: subtotal >= FREE_SHIPPING_THRESHOLD ? "Free" : "$14.99", inpost: "$9.99", pickup: "Free" };
             return (
-              <label key={method} className={cn("flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-colors", form.shippingMethod === method ? "border-green-700 bg-green-50" : "border-gray-200 hover:border-gray-300")}>
+              <label key={method} className={cn("flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-colors", form.shippingMethod === method ? "border-green-700 bg-green-50 dark:bg-green-900/20 dark:border-green-600" : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600")}>
                 <input type="radio" name="shipping" value={method} checked={form.shippingMethod === method} onChange={() => updateField("shippingMethod", method)} className="mt-0.5 text-green-700 focus:ring-green-600" />
                 <div className="flex-1">
                   <div className="flex justify-between">
-                    <span className="font-medium text-gray-900">{labels[method]}</span>
+                    <span className="font-medium text-gray-900 dark:text-gray-100">{labels[method]}</span>
                     <span className="text-sm font-medium text-gray-600">{costs[method]}</span>
                   </div>
                   {method === "pickup" && form.shippingMethod === "pickup" && (
@@ -480,11 +480,11 @@ export default function CheckoutPage() {
             const labels = { paypal: "PayPal", cod: "Cash on Delivery (+$5.00)" };
             const descriptions = { paypal: "Pay securely with PayPal, credit or debit card", cod: "Pay when your order arrives" };
             return (
-              <label key={method} className={cn("flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-colors", form.paymentMethod === method ? "border-green-700 bg-green-50" : "border-gray-200 hover:border-gray-300")}>
+              <label key={method} className={cn("flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-colors", form.paymentMethod === method ? "border-green-700 bg-green-50 dark:bg-green-900/20 dark:border-green-600" : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600")}>
                 <input type="radio" name="payment" value={method} checked={form.paymentMethod === method} onChange={() => updateField("paymentMethod", method)} className="mt-0.5 text-green-700 focus:ring-green-600" />
                 <div>
-                  <span className="font-medium text-gray-900">{labels[method]}</span>
-                  <p className="text-xs text-gray-500 mt-0.5">{descriptions[method]}</p>
+                  <span className="font-medium text-gray-900 dark:text-gray-100">{labels[method]}</span>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{descriptions[method]}</p>
                 </div>
               </label>
             );
@@ -500,7 +500,7 @@ export default function CheckoutPage() {
       {step === 3 && (
         <div className="space-y-6">
           {/* Products */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
             <h3 className="font-semibold mb-3">Products</h3>
             {items.map((item) => (
               <div key={item.variantId} className="flex justify-between gap-2 py-2 border-b border-gray-100 last:border-0 text-sm">
@@ -514,7 +514,7 @@ export default function CheckoutPage() {
           </div>
 
           {/* Details */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4 text-sm space-y-2">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-sm space-y-2">
             <h3 className="font-semibold mb-2">Delivery Details</h3>
             <p>{form.firstName} {form.lastName}</p>
             <p>{form.street}, {form.zip} {form.city}</p>
@@ -527,18 +527,18 @@ export default function CheckoutPage() {
             )}
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 p-4 text-sm space-y-2">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-sm space-y-2">
             <div className="flex justify-between"><span>Shipping</span><span>{{ courier: "Courier (DPD)", inpost: "InPost", pickup: "In-store Pickup" }[form.shippingMethod]}</span></div>
             <div className="flex justify-between"><span>Payment</span><span>{{ paypal: "PayPal", cod: "Cash on Delivery" }[form.paymentMethod]}</span></div>
           </div>
 
           {/* Totals */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4 text-sm space-y-2">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-sm space-y-2">
             <div className="flex justify-between"><span>Subtotal</span><span>{formatPrice(subtotal)}</span></div>
             {vatRate > 0 && <div className="flex justify-between text-gray-500 text-xs"><span>incl. VAT ({vatRate}%)</span><span>{formatPrice(vatAmount)}</span></div>}
             <div className="flex justify-between"><span>Shipping</span><span>{shippingCost === 0 ? "Free" : formatPrice(shippingCost)}</span></div>
             {discountCode && <div className="flex justify-between text-green-700"><span>Discount ({discountCode})</span><span>Applied at checkout</span></div>}
-            <div className="flex justify-between font-bold text-base border-t border-gray-200 pt-2">
+            <div className="flex justify-between font-bold text-base border-t border-gray-200 dark:border-gray-700 pt-2">
               <span>Total</span><span className="text-green-800">{formatPrice(total)}</span>
             </div>
           </div>
@@ -546,13 +546,13 @@ export default function CheckoutPage() {
           {/* Terms */}
           <label className="flex items-start gap-2 cursor-pointer">
             <input type="checkbox" checked={form.acceptTerms} onChange={(e) => updateField("acceptTerms", e.target.checked)} className="mt-0.5 rounded border-gray-300 text-green-700 focus:ring-green-600" />
-            <span className="text-sm text-gray-600">I accept the <a href={SITE_LINKS.terms.href} target="_blank" className="text-green-700 underline hover:text-green-800">{SITE_LINKS.terms.label}</a> and <a href={SITE_LINKS.privacy.href} target="_blank" className="text-green-700 underline hover:text-green-800">{SITE_LINKS.privacy.label}</a> *</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">I accept the <a href={SITE_LINKS.terms.href} target="_blank" className="text-green-700 underline hover:text-green-800">{SITE_LINKS.terms.label}</a> and <a href={SITE_LINKS.privacy.href} target="_blank" className="text-green-700 underline hover:text-green-800">{SITE_LINKS.privacy.label}</a> *</span>
           </label>
 
           {form.notes !== undefined && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Order notes (optional)</label>
-              <textarea value={form.notes} onChange={(e) => updateField("notes", e.target.value)} rows={2} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600" placeholder="Any special requests..." />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Order notes (optional)</label>
+              <textarea value={form.notes} onChange={(e) => updateField("notes", e.target.value)} rows={2} className="w-full rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600" placeholder="Any special requests..." />
             </div>
           )}
 

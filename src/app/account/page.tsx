@@ -48,12 +48,12 @@ export default function AccountDashboardPage() {
 
         if (profileRes.ok) {
           const profileJson = await profileRes.json();
-          setProfile(profileJson.data);
+          setProfile(profileJson.data?.customer || null);
         }
 
         if (ordersRes.ok) {
           const ordersJson = await ordersRes.json();
-          setRecentOrders(ordersJson.data || []);
+          setRecentOrders(ordersJson.data?.orders || ordersJson.data || []);
         }
       } catch {
         // Errors handled by layout auth check

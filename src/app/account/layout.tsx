@@ -61,9 +61,9 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
   const handleLogout = async () => {
     try {
       await fetch("/api/customer/logout", { method: "POST" });
+      setLoggedIn(false);
       toast.success("You have been logged out");
-      router.push("/account/login");
-      router.refresh();
+      window.location.href = "/account/login";
     } catch {
       toast.error("Failed to log out");
     }

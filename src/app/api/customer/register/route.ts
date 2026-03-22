@@ -57,18 +57,8 @@ export async function POST(request: Request) {
       phone: phone?.trim() || null,
     }).returning();
 
-    const token = await signCustomerToken({
-      sub: customer.id,
-      email: customer.email,
-      firstName: customer.firstName,
-      lastName: customer.lastName,
-    });
-
-    const cookieStore = await cookies();
-    const cookie = createCustomerCookie(token);
-    cookieStore.set(cookie.name, cookie.value, cookie);
-
     return apiSuccess({
+      message: "Account created successfully. Please log in.",
       customer: {
         id: customer.id,
         email: customer.email,

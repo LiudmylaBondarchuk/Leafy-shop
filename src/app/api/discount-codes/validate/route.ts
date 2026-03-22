@@ -1,9 +1,14 @@
 import { validateDiscountCode } from "@/lib/discount-engine";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { NextRequest } from "next/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.headers.get("x-forwarded-for") || "unknown";
+    const { success } = rateLimit(`discount-validate:${ip}`, 20, 60000);
+    if (!success) return apiError("Too many requests. Please try again later.", 429);
+
     const body = await request.json();
     const { code, cart_subtotal, category_ids } = body;
 

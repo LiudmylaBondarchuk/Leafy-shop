@@ -4,13 +4,17 @@ import { eq } from "drizzle-orm";
 import { hashSync } from "bcryptjs";
 import crypto from "crypto";
 import { apiSuccess, apiError } from "@/lib/utils";
+import { rateLimit } from "@/lib/rate-limit";
 
 // Fixed tester account — configured via env variables
 const TESTER_EMAIL = process.env.TESTER_EMAIL || "tester@leafyshop.eu";
 const TESTER_NAME = process.env.TESTER_NAME || "Leafy Tester";
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
+    const ip = request.headers.get("x-forwarded-for") || "unknown";
+    const { success } = rateLimit(`generate-test-password:${ip}`, 3, 60000);
+    if (!success) return apiError("Too many requests. Please try again later.", 429);
     // Find the fixed tester account by email
     const tester = await db.query.adminUsers.findFirst({
       where: eq(adminUsers.email, TESTER_EMAIL),

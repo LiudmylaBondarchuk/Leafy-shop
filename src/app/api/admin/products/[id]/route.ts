@@ -22,7 +22,7 @@ export async function GET(
     if (!product) return apiError("Product not found", 404, "NOT_FOUND");
     return apiSuccess(product);
   } catch (error) {
-    console.error("GET /api/admin/products/[id] error:", error);
+    console.error("GET /api/admin/products/[id] error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to fetch product", 500);
   }
 }
@@ -149,7 +149,7 @@ export async function PUT(
 
     return apiSuccess(updated);
   } catch (error) {
-    console.error("PUT /api/admin/products/[id] error:", error);
+    console.error("PUT /api/admin/products/[id] error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to update product", 500);
   }
 }
@@ -199,7 +199,7 @@ export async function DELETE(
 
     return apiSuccess({ message: "Product deactivated" });
   } catch (error) {
-    console.error("DELETE /api/admin/products/[id] error:", error);
+    console.error("DELETE /api/admin/products/[id] error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to delete product", 500);
   }
 }

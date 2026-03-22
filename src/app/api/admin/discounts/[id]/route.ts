@@ -21,7 +21,7 @@ export async function GET(
     if (!code) return apiError("Discount code not found", 404);
     return apiSuccess(code);
   } catch (error) {
-    console.error("GET /api/admin/discounts/[id] error:", error);
+    console.error("GET /api/admin/discounts/[id] error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to fetch discount code", 500);
   }
 }
@@ -110,7 +110,7 @@ export async function PUT(
 
     return apiSuccess(updated);
   } catch (error) {
-    console.error("PUT /api/admin/discounts/[id] error:", error);
+    console.error("PUT /api/admin/discounts/[id] error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to update discount code", 500);
   }
 }
@@ -161,7 +161,7 @@ export async function DELETE(
 
     return apiSuccess({ message: "Discount code deleted" });
   } catch (error) {
-    console.error("DELETE /api/admin/discounts/[id] error:", error);
+    console.error("DELETE /api/admin/discounts/[id] error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to deactivate discount code", 500);
   }
 }

@@ -42,7 +42,7 @@ export async function PUT(request: Request) {
       },
     });
   } catch (error) {
-    console.error("PUT /api/customer/profile error:", error);
+    console.error("PUT /api/customer/profile error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to update profile", 500);
   }
 }

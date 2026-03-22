@@ -22,6 +22,9 @@ export async function POST(request: Request) {
     if (newPassword.length < 8) {
       return apiError("New password must be at least 8 characters", 400, "VALIDATION_ERROR");
     }
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(newPassword)) {
+      return apiError("Password must contain at least one uppercase letter, one lowercase letter, and one number", 400, "VALIDATION_ERROR");
+    }
 
     const customer = await db.query.customers.findFirst({
       where: eq(customers.id, Number(payload.sub)),
@@ -44,7 +47,7 @@ export async function POST(request: Request) {
 
     return apiSuccess({ message: "Password changed successfully" });
   } catch (error) {
-    console.error("POST /api/customer/change-password error:", error);
+    console.error("POST /api/customer/change-password error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to change password", 500);
   }
 }

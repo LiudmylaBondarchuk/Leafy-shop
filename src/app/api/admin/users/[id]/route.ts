@@ -31,7 +31,7 @@ export async function GET(
       createdAt: user.createdAt,
     });
   } catch (error) {
-    console.error("GET /api/admin/users/[id] error:", error);
+    console.error("GET /api/admin/users/[id] error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to fetch user", 500);
   }
 }
@@ -125,7 +125,7 @@ export async function PUT(
 
     return apiSuccess({ message: "User updated" });
   } catch (error) {
-    console.error("PUT /api/admin/users/[id] error:", error);
+    console.error("PUT /api/admin/users/[id] error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to update user", 500);
   }
 }

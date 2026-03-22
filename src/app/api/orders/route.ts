@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
     });
   } catch (error) {
-    console.error("GET /api/orders error:", error);
+    console.error("GET /api/orders error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to fetch orders", 500);
   }
 }
@@ -297,14 +297,14 @@ export async function POST(request: NextRequest) {
       shippingAddress: `${data.shipping.street}, ${data.shipping.zip} ${data.shipping.city}`,
       orderId: order.id,
       wantsInvoice: data.invoice?.wants_invoice || false,
-    }).catch((err) => console.error("[EMAIL] Order confirmation failed:", err));
+    }).catch((err) => console.error("[EMAIL] Order confirmation failed:", err instanceof Error ? err.message : "Unknown error"));
 
     return apiSuccess(
       { orderNumber, status: "new", total },
       201
     );
   } catch (error) {
-    console.error("POST /api/orders error:", error);
+    console.error("POST /api/orders error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to create order", 500);
   }
 }
@@ -364,6 +364,6 @@ async function checkCriticalStock(productIds: number[]) {
     });
     console.log("[ALERT] Critical low stock alert sent for", lowStockProducts.map((p) => p.name).join(", "));
   } catch (error) {
-    console.error("[ALERT] Failed to send low stock alert:", error);
+    console.error("[ALERT] Failed to send low stock alert:", error instanceof Error ? error.message : "Unknown error");
   }
 }

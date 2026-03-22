@@ -120,7 +120,7 @@ export async function PATCH(
 
     return apiSuccess({ orderNumber: order.orderNumber, status: newStatus });
   } catch (error) {
-    console.error("PATCH /api/orders/[id]/status error:", error);
+    console.error("PATCH /api/orders/[id]/status error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to update order status", 500);
   }
 }

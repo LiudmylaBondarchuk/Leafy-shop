@@ -52,7 +52,7 @@ export async function GET(
       relatedProducts: relatedFiltered,
     });
   } catch (error) {
-    console.error("GET /api/products/[slug] error:", error);
+    console.error("GET /api/products/[slug] error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to fetch product", 500);
   }
 }

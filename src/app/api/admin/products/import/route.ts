@@ -174,7 +174,7 @@ export async function POST(request: Request) {
 
     return apiSuccess({ imported, skipped, errors });
   } catch (error) {
-    console.error("POST /api/admin/products/import error:", error);
+    console.error("POST /api/admin/products/import error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to import products", 500);
   }
 }

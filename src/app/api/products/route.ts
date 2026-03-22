@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
       pagination: { page, limit, total, totalPages },
     });
   } catch (error) {
-    console.error("GET /api/products error:", error);
+    console.error("GET /api/products error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to fetch products", 500);
   }
 }

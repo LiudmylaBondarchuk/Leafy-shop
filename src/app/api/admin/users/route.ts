@@ -49,7 +49,7 @@ export async function GET() {
       permissions: JSON.parse(u.permissions || "[]"),
     })));
   } catch (error) {
-    console.error("GET /api/admin/users error:", error);
+    console.error("GET /api/admin/users error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to fetch users", 500);
   }
 }
@@ -145,7 +145,7 @@ export async function POST(request: Request) {
       role: created.role,
     }, 201);
   } catch (error) {
-    console.error("POST /api/admin/users error:", error);
+    console.error("POST /api/admin/users error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to create user", 500);
   }
 }

@@ -29,7 +29,7 @@ export async function PUT(request: Request) {
 
     return apiSuccess({ id: accountId });
   } catch (error) {
-    console.error("PUT /api/admin/customers/account error:", error);
+    console.error("PUT /api/admin/customers/account error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to update customer account", 500);
   }
 }

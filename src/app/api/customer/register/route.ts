@@ -47,7 +47,7 @@ export async function POST(request: Request) {
       }
     }
 
-    const passwordHash = hashSync(password, 10);
+    const passwordHash = hashSync(password, 12);
 
     const [customer] = await db.insert(customers).values({
       email: normalizedEmail,

@@ -13,6 +13,9 @@ import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET(request: NextRequest) {
   try {
+    const admin = await getAdminFromCookie();
+    if (!admin) return apiError("Unauthorized", 401);
+
     const searchParams = request.nextUrl.searchParams;
     const status = searchParams.get("status");
     const search = searchParams.get("search");

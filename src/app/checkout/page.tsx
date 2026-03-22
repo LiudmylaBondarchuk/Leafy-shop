@@ -303,13 +303,13 @@ export default function CheckoutPage() {
         <div className="space-y-4">
           {/* Logged-in customer banner */}
           {customerLoggedIn && customer && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-              <User className="h-5 w-5 text-green-700 shrink-0" />
+            <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-center gap-3">
+              <User className="h-5 w-5 text-green-700 dark:text-green-400 shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-green-800">
+                <p className="text-sm font-medium text-green-800 dark:text-green-300">
                   Logged in as {customer.firstName} {customer.lastName}
                 </p>
-                <p className="text-xs text-green-600">Your details have been auto-filled. You can edit them below.</p>
+                <p className="text-xs text-green-600 dark:text-green-400">Your details have been auto-filled. You can edit them below.</p>
               </div>
             </div>
           )}
@@ -323,10 +323,10 @@ export default function CheckoutPage() {
 
           {/* Existing account banner */}
           {emailAccountExists && !customerLoggedIn && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
-              <Info className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 flex items-start gap-3">
+              <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-blue-800">
+                <p className="text-sm text-blue-800 dark:text-blue-300">
                   It looks like you already have an account with this email. Log in to auto-fill your details.
                 </p>
                 <Link

@@ -21,7 +21,7 @@ const PAYMENT_LABELS: Record<string, string> = {
 
 const LEAF_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:8px"><path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 1c1 2 2 4.5 2 8 0 5.5-4.78 12-10 12Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>`;
 
-function emailWrapper(content: string, storeName: string) {
+function emailWrapper(content: string, storeName: string, footerExtra?: string) {
   return `
     <div style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto">
       <div style="background:#1a4d1a;padding:24px;text-align:center;border-radius:12px 12px 0 0">
@@ -32,6 +32,7 @@ function emailWrapper(content: string, storeName: string) {
         ${content}
       </div>
       <div style="padding:16px;text-align:center;font-size:12px;color:#999;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px">
+        ${footerExtra ? `<p style="margin:0 0 4px">${footerExtra}</p>` : ""}
         <p style="margin:0">${storeName} · leafyshop.eu</p>
       </div>
     </div>
@@ -64,6 +65,8 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
   const ordersFrom = cfg["email.orders_from"] || "orders@leafyshop.eu";
   const storeName = cfg["store.name"] || "Leafy Tea & Coffee Ltd.";
   const storeEmail = cfg["store.email"] || "support@leafyshop.eu";
+  const orderGreeting = (cfg["email.tpl.order_greeting"] || "Hi {name}, thank you for your order!")
+    .replace("{name}", data.customerName);
 
   const itemsHtml = data.items
     .map(
@@ -112,7 +115,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
   }
 
   const html = emailWrapper(`
-    <h2 style="color:#1a4d1a;margin-top:0">Hi ${data.customerName}, thank you for your order!</h2>
+    <h2 style="color:#1a4d1a;margin-top:0">${orderGreeting}</h2>
     <p>Your order <strong>${data.orderNumber}</strong> has been ${isPaid ? "paid and confirmed" : "received"}.</p>
 
     ${deliveryMessage}
@@ -151,7 +154,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
     ` : ""}
 
     <p style="color:#666;font-size:13px">You can track your order status at any time: <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://leafyshop.eu"}/order/status" style="color:#15803d">Track your order →</a></p>
-  `, storeName);
+  `, storeName, cfg["email.tpl.footer"]);
 
   try {
     await resend.emails.send({
@@ -192,59 +195,58 @@ export async function sendOrderStatusEmail(
 
   const shippingLabel = SHIPPING_LABELS[shippingMethod || "courier"] || shippingMethod;
 
+  // Read customizable templates from settings
+  const tpl = (key: string, fallback: string) => (cfg[`email.tpl.${key}`] || fallback)
+    .replace(/\{name\}/g, customerName)
+    .replace(/\{orderNumber\}/g, orderNumber)
+    .replace(/\{storeEmail\}/g, storeEmail);
+
   const statusConfig: Record<string, { subject: string; heading: string; message: string; color: string; bgColor: string }> = {
     paid: {
       subject: `Payment Confirmed — Order ${orderNumber}`,
       heading: "Payment Confirmed ✓",
-      message: "Your payment has been received. We'll start preparing your order shortly.",
+      message: tpl("status_paid", "Your payment has been received. We'll start preparing your order shortly."),
       color: "#15803d",
       bgColor: "#f0fdf4",
     },
     processing: {
       subject: `Order ${orderNumber} — Being Prepared`,
       heading: "Your Order is Being Prepared",
-      message: "Our team is carefully packing your teas and coffees. We'll notify you once it's shipped.",
+      message: tpl("status_processing", "Our team is carefully packing your teas and coffees. We'll notify you once it's shipped."),
       color: "#a16207",
       bgColor: "#fefce8",
     },
     shipped: {
       subject: `Order ${orderNumber} — Shipped!`,
       heading: "Your Order Has Been Shipped! 📦",
-      message: shippingMethod === "inpost"
+      message: tpl("status_shipped", shippingMethod === "inpost"
         ? `Your package is on its way to your InPost Parcel Locker. You'll receive a code to pick it up.`
         : shippingMethod === "pickup"
           ? `Your order is ready for pickup at our store (${storeAddress}). Mon–Fri 10am–6pm.`
-          : `Your package is on its way via ${shippingLabel}. It should arrive within 2–4 business days.`,
+          : `Your package is on its way via ${shippingLabel}. It should arrive within 2–4 business days.`),
       color: "#7c3aed",
       bgColor: "#f5f3ff",
     },
     delivered: {
       subject: `Order ${orderNumber} — Delivered`,
       heading: "Your Order Has Been Delivered ✓",
-      message: (() => {
-        const hasTea = productTypes?.includes("tea");
-        const hasCoffee = productTypes?.includes("coffee");
-        const productDesc = hasTea && hasCoffee
-          ? "teas and coffees"
-          : hasTea ? "teas" : hasCoffee ? "coffees" : "products";
-        return `We hope you enjoy your ${productDesc}! If you have any questions, don't hesitate to contact us at ${storeEmail}.`;
-      })(),
+      message: tpl("status_delivered", `We hope you enjoy your products! If you have any questions, don't hesitate to contact us at ${storeEmail}.`),
       color: "#15803d",
       bgColor: "#f0fdf4",
     },
     cancelled: {
       subject: `Order ${orderNumber} — Cancelled`,
       heading: "Your Order Has Been Cancelled",
-      message: paymentMethod === "cod"
+      message: tpl("status_cancelled", paymentMethod === "cod"
         ? "Your order has been cancelled. Since no payment was made, no refund is needed. All reserved items have been returned to stock."
-        : `Your order has been cancelled. All reserved items have been returned to stock. Your payment will be refunded within 5–10 business days.${changedBy === "customer" ? ` If you have any questions about your refund, please contact us at ${storeEmail}.` : ""}`,
+        : `Your order has been cancelled. All reserved items have been returned to stock. Your payment will be refunded within 5–10 business days.`),
       color: "#dc2626",
       bgColor: "#fef2f2",
     },
     returned: {
       subject: `Order ${orderNumber} — Return Processed`,
       heading: "Your Return Has Been Processed",
-      message: "We've received your return. Your refund will be processed within 5–10 business days.",
+      message: tpl("status_returned", "We've received your return. Your refund will be processed within 5–10 business days."),
       color: "#ea580c",
       bgColor: "#fff7ed",
     },
@@ -265,7 +267,7 @@ export async function sendOrderStatusEmail(
       ? ""
       : `<p style="color:#666;font-size:13px">Track your order: <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://leafyshop.eu"}/order/status" style="color:#15803d">Track your order →</a></p>`
     }
-  `, storeName);
+  `, storeName, cfg["email.tpl.footer"]);
 
   try {
     await resend.emails.send({

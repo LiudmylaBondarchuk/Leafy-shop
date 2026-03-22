@@ -3,6 +3,7 @@ import { ProductFilters } from "@/components/products/ProductFilters";
 import { ProductSort } from "@/components/products/ProductSort";
 import { Suspense } from "react";
 import { headers } from "next/headers";
+import { getSettings } from "@/lib/settings";
 
 async function getBaseUrl() {
   const h = await headers();
@@ -32,7 +33,7 @@ export default async function ProductsPage({
   searchParams: Promise<Record<string, string>>;
 }) {
   const params = await searchParams;
-  const [categoriesList, data] = await Promise.all([getCategories(), getProducts(params)]);
+  const [categoriesList, data, cfg] = await Promise.all([getCategories(), getProducts(params), getSettings()]);
   const { products: productList, pagination } = data;
 
   return (
@@ -56,7 +57,7 @@ export default async function ProductsPage({
           {productList.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
               {productList.map((product: any) => (
-                <ProductCard key={product.id} {...product} />
+                <ProductCard key={product.id} {...product} badgeLabel={cfg["badge.featured.label"]} badgeColor={cfg["badge.featured.color"]} />
               ))}
             </div>
           ) : (

@@ -46,6 +46,8 @@ interface OrderEmailData {
   items: { productName: string; variantDesc: string; quantity: number; totalPrice: number }[];
   subtotal: number;
   discountAmount: number;
+  vatRate?: number;
+  vatAmount?: number;
   shippingCost: number;
   total: number;
   shippingMethod: string;
@@ -134,6 +136,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
     <table style="width:100%;margin:16px 0;font-size:14px">
       <tr><td style="padding:4px 0">Subtotal</td><td style="text-align:right">$${(data.subtotal / 100).toFixed(2)}</td></tr>
       ${data.discountAmount > 0 ? `<tr style="color:#15803d"><td style="padding:4px 0">Discount</td><td style="text-align:right">-$${(data.discountAmount / 100).toFixed(2)}</td></tr>` : ""}
+      ${data.vatAmount && data.vatAmount > 0 ? `<tr><td style="padding:4px 0">VAT (${data.vatRate || 0}%)</td><td style="text-align:right">$${(data.vatAmount / 100).toFixed(2)}</td></tr>` : ""}
       <tr><td style="padding:4px 0">Shipping (${shippingLabel})</td><td style="text-align:right">${data.shippingCost === 0 ? "Free" : `$${(data.shippingCost / 100).toFixed(2)}`}</td></tr>
       <tr style="font-weight:bold;font-size:16px;border-top:2px solid #e5e7eb">
         <td style="padding:8px 0">Total</td><td style="text-align:right">$${(data.total / 100).toFixed(2)}</td>

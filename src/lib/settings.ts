@@ -6,9 +6,13 @@ const DEFAULTS: Record<string, string> = {
   "store.address": "5 Leafy Lane, Warsaw, Poland",
   "store.phone": "",
   "store.email": "support@leafyshop.eu",
+  "store.vat_rate": "23",
   "email.orders_from": "orders@leafyshop.eu",
   "email.invoices_from": "invoices@leafyshop.eu",
   "email.noreply_from": "noreply@leafyshop.eu",
+  "email.alerts_from": "alerts@leafyshop.eu",
+  "alerts.critical_threshold": "5",
+  "alerts.warning_threshold": "10",
 };
 
 let cache: { data: Record<string, string>; ts: number } | null = null;

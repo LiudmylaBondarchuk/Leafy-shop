@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { orders, orderItems } from "@/lib/db/schema-pg";
 import { eq } from "drizzle-orm";
 import { apiError } from "@/lib/utils";
+import { getSettings } from "@/lib/settings";
 import { NextResponse } from "next/server";
 
 function generateInvoiceNumber(orderId: number, date: string): string {
@@ -29,6 +30,10 @@ export async function GET(
 
     if (!order) return apiError("Order not found", 404);
     if (!order.wantsInvoice) return apiError("No invoice requested for this order", 400);
+
+    const cfg = await getSettings();
+    const vatRate = (order as any).vatRate ?? parseInt(cfg["store.vat_rate"] || "23", 10);
+    const vatAmount = (order as any).vatAmount ?? 0;
 
     const invoiceNumber = generateInvoiceNumber(order.id, order.createdAt);
     const invoiceDate = new Date(order.createdAt).toLocaleDateString("en-US", { dateStyle: "long" });
@@ -131,6 +136,12 @@ export async function GET(
         <tr>
           <td style="padding:6px 0;color:#15803d">Discount</td>
           <td style="padding:6px 0;text-align:right;color:#15803d">-${formatPrice(order.discountAmount)}</td>
+        </tr>
+        ` : ""}
+        ${vatAmount > 0 ? `
+        <tr>
+          <td style="padding:6px 0;color:#666">VAT (${vatRate}%)</td>
+          <td style="padding:6px 0;text-align:right">${formatPrice(vatAmount)}</td>
         </tr>
         ` : ""}
         <tr>

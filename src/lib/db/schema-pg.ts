@@ -87,6 +87,8 @@ export const orders = pgTable("orders", {
   subtotal: integer("subtotal").notNull(),
   discountAmount: integer("discount_amount").notNull().default(0),
   discountCodeId: integer("discount_code_id").references(() => discountCodes.id),
+  vatRate: integer("vat_rate").notNull().default(0),
+  vatAmount: integer("vat_amount").notNull().default(0),
   total: integer("total").notNull(),
   trackingNumber: text("tracking_number"),
   notes: text("notes"),

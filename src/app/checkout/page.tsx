@@ -112,7 +112,9 @@ export default function CheckoutPage() {
   let shippingCost = shippingCosts[form.shippingMethod];
   if (subtotal >= 10000) shippingCost = 0;
   if (form.paymentMethod === "cod") shippingCost += 500;
-  const total = subtotal + shippingCost; // discount handled server-side
+  const vatRate = selectedCountry.vatRate;
+  const vatAmount = vatRate > 0 ? Math.round(subtotal * vatRate / 100) : 0;
+  const total = subtotal + vatAmount + shippingCost; // discount handled server-side
 
   const handleSubmit = async () => {
     if (!form.acceptTerms) { toast.error("Please accept the terms and conditions"); return; }
@@ -131,6 +133,7 @@ export default function CheckoutPage() {
           },
           shipping: {
             street: form.street.trim(), city: form.city.trim(), zip: form.zip.trim(),
+            country: form.country,
             method: form.shippingMethod, inpost_code: form.inpostCode || undefined,
           },
           payment: { method: form.paymentMethod },
@@ -386,6 +389,7 @@ export default function CheckoutPage() {
           {/* Totals */}
           <div className="bg-white rounded-xl border border-gray-200 p-4 text-sm space-y-2">
             <div className="flex justify-between"><span>Subtotal</span><span>{formatPrice(subtotal)}</span></div>
+            {vatRate > 0 && <div className="flex justify-between"><span>VAT ({vatRate}%)</span><span>{formatPrice(vatAmount)}</span></div>}
             <div className="flex justify-between"><span>Shipping</span><span>{shippingCost === 0 ? "Free" : formatPrice(shippingCost)}</span></div>
             {discountCode && <div className="flex justify-between text-green-700"><span>Discount ({discountCode})</span><span>Applied at checkout</span></div>}
             <div className="flex justify-between font-bold text-base border-t border-gray-200 pt-2">
@@ -469,7 +473,7 @@ export default function CheckoutPage() {
                           items: items.map((i) => ({ variant_id: i.variantId, quantity: i.quantity })),
                           discount_code: discountCode || undefined,
                           customer: { email: form.email.trim(), phone: form.phone.replace(/\s/g, ""), first_name: form.firstName.trim(), last_name: form.lastName.trim() },
-                          shipping: { street: form.street.trim(), city: form.city.trim(), zip: form.zip.trim(), method: form.shippingMethod, inpost_code: form.inpostCode || undefined },
+                          shipping: { street: form.street.trim(), city: form.city.trim(), zip: form.zip.trim(), country: form.country, method: form.shippingMethod, inpost_code: form.inpostCode || undefined },
                           payment: { method: "paypal" },
                           invoice: { wants_invoice: form.wantsInvoice, company: form.company || undefined, nip: form.nip || undefined, address: form.invoiceAddress || undefined },
                           notes: form.notes || undefined,

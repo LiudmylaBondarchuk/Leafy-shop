@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
-import { orders } from "@/lib/db/schema-pg";
+import { orders, customers as customersTable } from "@/lib/db/schema-pg";
+import { eq } from "drizzle-orm";
 import { getAdminFromCookie } from "@/lib/auth";
 import { apiSuccess, apiError } from "@/lib/utils";
 
@@ -15,6 +16,44 @@ export async function GET(
 
     // Decode the base64url ID back to key
     const key = Buffer.from(id, "base64url").toString();
+
+    // Handle account-only customers (no orders)
+    if (key.startsWith("account|")) {
+      const accountId = parseInt(key.split("|")[1]);
+      const account = await db.query.customers.findFirst({
+        where: eq(customersTable.id, accountId),
+      });
+      if (!account) return apiError("Customer not found", 404);
+
+      // Check if they have any orders by email
+      const allOrders: any[] = await db.select().from(orders);
+      const customerOrders = allOrders
+        .filter((o) => o.customerEmail.toLowerCase() === account.email.toLowerCase())
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
+      return apiSuccess({
+        email: account.email,
+        phone: account.phone || "",
+        firstName: account.firstName,
+        lastName: account.lastName,
+        orderCount: customerOrders.length,
+        totalSpent: customerOrders.filter((o: any) => !["cancelled", "returned"].includes(o.status)).reduce((sum: number, o: any) => sum + o.total, 0),
+        firstOrderDate: customerOrders.length > 0 ? customerOrders[customerOrders.length - 1].createdAt : account.createdAt,
+        lastOrderDate: customerOrders.length > 0 ? customerOrders[0].createdAt : account.createdAt,
+        hasAccount: true,
+        accountId: account.id,
+        orders: customerOrders.map((o: any) => ({
+          id: o.id,
+          orderNumber: o.orderNumber,
+          status: o.status,
+          total: o.total,
+          paymentMethod: o.paymentMethod,
+          createdAt: o.createdAt,
+        })),
+        similarCustomers: [],
+      });
+    }
+
     const [email, firstName, lastName, phone] = key.split("|");
 
     if (!email) return apiError("Customer not found", 404);

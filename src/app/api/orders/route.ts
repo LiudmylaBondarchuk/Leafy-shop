@@ -169,7 +169,14 @@ export async function POST(request: NextRequest) {
     // COD surcharge
     if (data.payment.method === "cod") shippingCost += COD_SURCHARGE;
 
-    const total = Math.max(0, subtotal - discountAmount + shippingCost);
+    // VAT calculation (on subtotal after discount)
+    const settingsData = await getSettings();
+    const defaultVatRate = parseInt(settingsData["store.vat_rate"] || "23", 10);
+    const vatRate = defaultVatRate;
+    const taxableAmount = Math.max(0, subtotal - discountAmount);
+    const vatAmount = vatRate > 0 ? Math.round(taxableAmount * vatRate / 100) : 0;
+
+    const total = Math.max(0, subtotal - discountAmount + vatAmount + shippingCost);
 
     // Generate order number
     const today = new Date();
@@ -204,6 +211,8 @@ export async function POST(request: NextRequest) {
         subtotal,
         discountAmount,
         discountCodeId,
+        vatRate,
+        vatAmount,
         total,
         notes: data.notes || null,
         isTestData: isTester,
@@ -246,6 +255,9 @@ export async function POST(request: NextRequest) {
         .where(eq(productVariants.id, v.id));
     }
 
+    // Check for critical low stock and send instant alert
+    checkCriticalStock(variantRows.map((v) => v.productId)).catch(() => {});
+
     // Increment discount code usage
     if (discountCodeId) {
       await db.update(discountCodes)
@@ -265,6 +277,8 @@ export async function POST(request: NextRequest) {
       }),
       subtotal,
       discountAmount,
+      vatRate,
+      vatAmount,
       shippingCost,
       total,
       shippingMethod: data.shipping.method,
@@ -281,5 +295,64 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("POST /api/orders error:", error);
     return apiError("Failed to create order", 500);
+  }
+}
+
+// Instant low stock alert for critical threshold
+async function checkCriticalStock(productIds: number[]) {
+  try {
+    const cfg = await getSettings();
+    const threshold = parseInt(cfg["alerts.critical_threshold"] || "5");
+    const recipients = (cfg["alerts.stock_recipients"] || "").split(",").map((e) => e.trim()).filter(Boolean);
+    if (recipients.length === 0) return;
+
+    const { Resend } = await import("resend");
+    const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+    if (!resend) return;
+
+    // Check stock for affected products
+    const uniqueIds = [...new Set(productIds)];
+    const lowStockProducts: { name: string; stock: number }[] = [];
+
+    for (const pid of uniqueIds) {
+      const variants = await db.select({ stock: productVariants.stock }).from(productVariants)
+        .where(and(eq(productVariants.productId, pid), eq(productVariants.isActive, true)));
+      const totalStock = variants.reduce((sum: number, v: any) => sum + (v.stock || 0), 0);
+
+      if (totalStock <= threshold) {
+        const product = await db.query.products.findFirst({ where: eq(products.id, pid) });
+        if (product?.isActive) {
+          lowStockProducts.push({ name: product.name, stock: totalStock });
+        }
+      }
+    }
+
+    if (lowStockProducts.length === 0) return;
+
+    const fromEmail = cfg["email.alerts_from"] || "alerts@leafyshop.eu";
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://leafyshop.eu";
+    const rows = lowStockProducts.map((p) =>
+      `<tr><td style="padding:8px;border-bottom:1px solid #eee">${p.name}</td><td style="padding:8px;border-bottom:1px solid #eee;text-align:center;font-weight:bold;color:${p.stock === 0 ? '#dc2626' : '#ea580c'}">${p.stock}</td></tr>`
+    ).join("");
+
+    await resend.emails.send({
+      from: `Leafy Alerts <${fromEmail}>`,
+      to: recipients,
+      subject: `⚠️ Critical Low Stock — ${lowStockProducts.length} product(s) at ${threshold} or below`,
+      html: `
+        <div style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto;padding:24px">
+          <h2 style="color:#dc2626;margin-top:0">⚠️ Critical Low Stock Alert</h2>
+          <p>The following products have stock at or below the critical threshold (${threshold}):</p>
+          <table style="width:100%;border-collapse:collapse;margin:16px 0">
+            <thead><tr style="background:#fef2f2"><th style="padding:8px;text-align:left">Product</th><th style="padding:8px;text-align:center">Stock</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+          <p><a href="${appUrl}/management/products" style="color:#15803d">Manage products →</a></p>
+        </div>
+      `,
+    });
+    console.log("[ALERT] Critical low stock alert sent for", lowStockProducts.map((p) => p.name).join(", "));
+  } catch (error) {
+    console.error("[ALERT] Failed to send low stock alert:", error);
   }
 }

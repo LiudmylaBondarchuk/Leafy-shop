@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { toast } from "sonner";
-import { Store, Mail, TestTube, Info, Tag, Plus, Pencil, Trash2, X, Star, FileText } from "lucide-react";
+import { Store, Mail, TestTube, Info, Tag, Plus, Pencil, Trash2, X, Star, FileText, Bell } from "lucide-react";
 import { CardSkeleton } from "@/components/ui/Skeleton";
 
 function Tooltip({ text }: { text: string }) {
@@ -112,6 +112,10 @@ export default function SettingsPage() {
           <Input label="Contact email" id="storeEmail" value={settings["store.email"] || ""} onChange={(e) => updateSetting("store.email", e.target.value)} />
         </div>
         <p className="text-xs text-gray-400">This information appears on invoices and in email footers.</p>
+        <div className="pt-2 border-t border-gray-100">
+          <Input label="Default VAT rate (%)" id="storeVatRate" type="number" value={settings["store.vat_rate"] || "23"} onChange={(e) => updateSetting("store.vat_rate", e.target.value)} />
+          <p className="text-xs text-gray-400 mt-1">Applied to all orders. Set to 0 to disable VAT.</p>
+        </div>
       </Card>
 
       {/* Email Configuration */}
@@ -144,6 +148,8 @@ export default function SettingsPage() {
               { type: "Invoice", from: settings["email.invoices_from"] || "invoices@leafyshop.eu", trigger: "Shown on invoice PDF", color: "bg-gray-50 border-gray-200" },
               { type: "Welcome (new user)", from: settings["email.noreply_from"] || "noreply@leafyshop.eu", trigger: "Admin creates user", color: "bg-blue-50 border-blue-200" },
               { type: "Password Reset", from: settings["email.noreply_from"] || "noreply@leafyshop.eu", trigger: "Admin resets password", color: "bg-blue-50 border-blue-200" },
+              { type: "Low Stock Alert (critical)", from: settings["email.alerts_from"] || "alerts@leafyshop.eu", trigger: "Instant after order", color: "bg-red-50 border-red-200" },
+              { type: "Low Stock Report (daily)", from: settings["email.alerts_from"] || "alerts@leafyshop.eu", trigger: "Daily cron (3:00 AM)", color: "bg-amber-50 border-amber-200" },
             ].map((e) => (
               <div key={e.type} className={`rounded-lg border p-2.5 ${e.color}`}>
                 <p className="text-xs font-medium text-gray-900">{e.type}</p>
@@ -353,6 +359,28 @@ export default function SettingsPage() {
             />
           </div>
         </div>
+      </Card>
+
+      {/* Stock Alerts */}
+      <Card className="p-5 space-y-4 mb-6">
+        <div className="flex items-center gap-2 mb-2">
+          <Bell className="h-5 w-5 text-gray-500" />
+          <h2 className="font-semibold text-gray-900">Stock Alerts</h2>
+          <Tooltip text="Receive email alerts when product stock falls below the configured threshold. Checked daily at 3:00 AM." />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <Input label="Critical threshold (instant alert)" id="alertCritical" type="number" value={settings["alerts.critical_threshold"] || "5"} onChange={(e) => updateSetting("alerts.critical_threshold", e.target.value)} />
+            <p className="text-xs text-gray-400">Immediate email when stock drops to this level after an order.</p>
+          </div>
+          <div className="space-y-1">
+            <Input label="Warning threshold (daily report)" id="alertWarning" type="number" value={settings["alerts.warning_threshold"] || "10"} onChange={(e) => updateSetting("alerts.warning_threshold", e.target.value)} />
+            <p className="text-xs text-gray-400">Daily report at 3:00 AM with products at or below this level.</p>
+          </div>
+        </div>
+        <Input label="Alert recipients" id="alertRecipients" value={settings["alerts.stock_recipients"] || ""} onChange={(e) => updateSetting("alerts.stock_recipients", e.target.value)} placeholder="admin@leafyshop.eu, warehouse@leafyshop.eu" />
+        <p className="text-xs text-gray-400 -mt-2">Comma-separated list of email addresses.</p>
+        <Input label="Alert from email" id="alertFrom" value={settings["email.alerts_from"] || "alerts@leafyshop.eu"} onChange={(e) => updateSetting("email.alerts_from", e.target.value)} />
       </Card>
 
       {/* Tester Limits */}

@@ -23,6 +23,7 @@ export const orderSchema = z.object({
     street: z.string().min(1),
     city: z.string().min(1),
     zip: z.string().min(5).max(10),
+    country: z.string().min(2).max(2).optional(),
     method: z.enum(["courier", "inpost", "pickup"]),
     inpost_code: z.string().optional(),
   }),

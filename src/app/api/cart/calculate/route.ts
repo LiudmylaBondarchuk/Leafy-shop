@@ -3,6 +3,7 @@ import { productVariants, products } from "@/lib/db/schema-pg";
 import { eq, inArray, and } from "drizzle-orm";
 import { validateDiscountCode, calculateDiscountAmount } from "@/lib/discount-engine";
 import { SHIPPING_METHODS, FREE_SHIPPING_THRESHOLD, COD_SURCHARGE } from "@/constants/shipping-methods";
+import { getSettings } from "@/lib/settings";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { NextRequest } from "next/server";
 
@@ -139,12 +140,20 @@ export async function POST(request: NextRequest) {
     // COD surcharge
     // (handled at checkout, not here)
 
-    const total = subtotal - discountAmount + shippingCost;
+    // VAT calculation (on subtotal after discount)
+    const settingsData = await getSettings();
+    const vatRate = parseInt(settingsData["store.vat_rate"] || "23", 10);
+    const taxableAmount = Math.max(0, subtotal - discountAmount);
+    const vatAmount = vatRate > 0 ? Math.round(taxableAmount * vatRate / 100) : 0;
+
+    const total = subtotal - discountAmount + vatAmount + shippingCost;
 
     return apiSuccess({
       items: calculatedItems.map(({ categoryId, ...rest }) => rest),
       subtotal,
       discount,
+      vatRate,
+      vatAmount,
       shippingCost,
       total: Math.max(0, total),
     });

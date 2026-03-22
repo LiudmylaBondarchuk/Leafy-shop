@@ -31,5 +31,8 @@ export async function GET() {
     label: featured.name,
     color: featured.color,
     badges,
+    gtmId: cfg["store.gtm_id"] || "",
+    ga4Id: cfg["store.ga4_id"] || "",
+    fbPixelId: cfg["store.fb_pixel_id"] || "",
   });
 }

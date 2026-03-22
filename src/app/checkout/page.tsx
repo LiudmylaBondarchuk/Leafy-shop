@@ -70,21 +70,23 @@ export default function CheckoutPage() {
         const res = await fetch("/api/customer/me");
         if (res.ok) {
           const json = await res.json();
-          const data: CustomerProfile = json.data;
-          setCustomer(data);
-          setCustomerLoggedIn(true);
-          setForm((f) => ({
-            ...f,
-            firstName: data.firstName || f.firstName,
-            lastName: data.lastName || f.lastName,
-            email: data.email || f.email,
-            phone: data.phone || f.phone,
-            street: data.street || f.street,
-            city: data.city || f.city,
-            zip: data.zip || f.zip,
-            country: data.country || f.country,
-          }));
-          setConfirmEmail(data.email || "");
+          const data = json.data?.customer;
+          if (data) {
+            setCustomer(data);
+            setCustomerLoggedIn(true);
+            setForm((f) => ({
+              ...f,
+              firstName: data.firstName || f.firstName,
+              lastName: data.lastName || f.lastName,
+              email: data.email || f.email,
+              phone: data.phone || f.phone,
+              street: data.shippingStreet || f.street,
+              city: data.shippingCity || f.city,
+              zip: data.shippingZip || f.zip,
+              country: data.shippingCountry || f.country,
+            }));
+            setConfirmEmail(data.email || "");
+          }
         }
       } catch {
         // not logged in — continue as guest
@@ -267,7 +269,7 @@ export default function CheckoutPage() {
       toast.error("Something went wrong");
     } finally {
       setSignupSubmitting(false);
-      router.push(`/order/confirmation?number=&email=${encodeURIComponent(form.email)}`);
+      setShowPostOrderSignup(false);
     }
   };
 

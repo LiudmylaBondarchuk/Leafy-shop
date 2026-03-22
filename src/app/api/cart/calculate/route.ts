@@ -144,9 +144,11 @@ export async function POST(request: NextRequest) {
     const settingsData = await getSettings();
     const vatRate = parseInt(settingsData["store.vat_rate"] || "23", 10);
     const taxableAmount = Math.max(0, subtotal - discountAmount);
-    const vatAmount = vatRate > 0 ? Math.round(taxableAmount * vatRate / 100) : 0;
+    // Prices are gross (VAT included) — extract VAT from price
+    const vatAmount = vatRate > 0 ? Math.round(taxableAmount - taxableAmount / (1 + vatRate / 100)) : 0;
 
-    const total = subtotal - discountAmount + vatAmount + shippingCost;
+    // Total = subtotal - discount + shipping (VAT already in prices)
+    const total = subtotal - discountAmount + shippingCost;
 
     return apiSuccess({
       items: calculatedItems.map(({ categoryId, ...rest }) => rest),

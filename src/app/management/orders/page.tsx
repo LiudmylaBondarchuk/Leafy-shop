@@ -9,6 +9,7 @@ import type { OrderStatus } from "@/constants/order-statuses";
 import { Search, Download, Upload } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
+import { TableSkeleton } from "@/components/ui/Skeleton";
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -136,7 +137,7 @@ export default function AdminOrdersPage() {
       {/* Table */}
       <Card className="overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-400">Loading...</div>
+          <TableSkeleton />
         ) : filtered.length === 0 ? (
           <div className="p-8 text-center text-gray-400">{hasFilters ? "No orders match your filters." : "No orders yet."}</div>
         ) : (

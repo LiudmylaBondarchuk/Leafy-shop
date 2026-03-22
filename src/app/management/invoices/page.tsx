@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { formatPrice } from "@/lib/utils";
 import { FileText, ExternalLink, Search } from "lucide-react";
 import Link from "next/link";
+import { TableSkeleton } from "@/components/ui/Skeleton";
 
 export default function AdminInvoicesPage() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -112,7 +113,7 @@ export default function AdminInvoicesPage() {
 
       <Card className="overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-400">Loading invoices...</div>
+          <TableSkeleton />
         ) : filtered.length === 0 ? (
           <div className="p-8 text-center text-gray-400">
             {hasFilters ? "No invoices match your filters." : "No invoices yet. Invoices are created when customers select \"I need a VAT invoice\" during checkout."}

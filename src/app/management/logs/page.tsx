@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Package, ShoppingBag, Tag, UserCog, ChevronDown, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { toast } from "sonner";
+import { TableSkeleton } from "@/components/ui/Skeleton";
 
 const ACTION_COLORS: Record<string, string> = {
   create: "bg-green-100 text-green-800",
@@ -113,7 +114,7 @@ export default function AdminLogsPage() {
 
       <Card className="overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-400">Loading logs...</div>
+          <TableSkeleton />
         ) : filtered.length === 0 ? (
           <div className="p-8 text-center text-gray-400">No activity logs found.</div>
         ) : (

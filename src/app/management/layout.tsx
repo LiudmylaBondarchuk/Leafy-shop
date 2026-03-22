@@ -117,7 +117,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-green-900 text-white transform transition-transform lg:translate-x-0 lg:static lg:inset-auto",
+        "fixed inset-y-0 left-0 z-50 w-64 bg-green-900 text-white transform transition-transform lg:translate-x-0 overflow-y-auto",
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="flex flex-col h-full">
@@ -170,7 +170,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 lg:ml-64">
         {/* Top bar with breadcrumbs + avatar */}
         <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 flex items-center gap-4">
           <button className="lg:hidden text-gray-500" onClick={() => setSidebarOpen(true)}>

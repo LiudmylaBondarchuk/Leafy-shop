@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { Package, ShoppingBag, Tag, UserCog, ChevronDown } from "lucide-react";
+import { Package, ShoppingBag, Tag, UserCog, ChevronDown, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { toast } from "sonner";
 
 const ACTION_COLORS: Record<string, string> = {
   create: "bg-green-100 text-green-800",
@@ -43,6 +45,8 @@ export default function AdminLogsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState({ entityType: "", userRole: "", action: "" });
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [userRole, setUserRole] = useState("");
+  const [clearModal, setClearModal] = useState(false);
 
   useEffect(() => {
     fetch("/api/admin/logs")
@@ -51,6 +55,9 @@ export default function AdminLogsPage() {
         setLogs(json.data || []);
         setLoading(false);
       });
+    fetch("/api/auth/me").then((r) => r.json()).then((json) => {
+      if (json.data?.user) setUserRole(json.data.user.role || "");
+    });
   }, []);
 
   const filtered = logs.filter((l) => {
@@ -62,7 +69,18 @@ export default function AdminLogsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Activity Logs</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Activity Logs</h1>
+        <Button variant="destructive" size="sm" onClick={() => {
+          if (userRole !== "admin") {
+            toast.error("You don't have permission to clear logs");
+            return;
+          }
+          setClearModal(true);
+        }}>
+          <Trash2 className="h-4 w-4 mr-1" /> Clear All Logs
+        </Button>
+      </div>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-6">
@@ -155,6 +173,33 @@ export default function AdminLogsPage() {
           </div>
         )}
       </Card>
+
+      {/* Clear all modal */}
+      {clearModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setClearModal(false)}>
+          <div className="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-full bg-red-100"><Trash2 className="h-5 w-5 text-red-600" /></div>
+              <h3 className="font-semibold text-gray-900">Clear All Logs</h3>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">Are you sure you want to delete all activity logs? This action cannot be undone.</p>
+            <div className="flex gap-3">
+              <Button variant="secondary" size="sm" className="flex-1" onClick={() => setClearModal(false)}>Cancel</Button>
+              <Button variant="destructive" size="sm" className="flex-1" onClick={async () => {
+                const res = await fetch("/api/admin/logs", { method: "DELETE" });
+                const json = await res.json();
+                if (json.data) {
+                  toast.success("All logs cleared");
+                  setLogs([]);
+                } else {
+                  toast.error(json.message || "Failed to clear logs");
+                }
+                setClearModal(false);
+              }}>Delete All</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

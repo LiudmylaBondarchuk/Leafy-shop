@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { formatPrice } from "@/lib/utils";
 import { AlertTriangle, Search } from "lucide-react";
 import Link from "next/link";
+import { TableSkeleton } from "@/components/ui/Skeleton";
 
 export default function AdminCustomersPage() {
   const [customers, setCustomers] = useState<any[]>([]);
@@ -45,7 +46,7 @@ export default function AdminCustomersPage() {
 
       <Card className="overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-400">Loading customers...</div>
+          <TableSkeleton />
         ) : customers.length === 0 ? (
           <div className="p-8 text-center text-gray-400">No customers found.</div>
         ) : (

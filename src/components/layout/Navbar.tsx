@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Leaf, ShoppingCart, Search, Menu, X } from "lucide-react";
+import { Leaf, ShoppingCart, Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store/cart-store";
 import { SITE_LINKS } from "@/constants/links";
+import { SearchBar } from "./SearchBar";
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -43,13 +44,7 @@ export function Navbar() {
           {/* Right side */}
           <div className="flex items-center gap-3">
             {/* Search */}
-            <Link
-              href="/products"
-              className="p-2 rounded-lg text-gray-500 hover:text-green-700 hover:bg-gray-100 transition-colors"
-              aria-label="Search products"
-            >
-              <Search className="h-5 w-5" />
-            </Link>
+            <SearchBar />
 
             {/* Cart */}
             <Link

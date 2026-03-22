@@ -8,6 +8,7 @@ import { formatPrice } from "@/lib/utils";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { TableSkeleton } from "@/components/ui/Skeleton";
 
 export default function AdminDiscountsPage() {
   const [codes, setCodes] = useState<any[]>([]);
@@ -166,7 +167,7 @@ export default function AdminDiscountsPage() {
 
       <Card className="overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-400">Loading...</div>
+          <TableSkeleton />
         ) : filtered.length === 0 ? (
           <div className="p-8 text-center text-gray-400">{hasFilters ? "No discount codes match your filters." : "No discount codes yet."}</div>
         ) : (

@@ -9,6 +9,7 @@ import type { Role } from "@/constants/permissions";
 import { Plus, Pencil, Shield, ShieldCheck, TestTube, KeyRound, Search, Copy } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { TableSkeleton } from "@/components/ui/Skeleton";
 
 const ROLE_ICONS: Record<string, any> = {
   admin: ShieldCheck,
@@ -124,7 +125,7 @@ export default function AdminUsersPage() {
 
       <Card className="overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-400">Loading...</div>
+          <TableSkeleton />
         ) : filtered.length === 0 ? (
           <div className="p-8 text-center text-gray-400">{hasFilters ? "No users match your filters." : "No users found."}</div>
         ) : (

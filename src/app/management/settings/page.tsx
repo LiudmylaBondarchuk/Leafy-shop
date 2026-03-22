@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { toast } from "sonner";
 import { Store, Mail, TestTube, Info, Tag, Plus, Pencil, Trash2, X, Star, FileText } from "lucide-react";
+import { CardSkeleton } from "@/components/ui/Skeleton";
 
 function Tooltip({ text }: { text: string }) {
   return (
@@ -88,7 +89,7 @@ export default function SettingsPage() {
     }
   };
 
-  if (loading) return <div className="text-gray-400 py-8">Loading settings...</div>;
+  if (loading) return <div className="max-w-3xl py-8"><CardSkeleton /></div>;
 
   return (
     <div className="max-w-3xl">

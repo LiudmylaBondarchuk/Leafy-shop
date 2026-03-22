@@ -7,10 +7,11 @@ import { Card } from "@/components/ui/Card";
 import { ProductImage } from "@/components/products/ProductImage";
 import { BestsellerBadge } from "@/components/products/BestsellerBadge";
 import { formatPrice } from "@/lib/utils";
-import { Plus, Pencil, Trash2, Search, Upload, Download } from "lucide-react";
-import { useRef } from "react";
+import { Plus, Pencil, Trash2, Search, Upload, Download, X } from "lucide-react";
+import { useRef, useCallback } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { TableSkeleton } from "@/components/ui/Skeleton";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
@@ -32,6 +33,9 @@ export default function AdminProductsPage() {
   };
 
   const [deleteModal, setDeleteModal] = useState<{ id: number; name: string } | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [bulkDeactivateModal, setBulkDeactivateModal] = useState(false);
+  const [bulkProcessing, setBulkProcessing] = useState(false);
   const [importing, setImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -134,6 +138,76 @@ export default function AdminProductsPage() {
 
   const hasFilters = search || categoryFilter || typeFilter || statusFilter;
 
+  // Bulk selection
+  const toggleSelect = useCallback((id: number) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleSelectAll = useCallback(() => {
+    setSelectedIds((prev) => {
+      const ids = paginated.map((p: any) => p.id as number);
+      const allSelected = ids.length > 0 && ids.every((id) => prev.has(id));
+      if (allSelected) {
+        const next = new Set(prev);
+        ids.forEach((id) => next.delete(id));
+        return next;
+      } else {
+        const next = new Set(prev);
+        ids.forEach((id) => next.add(id));
+        return next;
+      }
+    });
+  }, [paginated]);
+
+  const handleBulkDeactivate = async () => {
+    setBulkProcessing(true);
+    let successCount = 0;
+    for (const id of selectedIds) {
+      try {
+        const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
+        const json = await res.json();
+        if (json.data) successCount++;
+      } catch {}
+    }
+    toast.success(`${successCount} product(s) deactivated`);
+    setSelectedIds(new Set());
+    setBulkDeactivateModal(false);
+    setBulkProcessing(false);
+    fetchProducts();
+  };
+
+  const handleBulkActivate = async () => {
+    setBulkProcessing(true);
+    let successCount = 0;
+    for (const id of selectedIds) {
+      const product = products.find((p) => p.id === id);
+      if (!product) continue;
+      try {
+        const res = await fetch(`/api/admin/products/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...product, categoryId: product.category?.id ?? product.categoryId, isActive: true }),
+        });
+        const json = await res.json();
+        if (json.data) successCount++;
+      } catch { /* skip */ }
+    }
+    toast.success(`${successCount} product(s) activated`);
+    setSelectedIds(new Set());
+    setBulkProcessing(false);
+    fetchProducts();
+  };
+
+  const visibleIds = paginated.map((p: any) => p.id as number);
+  const selectedVisibleCount = visibleIds.filter((id) => selectedIds.has(id)).length;
+  const allVisibleSelected = visibleIds.length > 0 && selectedVisibleCount === visibleIds.length;
+  const someVisibleSelected = selectedVisibleCount > 0 && !allVisibleSelected;
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -196,7 +270,7 @@ export default function AdminProductsPage() {
 
       <Card className="overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-400">Loading...</div>
+          <TableSkeleton />
         ) : paginated.length === 0 ? (
           <div className="p-8 text-center text-gray-400">{hasFilters ? "No products match your filters." : "No products yet."}</div>
         ) : (
@@ -204,6 +278,15 @@ export default function AdminProductsPage() {
             <table className="w-full text-sm min-w-[640px]">
               <thead className="bg-gray-50">
                 <tr>
+                  <th className="px-4 py-3 w-10">
+                    <input
+                      type="checkbox"
+                      checked={allVisibleSelected}
+                      ref={(el) => { if (el) el.indeterminate = someVisibleSelected; }}
+                      onChange={toggleSelectAll}
+                      className="rounded border-gray-300 text-green-700 focus:ring-green-500 cursor-pointer"
+                    />
+                  </th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Product</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Category</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Type</th>
@@ -216,6 +299,14 @@ export default function AdminProductsPage() {
               <tbody>
                 {paginated.map((p: any) => (
                   <tr key={p.id} className={`border-t border-gray-100 hover:bg-gray-50 ${!p.isActive ? "opacity-40" : ""}`}>
+                    <td className="px-4 py-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(p.id)}
+                        onChange={() => toggleSelect(p.id)}
+                        className="rounded border-gray-300 text-green-700 focus:ring-green-500 cursor-pointer"
+                      />
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <ProductImage
@@ -326,6 +417,48 @@ export default function AdminProductsPage() {
               </Button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Bulk deactivate confirmation modal */}
+      {bulkDeactivateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setBulkDeactivateModal(false)}>
+          <div className="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-full bg-red-100">
+                <Trash2 className="h-5 w-5 text-red-600" />
+              </div>
+              <h3 className="font-semibold text-gray-900">Deactivate {selectedIds.size} Products</h3>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              Are you sure you want to deactivate <strong>{selectedIds.size}</strong> selected product{selectedIds.size !== 1 ? "s" : ""}? They will be hidden from the store but can be reactivated later.
+            </p>
+            <div className="flex gap-3">
+              <Button variant="secondary" size="sm" className="flex-1" onClick={() => setBulkDeactivateModal(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" size="sm" className="flex-1" onClick={handleBulkDeactivate} loading={bulkProcessing}>
+                Deactivate
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating bulk action bar */}
+      {selectedIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-gray-900 text-white rounded-xl shadow-2xl px-5 py-3 flex items-center gap-4">
+          <span className="text-sm font-medium">{selectedIds.size} selected</span>
+          <div className="w-px h-5 bg-gray-600" />
+          <Button size="sm" variant="destructive" onClick={() => setBulkDeactivateModal(true)}>
+            Deactivate Selected
+          </Button>
+          <Button size="sm" variant="secondary" onClick={handleBulkActivate} loading={bulkProcessing}>
+            Activate Selected
+          </Button>
+          <button onClick={() => setSelectedIds(new Set())} className="text-gray-400 hover:text-white ml-1">
+            <X className="h-4 w-4" />
+          </button>
         </div>
       )}
     </div>

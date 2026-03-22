@@ -8,8 +8,10 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Spinner } from "@/components/ui/Spinner";
+import { COUNTRIES } from "@/constants/countries";
 
 interface ProfileData {
+  email: string;
   firstName: string;
   lastName: string;
   phone: string;
@@ -25,13 +27,14 @@ export default function ProfilePage() {
   const [changingPassword, setChangingPassword] = useState(false);
 
   const [form, setForm] = useState<ProfileData>({
+    email: "",
     firstName: "",
     lastName: "",
     phone: "",
     street: "",
     city: "",
     zip: "",
-    country: "",
+    country: "PL",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -51,13 +54,14 @@ export default function ProfilePage() {
           const data = json.data?.customer;
           if (data) {
             setForm({
+              email: data.email || "",
               firstName: data.firstName || "",
               lastName: data.lastName || "",
               phone: data.phone || "",
               street: data.shippingStreet || "",
               city: data.shippingCity || "",
               zip: data.shippingZip || "",
-              country: data.shippingCountry || "",
+              country: (data.shippingCountry && data.shippingCountry.length === 2) ? data.shippingCountry : "PL",
             });
           }
         }
@@ -183,6 +187,14 @@ export default function ProfilePage() {
         </h2>
 
         <form onSubmit={handleSaveProfile} className="space-y-4">
+          <Input
+            label="Email"
+            id="email"
+            type="email"
+            value={form.email}
+            disabled
+          />
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="First name *"
@@ -240,13 +252,19 @@ export default function ProfilePage() {
             />
           </div>
 
-          <Input
-            label="Country"
-            id="country"
-            value={form.country}
-            onChange={(e) => updateField("country", e.target.value)}
-            placeholder="PL"
-          />
+          <div>
+            <label htmlFor="country" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Country</label>
+            <select
+              id="country"
+              value={form.country}
+              onChange={(e) => updateField("country", e.target.value)}
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+            >
+              {COUNTRIES.map((c) => (
+                <option key={c.code} value={c.code}>{c.name}</option>
+              ))}
+            </select>
+          </div>
 
           <div className="flex justify-end pt-2">
             <Button type="submit" loading={saving} disabled={saving}>

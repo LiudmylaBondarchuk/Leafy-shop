@@ -198,6 +198,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </header>
 
+        {userRole === "tester" && (
+          <div className="bg-purple-50 border-b border-purple-200 px-4 sm:px-6 py-2.5 flex items-center gap-2 text-sm text-purple-800">
+            <span className="font-medium">Test Mode</span>
+            <span className="text-purple-600">—</span>
+            <span>You can only edit and deactivate items you created. All your data is marked as test data and cleaned up automatically.</span>
+          </div>
+        )}
+
         <main className="flex-1 p-4 sm:p-6">
           {children}
         </main>

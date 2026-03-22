@@ -151,8 +151,10 @@ export default function ManagementLoginPage() {
               <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-4">
                 <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm">
                   <p className="text-green-800 font-medium mb-1">Password generated!</p>
-                  {testerName && <p className="text-green-700">Account: <code className="bg-green-100 px-1 rounded">{testerName}</code></p>}
+                  {testerName && <p className="text-green-700">Account: <strong>{testerName}</strong></p>}
+                  <p className="text-green-700">Email: <code className="bg-green-100 px-1 rounded">{email}</code></p>
                   <p className="text-green-700">Password: <code className="bg-green-100 px-1 rounded">{generatedPassword}</code></p>
+                  <p className="text-green-600 text-xs mt-1">Name and email are fixed. Only the password changes each time.</p>
                 </div>
                 <Input label="Email" id="testerEmail" type="email" value={email} disabled />
                 <Input label="Password" id="testerPassword" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />

@@ -1,18 +1,27 @@
 import { db } from "@/lib/db";
 import { adminUsers } from "@/lib/db/schema-pg";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { hashSync } from "bcryptjs";
 import crypto from "crypto";
 import { apiSuccess, apiError } from "@/lib/utils";
 
+// Fixed tester account — configured via env variables
+const TESTER_EMAIL = process.env.TESTER_EMAIL || "tester@leafyshop.eu";
+const TESTER_NAME = process.env.TESTER_NAME || "Leafy Tester";
+
 export async function POST() {
   try {
-    // Find any active tester account
-    const allUsers: any[] = await db.select().from(adminUsers);
-    const tester = allUsers.find((u) => u.role === "tester" && u.isActive && !u.deletedAt);
+    // Find the fixed tester account by email
+    const tester = await db.query.adminUsers.findFirst({
+      where: eq(adminUsers.email, TESTER_EMAIL),
+    });
 
     if (!tester) {
-      return apiError("No active tester account found. Ask an admin to create one.", 404, "NO_TESTER");
+      return apiError(`Tester account (${TESTER_EMAIL}) not found. Ask an admin to create it.`, 404, "NO_TESTER");
+    }
+
+    if (!tester.isActive || tester.deletedAt) {
+      return apiError("Tester account is inactive. Contact admin.", 403, "TESTER_INACTIVE");
     }
 
     // Generate one-time password
@@ -26,8 +35,8 @@ export async function POST() {
     }).where(eq(adminUsers.id, tester.id));
 
     return apiSuccess({
-      email: tester.email,
-      name: tester.name,
+      email: TESTER_EMAIL,
+      name: TESTER_NAME,
       password,
     });
   } catch (error) {

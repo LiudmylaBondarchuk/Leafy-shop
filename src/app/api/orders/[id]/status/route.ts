@@ -17,7 +17,7 @@ export async function PATCH(
     const admin = await getAdminFromCookie();
     const { id } = await params;
     const body = await request.json();
-    const { status: newStatus, note } = body;
+    const { status: newStatus, note, trackingNumber } = body;
 
     if (!newStatus) {
       return apiError("Status is required", 400, "VALIDATION_ERROR");
@@ -59,9 +59,13 @@ export async function PATCH(
       }
     }
 
-    // Update order status
+    // Update order status (and tracking number if shipping)
+    const updateData: Record<string, any> = { status: newStatus, updatedAt: new Date().toISOString() };
+    if (newStatus === "shipped" && trackingNumber) {
+      updateData.trackingNumber = trackingNumber;
+    }
     await db.update(orders)
-      .set({ status: newStatus, updatedAt: new Date().toISOString() })
+      .set(updateData)
       .where(eq(orders.id, parseInt(id)));
 
     // Insert status history
@@ -95,6 +99,7 @@ export async function PATCH(
       note,
       "admin",
       productTypes,
+      newStatus === "shipped" ? trackingNumber : undefined,
     ).catch(() => {});
 
     // Audit log

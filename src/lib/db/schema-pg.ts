@@ -102,6 +102,7 @@ export const orders = pgTable("orders", {
   shippingStreet: text("shipping_street").notNull(),
   shippingCity: text("shipping_city").notNull(),
   shippingZip: text("shipping_zip").notNull(),
+  shippingCountry: text("shipping_country"),
   shippingMethod: text("shipping_method").notNull(),
   shippingCost: integer("shipping_cost").notNull(),
   inpostCode: text("inpost_code"),

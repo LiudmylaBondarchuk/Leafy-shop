@@ -16,6 +16,11 @@ async function getAccessToken(): Promise<string> {
     body: "grant_type=client_credentials",
   });
 
+  if (!res.ok) {
+    const text = await res.text().catch(() => "Unknown error");
+    throw new Error(`PayPal auth failed (${res.status}): ${text}`);
+  }
+
   const data = await res.json();
   return data.access_token;
 }
@@ -45,6 +50,11 @@ export async function createPayPalOrder(totalInCents: number, orderNumber: strin
     }),
   });
 
+  if (!res.ok) {
+    const text = await res.text().catch(() => "Unknown error");
+    throw new Error(`PayPal create order failed (${res.status}): ${text}`);
+  }
+
   const data = await res.json();
   return data;
 }
@@ -59,6 +69,11 @@ export async function capturePayPalOrder(paypalOrderId: string) {
       "Content-Type": "application/json",
     },
   });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "Unknown error");
+    throw new Error(`PayPal capture failed (${res.status}): ${text}`);
+  }
 
   const data = await res.json();
   return data;

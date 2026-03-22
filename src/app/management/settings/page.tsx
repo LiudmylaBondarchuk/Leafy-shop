@@ -153,10 +153,10 @@ export default function SettingsPage() {
     }
   };
 
-  if (loading) return <div className="max-w-3xl py-8"><CardSkeleton /></div>;
+  if (loading) return <div className="max-w-4xl py-8"><CardSkeleton /></div>;
 
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-4xl w-full">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Settings</h1>
         <Button onClick={handleSave} loading={saving}>Save Changes</Button>

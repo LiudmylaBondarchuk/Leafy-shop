@@ -85,7 +85,7 @@ function OrderStatusContent() {
   // Auto-fetch if params present
   useEffect(() => {
     if (orderNum && email) fetchOrder();
-  }, []); // eslint-disable-line
+  }, [orderNum, email]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCancel = async () => {
     if (!order) return;

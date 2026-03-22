@@ -4,14 +4,27 @@ import { useCartStore } from "@/store/cart-store";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { formatPrice } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Info, User, LogIn } from "lucide-react";
 import { SITE_LINKS } from "@/constants/links";
 import { COUNTRIES, getCountry } from "@/constants/countries";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { Card } from "@/components/ui/Card";
+
+interface CustomerProfile {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  street?: string;
+  city?: string;
+  zip?: string;
+  country?: string;
+}
 
 const STEPS = ["Contact & Address", "Shipping", "Payment", "Summary"];
 
@@ -26,6 +39,14 @@ export default function CheckoutPage() {
 
   const [confirmEmail, setConfirmEmail] = useState("");
 
+  // Customer account state
+  const [customer, setCustomer] = useState<CustomerProfile | null>(null);
+  const [customerLoggedIn, setCustomerLoggedIn] = useState(false);
+  const [emailAccountExists, setEmailAccountExists] = useState(false);
+  const [showPostOrderSignup, setShowPostOrderSignup] = useState(false);
+  const [signupPassword, setSignupPassword] = useState("");
+  const [signupSubmitting, setSignupSubmitting] = useState(false);
+
   const [form, setForm] = useState({
     firstName: "", lastName: "", email: "", phone: "",
     country: "PL",
@@ -39,6 +60,55 @@ export default function CheckoutPage() {
   });
 
   const selectedCountry = getCountry(form.country);
+
+  // Check if customer is logged in and auto-fill
+  useEffect(() => {
+    const checkCustomer = async () => {
+      try {
+        const res = await fetch("/api/customer/me");
+        if (res.ok) {
+          const json = await res.json();
+          const data: CustomerProfile = json.data;
+          setCustomer(data);
+          setCustomerLoggedIn(true);
+          setForm((f) => ({
+            ...f,
+            firstName: data.firstName || f.firstName,
+            lastName: data.lastName || f.lastName,
+            email: data.email || f.email,
+            phone: data.phone || f.phone,
+            street: data.street || f.street,
+            city: data.city || f.city,
+            zip: data.zip || f.zip,
+            country: data.country || f.country,
+          }));
+          setConfirmEmail(data.email || "");
+        }
+      } catch {
+        // not logged in — continue as guest
+      }
+    };
+
+    checkCustomer();
+  }, []);
+
+  // Check if email belongs to an existing account (for guests)
+  const checkEmailAccount = useCallback(async (email: string) => {
+    if (customerLoggedIn || !email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
+    try {
+      const res = await fetch("/api/customer/check-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setEmailAccountExists(!!json.data?.exists);
+      }
+    } catch {
+      // ignore
+    }
+  }, [customerLoggedIn]);
 
   useEffect(() => setMounted(true), []);
 
@@ -158,7 +228,11 @@ export default function CheckoutPage() {
       if (json.data?.orderNumber) {
         setOrderPlaced(true);
         clearCart();
-        router.push(`/order/confirmation?number=${json.data.orderNumber}&email=${encodeURIComponent(form.email)}`);
+        if (!customerLoggedIn) {
+          setShowPostOrderSignup(true);
+        } else {
+          router.push(`/order/confirmation?number=${json.data.orderNumber}&email=${encodeURIComponent(form.email)}`);
+        }
       } else {
         toast.error(json.message || "Failed to place order");
       }
@@ -166,6 +240,38 @@ export default function CheckoutPage() {
       toast.error("Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handlePostOrderSignup = async () => {
+    if (!signupPassword || signupPassword.length < 8) {
+      toast.error("Password must be at least 8 characters");
+      return;
+    }
+    setSignupSubmitting(true);
+    try {
+      const res = await fetch("/api/customer/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: form.firstName.trim(),
+          lastName: form.lastName.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim() || undefined,
+          password: signupPassword,
+        }),
+      });
+      if (res.ok) {
+        toast.success("Account created! You can now track your orders.");
+      } else {
+        const json = await res.json();
+        toast.error(json.message || "Could not create account");
+      }
+    } catch {
+      toast.error("Something went wrong");
+    } finally {
+      setSignupSubmitting(false);
+      router.push(`/order/confirmation?number=&email=${encodeURIComponent(form.email)}`);
     }
   };
 
@@ -198,12 +304,45 @@ export default function CheckoutPage() {
       {/* Step 0: Contact & Address */}
       {step === 0 && (
         <div className="space-y-4">
+          {/* Logged-in customer banner */}
+          {customerLoggedIn && customer && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
+              <User className="h-5 w-5 text-green-700 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-green-800">
+                  Logged in as {customer.firstName} {customer.lastName}
+                </p>
+                <p className="text-xs text-green-600">Your details have been auto-filled. You can edit them below.</p>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input label="First name *" id="firstName" value={form.firstName} onChange={(e) => updateField("firstName", e.target.value)} error={errors.firstName} placeholder="John" />
             <Input label="Last name *" id="lastName" value={form.lastName} onChange={(e) => updateField("lastName", e.target.value)} error={errors.lastName} placeholder="Smith" />
           </div>
 
-          <Input label="Email *" id="email" type="email" value={form.email} onChange={(e) => updateField("email", e.target.value)} error={errors.email} placeholder="john@example.com" />
+          <Input label="Email *" id="email" type="email" value={form.email} onChange={(e) => { updateField("email", e.target.value); setEmailAccountExists(false); }} onBlur={(e) => checkEmailAccount(e.target.value)} error={errors.email} placeholder="john@example.com" />
+
+          {/* Existing account banner */}
+          {emailAccountExists && !customerLoggedIn && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
+              <Info className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-blue-800">
+                  It looks like you already have an account with this email. Log in to auto-fill your details.
+                </p>
+                <Link
+                  href={`/account/login?redirect=/checkout`}
+                  className="inline-flex items-center gap-1 mt-2 text-sm font-medium text-blue-700 hover:text-blue-800 transition-colors"
+                >
+                  <LogIn className="h-4 w-4" />
+                  Log In
+                </Link>
+              </div>
+            </div>
+          )}
+
           <Input label="Confirm email *" id="confirmEmail" type="email" value={confirmEmail} onChange={(e) => updateConfirmEmail(e.target.value)} error={errors.confirmEmail} placeholder="john@example.com" />
 
           {/* Country */}
@@ -537,6 +676,50 @@ export default function CheckoutPage() {
               </p>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Post-order signup prompt for guests */}
+      {showPostOrderSignup && !customerLoggedIn && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md p-6">
+            <h2 className="text-lg font-bold text-gray-900 mb-2">
+              Create an account to track your orders
+            </h2>
+            <p className="text-sm text-gray-500 mb-4">
+              Just set a password and you&apos;re all set. We already have your name and email.
+            </p>
+            <div className="space-y-4">
+              <Input
+                label="Password"
+                id="signupPassword"
+                type="password"
+                value={signupPassword}
+                onChange={(e) => setSignupPassword(e.target.value)}
+                placeholder="At least 8 characters"
+              />
+              <div className="flex gap-3">
+                <Button
+                  variant="secondary"
+                  className="flex-1"
+                  onClick={() => {
+                    setShowPostOrderSignup(false);
+                    router.push(`/order/confirmation?number=&email=${encodeURIComponent(form.email)}`);
+                  }}
+                >
+                  Skip
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={handlePostOrderSignup}
+                  loading={signupSubmitting}
+                  disabled={signupSubmitting}
+                >
+                  Create Account
+                </Button>
+              </div>
+            </div>
+          </Card>
         </div>
       )}
     </div>

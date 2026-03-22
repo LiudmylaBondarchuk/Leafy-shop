@@ -65,10 +65,36 @@ export const productVariantsRelations = relations(productVariants, ({ one }) => 
   product: one(products, { fields: [productVariants.productId], references: [products.id] }),
 }));
 
+// ============================================
+// CUSTOMERS
+// ============================================
+export const customers = pgTable("customers", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  phone: text("phone"),
+  shippingStreet: text("shipping_street"),
+  shippingCity: text("shipping_city"),
+  shippingZip: text("shipping_zip"),
+  shippingCountry: text("shipping_country"),
+  resetToken: text("reset_token"),
+  resetTokenExpiry: text("reset_token_expiry"),
+  deletedAt: text("deleted_at"),
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+  updatedAt: text("updated_at").notNull().$defaultFn(() => new Date().toISOString()),
+});
+
+export const customersRelations = relations(customers, ({ many }) => ({
+  orders: many(orders),
+}));
+
 export const orders = pgTable("orders", {
   id: serial("id").primaryKey(),
   orderNumber: text("order_number").notNull().unique(),
   status: text("status").notNull().default("new"),
+  customerId: integer("customer_id").references(() => customers.id),
   customerEmail: text("customer_email").notNull(),
   customerPhone: text("customer_phone").notNull(),
   customerFirstName: text("customer_first_name").notNull(),
@@ -102,6 +128,7 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
   items: many(orderItems),
   statusHistory: many(orderStatusHistory),
   discountCode: one(discountCodes, { fields: [orders.discountCodeId], references: [discountCodes.id] }),
+  customer: one(customers, { fields: [orders.customerId], references: [customers.id] }),
 }));
 
 export const orderItems = pgTable("order_items", {

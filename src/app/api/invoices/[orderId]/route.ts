@@ -35,6 +35,8 @@ export async function GET(
     const storeName = cfg["store.name"] || "Leafy Tea & Coffee Ltd.";
     const storeAddress = cfg["store.address"] || "5 Leafy Lane, Warsaw, Poland";
     const invoicesEmail = cfg["email.invoices_from"] || "invoices@leafyshop.eu";
+    const vatRate = (order as any).vatRate ?? parseInt(cfg["store.vat_rate"] || "23", 10);
+    const vatAmount = (order as any).vatAmount ?? 0;
 
     const invoiceNumber = generateInvoiceNumber(order.id, order.createdAt);
     const invoiceDate = new Date(order.createdAt).toLocaleDateString("en-US", { dateStyle: "long" });
@@ -142,6 +144,12 @@ export async function GET(
         <tr>
           <td style="padding:6px 0;color:#15803d">Discount</td>
           <td style="padding:6px 0;text-align:right;color:#15803d">-${formatPrice(order.discountAmount)}</td>
+        </tr>
+        ` : ""}
+        ${vatAmount > 0 ? `
+        <tr>
+          <td style="padding:6px 0;color:#666">VAT (${vatRate}%)</td>
+          <td style="padding:6px 0;text-align:right">${formatPrice(vatAmount)}</td>
         </tr>
         ` : ""}
         <tr>

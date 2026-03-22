@@ -223,7 +223,7 @@ export function ProductForm({ productId }: ProductFormProps) {
   if (loading) return <div className="text-gray-400 py-8">Loading product...</div>;
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="max-w-5xl space-y-6">
       {/* Basic info */}
       <Card className="p-5 space-y-4">
         <h2 className="font-semibold text-gray-900">Basic Information</h2>

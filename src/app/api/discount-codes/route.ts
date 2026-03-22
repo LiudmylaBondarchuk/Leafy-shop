@@ -32,15 +32,17 @@ export async function GET() {
       .leftJoin(adminUsers, eq(discountCodes.createdBy, adminUsers.id))
       .orderBy(desc(discountCodes.createdAt));
 
-    // If admin is logged in as tester, only show their codes
     const admin = await getAdminFromCookie();
     if (admin) {
       const user = await db.query.adminUsers.findFirst({
         where: eq(adminUsers.id, Number(admin.sub)),
       });
       if (user?.role === "tester") {
+        // Tester sees only their own codes
         return apiSuccess(codes.filter((c: any) => c.createdBy === Number(admin.sub)));
       }
+      // Admin and manager see ALL codes (including inactive/expired)
+      return apiSuccess(codes.filter((c: any) => !c.deletedAt));
     }
 
     // Unauthenticated requests only get active, non-expired, non-deleted codes

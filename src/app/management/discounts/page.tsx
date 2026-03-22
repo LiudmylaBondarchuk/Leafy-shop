@@ -14,6 +14,7 @@ export default function AdminDiscountsPage() {
   const [codes, setCodes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteModal, setDeleteModal] = useState<{ id: number; code: string } | null>(null);
+  const [toggleModal, setToggleModal] = useState<{ id: number; code: string; activate: boolean } | null>(null);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -224,7 +225,7 @@ export default function AdminDiscountsPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleToggleActive(code.id, code.code, !code.isActive)}
+                            onClick={() => setToggleModal({ id: code.id, code: code.code, activate: !code.isActive })}
                           >
                             <span className={`text-xs font-medium ${code.isActive ? "text-orange-500" : "text-green-600"}`}>
                               {code.isActive ? "Deactivate" : "Activate"}
@@ -281,6 +282,35 @@ export default function AdminDiscountsPage() {
           </>
         )}
       </Card>
+
+      {/* Activate/Deactivate confirmation modal */}
+      {toggleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setToggleModal(null)}>
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-sm mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
+              {toggleModal.activate ? "Activate" : "Deactivate"} Discount Code
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Are you sure you want to {toggleModal.activate ? "activate" : "deactivate"} <strong>{toggleModal.code}</strong>?
+              {!toggleModal.activate && " Customers will no longer be able to use this code."}
+            </p>
+            <div className="flex gap-3">
+              <Button variant="secondary" size="sm" className="flex-1" onClick={() => setToggleModal(null)}>Cancel</Button>
+              <Button
+                size="sm"
+                className="flex-1"
+                variant={toggleModal.activate ? "primary" : "destructive"}
+                onClick={() => {
+                  handleToggleActive(toggleModal.id, toggleModal.code, toggleModal.activate);
+                  setToggleModal(null);
+                }}
+              >
+                {toggleModal.activate ? "Activate" : "Deactivate"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Delete confirmation modal */}
       {deleteModal && (

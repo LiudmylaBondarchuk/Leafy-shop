@@ -21,17 +21,44 @@ export default function AdminOrderDetailPage() {
   const [selectedStatus, setSelectedStatus] = useState("");
   const [changing, setChanging] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [trackingNumber, setTrackingNumber] = useState("");
+  const [internalNotes, setInternalNotes] = useState("");
+  const [savingNotes, setSavingNotes] = useState(false);
 
   const fetchOrder = () => {
     fetch(`/api/orders/${id}`)
       .then((r) => r.json())
       .then((json) => {
-        if (json.data) setOrder(json.data);
+        if (json.data) {
+          setOrder(json.data);
+          setInternalNotes(json.data.internalNotes || "");
+        }
         setLoading(false);
       });
   };
 
   useEffect(() => { fetchOrder(); }, [id]);
+
+  const handleSaveNotes = async () => {
+    setSavingNotes(true);
+    try {
+      const res = await fetch(`/api/orders/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ internalNotes }),
+      });
+      const json = await res.json();
+      if (json.data) {
+        toast.success("Internal notes saved");
+      } else {
+        toast.error(json.message || "Failed to save notes");
+      }
+    } catch {
+      toast.error("Something went wrong");
+    } finally {
+      setSavingNotes(false);
+    }
+  };
 
   const handleStatusChange = async (newStatus: string) => {
     setChanging(true);
@@ -39,7 +66,11 @@ export default function AdminOrderDetailPage() {
       const res = await fetch(`/api/orders/${id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus, note: statusNote || undefined }),
+        body: JSON.stringify({
+          status: newStatus,
+          note: statusNote || undefined,
+          trackingNumber: newStatus === "shipped" && trackingNumber ? trackingNumber : undefined,
+        }),
       });
       const json = await res.json();
       if (json.data) {
@@ -169,6 +200,12 @@ export default function AdminOrderDetailPage() {
                   <p>{order.invoiceAddress}</p>
                 </div>
               )}
+              {order.trackingNumber && (
+                <div className="border-t border-gray-100 pt-2 mt-2">
+                  <p className="font-medium text-gray-900 mb-1">Tracking Number</p>
+                  <p className="font-mono text-green-700">{order.trackingNumber}</p>
+                </div>
+              )}
               {order.notes && (
                 <div className="border-t border-gray-100 pt-2 mt-2">
                   <p className="font-medium text-gray-900 mb-1">Notes</p>
@@ -204,6 +241,15 @@ export default function AdminOrderDetailPage() {
                 rows={2}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600 mb-3"
               />
+              {selectedStatus === "shipped" && (
+                <input
+                  type="text"
+                  value={trackingNumber}
+                  onChange={(e) => setTrackingNumber(e.target.value)}
+                  placeholder="Tracking number (optional)"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600 mb-3"
+                />
+              )}
               <Button
                 variant={selectedStatus === "cancelled" ? "destructive" : "primary"}
                 size="sm"
@@ -290,6 +336,27 @@ export default function AdminOrderDetailPage() {
                 </div>
               ))}
             </div>
+          </Card>
+
+          {/* Internal Notes */}
+          <Card className="p-5">
+            <h2 className="font-semibold mb-3">Internal Notes</h2>
+            <textarea
+              value={internalNotes}
+              onChange={(e) => setInternalNotes(e.target.value)}
+              placeholder="Add internal notes (not visible to customers)..."
+              rows={4}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600 mb-3"
+            />
+            <Button
+              variant="secondary"
+              size="sm"
+              className="w-full"
+              loading={savingNotes}
+              onClick={handleSaveNotes}
+            >
+              Save Notes
+            </Button>
           </Card>
         </div>
       </div>

@@ -32,7 +32,7 @@ export async function logAudit(entry: AuditLogEntry) {
 }
 
 // Helper to detect changes between old and new objects
-export function detectChanges(oldObj: any, newObj: any, fields: string[]): Record<string, { old: any; new: any }> | null {
+export function detectChanges(oldObj: any, newObj: any, fields: string[]): Record<string, { old: any; new: any }> | undefined {
   const changes: Record<string, { old: any; new: any }> = {};
 
   for (const field of fields) {
@@ -43,5 +43,5 @@ export function detectChanges(oldObj: any, newObj: any, fields: string[]): Recor
     }
   }
 
-  return Object.keys(changes).length > 0 ? changes : null;
+  return Object.keys(changes).length > 0 ? changes : undefined;
 }

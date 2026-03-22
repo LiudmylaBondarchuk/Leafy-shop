@@ -3,7 +3,7 @@ import { products, productVariants, adminUsers } from "@/lib/db/schema-pg";
 import { getAdminFromCookie } from "@/lib/auth";
 import { apiSuccess, apiError, slugify } from "@/lib/utils";
 import { eq } from "drizzle-orm";
-import { logAudit } from "@/lib/audit";
+import { logAudit, detectChanges } from "@/lib/audit";
 
 export async function GET(
   _request: Request,
@@ -57,6 +57,9 @@ export async function PUT(
         return apiError("You can only edit products you created. Add your own first.", 403, "FORBIDDEN");
       }
     }
+
+    // Fetch old product for change detection
+    const oldProduct = await db.query.products.findFirst({ where: eq(products.id, productId) });
 
     // Update product
     await db.update(products).set({
@@ -140,7 +143,7 @@ export async function PUT(
       entityType: "product",
       entityId: productId,
       entityName: name || updated?.name || "Unknown",
-      changes: { update: { old: null, new: body } },
+      changes: detectChanges(oldProduct || {}, body, ["name", "description", "categoryId", "productType", "origin", "isActive", "isFeatured", "imageUrl"]),
       isTestData: requestingUser?.role === "tester",
     });
 

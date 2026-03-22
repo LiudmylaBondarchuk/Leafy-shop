@@ -20,6 +20,44 @@ function Tooltip({ text }: { text: string }) {
   );
 }
 
+type BadgeItem = { id: string; name: string; color: string };
+
+const BADGE_COLORS = [
+  { value: "green", label: "Green" },
+  { value: "amber", label: "Amber / Gold" },
+  { value: "blue", label: "Blue" },
+  { value: "purple", label: "Purple" },
+  { value: "red", label: "Red" },
+  { value: "pink", label: "Pink" },
+];
+
+const BADGE_COLOR_MAP: Record<string, string> = {
+  green: "bg-green-100 text-green-800 border-green-300",
+  amber: "bg-amber-100 text-amber-800 border-amber-300",
+  blue: "bg-blue-100 text-blue-800 border-blue-300",
+  purple: "bg-purple-100 text-purple-800 border-purple-300",
+  red: "bg-red-100 text-red-800 border-red-300",
+  pink: "bg-pink-100 text-pink-800 border-pink-300",
+};
+
+const BADGE_STAR_MAP: Record<string, string> = {
+  green: "text-amber-500", amber: "text-amber-600", blue: "text-blue-500",
+  purple: "text-purple-500", red: "text-red-500", pink: "text-pink-500",
+};
+
+function BadgePreview({ name, color }: { name: string; color: string }) {
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${BADGE_COLOR_MAP[color] || BADGE_COLOR_MAP.green}`}>
+      <span className={BADGE_STAR_MAP[color] || BADGE_STAR_MAP.green}>★</span>
+      {name}
+    </span>
+  );
+}
+
+const DEFAULT_BADGES: BadgeItem[] = [
+  { id: "featured", name: "Bestseller", color: "green" },
+];
+
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -29,6 +67,10 @@ export default function SettingsPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [catForm, setCatForm] = useState<{ id?: number; name: string; description: string } | null>(null);
   const [deleteCatModal, setDeleteCatModal] = useState<{ id: number; name: string } | null>(null);
+  const [badges, setBadges] = useState<BadgeItem[]>(DEFAULT_BADGES);
+  const [badgeForm, setBadgeForm] = useState<BadgeItem | null>(null);
+  const [badgeFormIsNew, setBadgeFormIsNew] = useState(false);
+  const [deleteBadgeModal, setDeleteBadgeModal] = useState<BadgeItem | null>(null);
 
   const fetchCategories = () => {
     fetch("/api/admin/categories")
@@ -36,11 +78,32 @@ export default function SettingsPage() {
       .then((json) => setCategories(json.data || []));
   };
 
+  const parseBadges = (s: Record<string, string>): BadgeItem[] => {
+    try {
+      const raw = s["store.badges"];
+      if (raw) return JSON.parse(raw) as BadgeItem[];
+    } catch { /* ignore */ }
+    // Fallback: derive from legacy badge.featured.* keys
+    return [{ id: "featured", name: s["badge.featured.label"] || "Bestseller", color: s["badge.featured.color"] || "green" }];
+  };
+
+  const syncBadgesToSettings = (list: BadgeItem[], s: Record<string, string>): Record<string, string> => {
+    const featured = list.find((b) => b.id === "featured");
+    return {
+      ...s,
+      "store.badges": JSON.stringify(list),
+      "badge.featured.label": featured?.name || "Bestseller",
+      "badge.featured.color": featured?.color || "green",
+    };
+  };
+
   useEffect(() => {
     fetch("/api/admin/settings")
       .then((r) => r.json())
       .then((json) => {
-        setSettings(json.data || {});
+        const data = json.data || {};
+        setSettings(data);
+        setBadges(parseBadges(data));
         setLoading(false);
       });
     fetchCategories();
@@ -53,10 +116,11 @@ export default function SettingsPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
+      const merged = syncBadgesToSettings(badges, settings);
       const res = await fetch("/api/admin/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(settings),
+        body: JSON.stringify(merged),
       });
       const json = await res.json();
       if (json.data) {
@@ -204,57 +268,45 @@ export default function SettingsPage() {
 
       {/* Product Badges */}
       <Card className="p-5 space-y-4 mb-6">
-        <div className="flex items-center gap-2 mb-2">
-          <Star className="h-5 w-5 text-gray-500" />
-          <h2 className="font-semibold text-gray-900">Product Badges</h2>
-          <Tooltip text="Badges displayed on product cards in the store. The Featured badge appears on products marked as 'Bestseller' in the product form." />
-        </div>
-        <div className="space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label="Featured badge label" id="badgeFeatured" value={settings["badge.featured.label"] || "Bestseller"} onChange={(e) => updateSetting("badge.featured.label", e.target.value)} />
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Featured badge color</label>
-              <select
-                value={settings["badge.featured.color"] || "green"}
-                onChange={(e) => updateSetting("badge.featured.color", e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-              >
-                <option value="green">Green</option>
-                <option value="amber">Amber / Gold</option>
-                <option value="blue">Blue</option>
-                <option value="purple">Purple</option>
-                <option value="red">Red</option>
-                <option value="pink">Pink</option>
-              </select>
-            </div>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Star className="h-5 w-5 text-gray-500" />
+            <h2 className="font-semibold text-gray-900">Product Badges</h2>
+            <Tooltip text="Badges displayed on product cards. The 'Featured' badge (marked with a lock) is linked to the Bestseller checkbox in the product form and cannot be deleted. Custom badges are saved for future use." />
           </div>
-          <p className="text-xs text-gray-400">This badge appears on products marked as "Featured" (★ Bestseller checkbox in product form). Change the label and color to customize how it appears in the store.</p>
-          <div className="flex items-center gap-3 pt-2">
-            <span className="text-xs text-gray-500">Preview:</span>
-            {(() => {
-              const label = settings["badge.featured.label"] || "Bestseller";
-              const color = settings["badge.featured.color"] || "green";
-              const colorMap: Record<string, string> = {
-                green: "bg-green-100 text-green-800 border-green-300",
-                amber: "bg-amber-100 text-amber-800 border-amber-300",
-                blue: "bg-blue-100 text-blue-800 border-blue-300",
-                purple: "bg-purple-100 text-purple-800 border-purple-300",
-                red: "bg-red-100 text-red-800 border-red-300",
-                pink: "bg-pink-100 text-pink-800 border-pink-300",
-              };
-              const starMap: Record<string, string> = {
-                green: "text-amber-500", amber: "text-amber-600", blue: "text-blue-500",
-                purple: "text-purple-500", red: "text-red-500", pink: "text-pink-500",
-              };
-              return (
-                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${colorMap[color] || colorMap.green}`}>
-                  <span className={starMap[color] || starMap.green}>★</span>
-                  {label}
-                </span>
-              );
-            })()}
-          </div>
+          <Button size="sm" onClick={() => { setBadgeFormIsNew(true); setBadgeForm({ id: "", name: "", color: "green" }); }}>
+            <Plus className="h-4 w-4 mr-1" /> Add Badge
+          </Button>
         </div>
+
+        {badges.length === 0 ? (
+          <p className="text-sm text-gray-400">No badges configured.</p>
+        ) : (
+          <div className="divide-y divide-gray-100">
+            {badges.map((badge) => (
+              <div key={badge.id} className="flex items-center justify-between py-2.5">
+                <div className="flex items-center gap-3">
+                  <BadgePreview name={badge.name} color={badge.color} />
+                  {badge.id === "featured" && (
+                    <span className="text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">Default — linked to Bestseller</span>
+                  )}
+                </div>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="sm" onClick={() => { setBadgeFormIsNew(false); setBadgeForm({ ...badge }); }}>
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  {badge.id !== "featured" && (
+                    <Button variant="ghost" size="sm" onClick={() => setDeleteBadgeModal(badge)}>
+                      <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <p className="text-xs text-gray-400">Click Save Changes to persist badge updates. The Featured badge appears on products marked as Bestseller. Custom badges are stored for future product assignment.</p>
       </Card>
 
       {/* Email Templates */}
@@ -446,6 +498,81 @@ export default function SettingsPage() {
                 } else {
                   toast.error(json.message || "Failed to delete");
                 }
+              }}>Delete</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Badge form modal */}
+      {badgeForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setBadgeForm(null)}>
+          <div className="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-xl w-full" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-gray-900">{badgeFormIsNew ? "Add Badge" : "Edit Badge"}</h3>
+              <button onClick={() => setBadgeForm(null)} className="text-gray-400 hover:text-gray-600"><X className="h-4 w-4" /></button>
+            </div>
+            <div className="space-y-3">
+              <Input label="Badge name" id="badgeName" value={badgeForm.name} onChange={(e) => setBadgeForm({ ...badgeForm, name: e.target.value })} />
+              {badgeFormIsNew && (
+                <Input label="Badge ID (lowercase, no spaces)" id="badgeId" value={badgeForm.id} onChange={(e) => setBadgeForm({ ...badgeForm, id: e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, "") })} />
+              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
+                <select
+                  value={badgeForm.color}
+                  onChange={(e) => setBadgeForm({ ...badgeForm, color: e.target.value })}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                >
+                  {BADGE_COLORS.map((c) => (
+                    <option key={c.value} value={c.value}>{c.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-3 pt-1">
+                <span className="text-xs text-gray-500">Preview:</span>
+                <BadgePreview name={badgeForm.name || "Badge"} color={badgeForm.color} />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-4">
+              <Button variant="secondary" size="sm" className="flex-1" onClick={() => setBadgeForm(null)}>Cancel</Button>
+              <Button size="sm" className="flex-1" onClick={() => {
+                if (!badgeForm.name.trim()) { toast.error("Badge name is required"); return; }
+                if (badgeFormIsNew) {
+                  const id = badgeForm.id.trim() || badgeForm.name.toLowerCase().replace(/[^a-z0-9]/g, "-");
+                  if (badges.some((b) => b.id === id)) { toast.error("A badge with this ID already exists"); return; }
+                  setBadges([...badges, { id, name: badgeForm.name.trim(), color: badgeForm.color }]);
+                  toast.success("Badge added — click Save Changes to persist");
+                } else {
+                  setBadges(badges.map((b) => b.id === badgeForm.id ? { ...b, name: badgeForm.name.trim(), color: badgeForm.color } : b));
+                  toast.success("Badge updated — click Save Changes to persist");
+                }
+                setBadgeForm(null);
+              }}>
+                {badgeFormIsNew ? "Add" : "Update"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete badge modal */}
+      {deleteBadgeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setDeleteBadgeModal(null)}>
+          <div className="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-full bg-red-100"><Trash2 className="h-5 w-5 text-red-600" /></div>
+              <h3 className="font-semibold text-gray-900">Delete Badge</h3>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              Are you sure you want to delete the <strong>{deleteBadgeModal.name}</strong> badge?
+            </p>
+            <div className="flex gap-3">
+              <Button variant="secondary" size="sm" className="flex-1" onClick={() => setDeleteBadgeModal(null)}>Cancel</Button>
+              <Button variant="destructive" size="sm" className="flex-1" onClick={() => {
+                setBadges(badges.filter((b) => b.id !== deleteBadgeModal.id));
+                setDeleteBadgeModal(null);
+                toast.success("Badge removed — click Save Changes to persist");
               }}>Delete</Button>
             </div>
           </div>

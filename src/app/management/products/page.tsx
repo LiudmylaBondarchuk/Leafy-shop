@@ -287,7 +287,9 @@ export default function AdminProductsPage() {
         ) : paginated.length === 0 ? (
           <div className="p-8 text-center text-gray-400">{hasFilters ? "No products match your filters." : "No products yet."}</div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Desktop table */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-sm min-w-[640px]">
               <thead className="bg-gray-50">
                 <tr>
@@ -373,6 +375,55 @@ export default function AdminProductsPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile card layout */}
+          <div className="sm:hidden space-y-3 p-3">
+            {paginated.map((p: any) => (
+              <div key={p.id} className={`border border-gray-200 rounded-lg p-3 ${!p.isActive ? "opacity-40" : ""}`}>
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(p.id)}
+                    onChange={() => toggleSelect(p.id)}
+                    className="rounded border-gray-300 text-green-700 focus:ring-green-500 cursor-pointer mt-1"
+                  />
+                  <ProductImage
+                    src={p.imageUrl}
+                    alt={p.name}
+                    productType={p.productType}
+                    size="sm"
+                    className="rounded-lg"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-gray-900 truncate">{p.name}</p>
+                    {p.isFeatured && <BestsellerBadge label={badgeCfg.label} color={badgeCfg.color} />}
+                    <p className="text-xs text-gray-500 mt-0.5">{p.category?.name}</p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 mt-2 text-sm">
+                  <Badge variant={p.productType === "tea" ? "success" : "warning"}>{p.productType}</Badge>
+                  <span className="font-medium">{formatPrice(p.priceFrom)}</span>
+                  <span className="text-gray-500">Stock: {p.totalStock ?? "—"}</span>
+                  {!p.isActive ? (
+                    <Badge variant="default">Inactive</Badge>
+                  ) : p.inStock ? (
+                    <Badge variant="success">In stock</Badge>
+                  ) : (
+                    <Badge variant="error">Out of stock</Badge>
+                  )}
+                </div>
+                <div className="flex justify-end gap-2 mt-2 border-t border-gray-100 pt-2">
+                  <Link href={`/management/products/${p.id}/edit`}>
+                    <Button variant="ghost" size="sm"><Pencil className="h-3.5 w-3.5" /></Button>
+                  </Link>
+                  <Button variant="ghost" size="sm" onClick={() => setDeleteModal({ id: p.id, name: p.name })}>
+                    <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+          </>
         )}
       </Card>
 

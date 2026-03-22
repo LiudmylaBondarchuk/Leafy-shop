@@ -141,7 +141,9 @@ export default function AdminOrdersPage() {
         ) : filtered.length === 0 ? (
           <div className="p-8 text-center text-gray-400">{hasFilters ? "No orders match your filters." : "No orders yet."}</div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Desktop table */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-sm min-w-[540px]">
               <thead className="bg-gray-50">
                 <tr>
@@ -178,6 +180,28 @@ export default function AdminOrdersPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile card layout */}
+          <div className="sm:hidden space-y-3 p-3">
+            {filtered.map((order: any) => (
+              <Link key={order.id} href={`/management/orders/${order.id}`} className="block border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-green-700 font-medium text-sm">{order.orderNumber}</span>
+                  <span className="text-xs text-gray-500">
+                    {new Date(order.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-900 mt-1">{order.customerFirstName} {order.customerLastName}</p>
+                <div className="flex items-center justify-between mt-2">
+                  <Badge className={ORDER_STATUS_COLORS[order.status as OrderStatus]}>
+                    {ORDER_STATUS_LABELS[order.status as OrderStatus] || order.status}
+                  </Badge>
+                  <span className="font-medium text-sm">{formatPrice(order.total)}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+          </>
         )}
       </Card>
     </div>

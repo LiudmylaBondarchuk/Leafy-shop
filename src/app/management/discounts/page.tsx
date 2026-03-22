@@ -171,7 +171,9 @@ export default function AdminDiscountsPage() {
         ) : filtered.length === 0 ? (
           <div className="p-8 text-center text-gray-400">{hasFilters ? "No discount codes match your filters." : "No discount codes yet."}</div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Desktop table */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-sm min-w-[800px]">
               <thead className="bg-gray-50">
                 <tr>
@@ -239,6 +241,44 @@ export default function AdminDiscountsPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile card layout */}
+          <div className="sm:hidden space-y-3 p-3">
+            {filtered.map((code: any) => {
+              const status = getStatus(code);
+              return (
+                <div key={code.id} className={`border border-gray-200 rounded-lg p-3 ${!code.isActive ? "opacity-40" : ""}`}>
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono font-medium text-gray-900">{code.code}</span>
+                    <Badge variant={status.variant}>{status.label}</Badge>
+                  </div>
+                  {code.description && <p className="text-xs text-gray-400 mt-0.5">{code.description}</p>}
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-sm text-gray-600">
+                    <span>{getTypeLabel(code.type)}</span>
+                    <span className="font-medium text-gray-900">{getValueLabel(code)}</span>
+                  </div>
+                  <div className="flex justify-end gap-1 mt-2 border-t border-gray-100 pt-2">
+                    <Link href={`/management/discounts/${code.id}/edit`}>
+                      <Button variant="ghost" size="sm"><Pencil className="h-3.5 w-3.5" /></Button>
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleToggleActive(code.id, code.code, !code.isActive)}
+                    >
+                      <span className={`text-xs font-medium ${code.isActive ? "text-orange-500" : "text-green-600"}`}>
+                        {code.isActive ? "Deactivate" : "Activate"}
+                      </span>
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => setDeleteModal({ id: code.id, code: code.code })}>
+                      <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          </>
         )}
       </Card>
 

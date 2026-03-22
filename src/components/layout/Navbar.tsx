@@ -31,9 +31,9 @@ export function Navbar() {
     const checkAuth = async () => {
       try {
         const res = await fetch("/api/customer/me");
-        if (res.ok) {
-          const json = await res.json();
-          setCustomer(json.data?.customer);
+        const json = await res.json();
+        if (res.ok && json.data?.customer) {
+          setCustomer(json.data.customer);
         } else {
           setCustomer(null);
         }

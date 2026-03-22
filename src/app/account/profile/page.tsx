@@ -48,16 +48,18 @@ export default function ProfilePage() {
         const res = await fetch("/api/customer/me");
         if (res.ok) {
           const json = await res.json();
-          const data = json.data;
-          setForm({
-            firstName: data.firstName || "",
-            lastName: data.lastName || "",
-            phone: data.phone || "",
-            street: data.street || "",
-            city: data.city || "",
-            zip: data.zip || "",
-            country: data.country || "",
-          });
+          const data = json.data?.customer;
+          if (data) {
+            setForm({
+              firstName: data.firstName || "",
+              lastName: data.lastName || "",
+              phone: data.phone || "",
+              street: data.shippingStreet || "",
+              city: data.shippingCity || "",
+              zip: data.shippingZip || "",
+              country: data.shippingCountry || "",
+            });
+          }
         }
       } catch {
         toast.error("Failed to load profile");
@@ -107,17 +109,17 @@ export default function ProfilePage() {
 
     setSaving(true);
     try {
-      const res = await fetch("/api/customer/me", {
-        method: "PATCH",
+      const res = await fetch("/api/customer/profile", {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           firstName: form.firstName.trim(),
           lastName: form.lastName.trim(),
           phone: form.phone.trim() || undefined,
-          street: form.street.trim() || undefined,
-          city: form.city.trim() || undefined,
-          zip: form.zip.trim() || undefined,
-          country: form.country.trim() || undefined,
+          shippingStreet: form.street.trim() || undefined,
+          shippingCity: form.city.trim() || undefined,
+          shippingZip: form.zip.trim() || undefined,
+          shippingCountry: form.country.trim() || undefined,
         }),
       });
 

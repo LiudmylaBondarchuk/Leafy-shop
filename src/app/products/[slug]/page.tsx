@@ -336,6 +336,33 @@ export default function ProductDetailPage() {
           </div>
         </div>
       )}
+
+      {/* JSON-LD structured data for SEO */}
+      {product && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Product",
+              name: product.name,
+              description: product.description,
+              image: product.imageUrl,
+              brand: { "@type": "Brand", name: "Leafy" },
+              category: product.category?.name,
+              offers: {
+                "@type": "Offer",
+                price: (product.variants[0]?.price || 0) / 100,
+                priceCurrency: "USD",
+                availability: product.variants.some((v: Variant) => v.stock > 0)
+                  ? "https://schema.org/InStock"
+                  : "https://schema.org/OutOfStock",
+                seller: { "@type": "Organization", name: "Leafy Tea & Coffee Ltd." },
+              },
+            }),
+          }}
+        />
+      )}
     </div>
   );
 }

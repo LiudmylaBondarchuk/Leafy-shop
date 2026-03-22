@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, formatDate, formatDateShort } from "@/lib/utils";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -206,9 +206,9 @@ export default function AdminDiscountsPage() {
                         {code.usageCount}{code.usageLimit ? ` / ${code.usageLimit}` : " / ∞"}
                       </td>
                       <td className="px-4 py-3 text-gray-600 text-xs">
-                        {code.startsAt ? new Date(code.startsAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—"}
+                        {code.startsAt ? formatDateShort(code.startsAt) : "—"}
                         {" – "}
-                        {code.expiresAt ? new Date(code.expiresAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "No expiry"}
+                        {code.expiresAt ? formatDate(code.expiresAt) : "No expiry"}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <Badge variant={status.variant}>{status.label}</Badge>

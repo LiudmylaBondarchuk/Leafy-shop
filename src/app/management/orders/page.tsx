@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, formatDateShort } from "@/lib/utils";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS, ORDER_STATUSES } from "@/constants/order-statuses";
 import type { OrderStatus } from "@/constants/order-statuses";
 import { Search, Download, Upload } from "lucide-react";
@@ -30,9 +30,12 @@ export default function AdminOrdersPage() {
 
   useEffect(() => {
     if (!mounted) return;
+    setLoading(true);
     const params = new URLSearchParams();
     if (statusFilter) params.set("status", statusFilter);
     if (search) params.set("search", search);
+    if (dateFrom) params.set("from", dateFrom);
+    if (dateTo) params.set("to", dateTo);
 
     fetch(`/api/orders?${params}`)
       .then((r) => r.json())
@@ -40,20 +43,9 @@ export default function AdminOrdersPage() {
         setOrders(json.data?.orders || []);
         setLoading(false);
       });
-  }, [statusFilter, search, mounted]);
+  }, [statusFilter, search, dateFrom, dateTo, mounted]);
 
-  // Client-side date + name filtering
-  const filtered = orders.filter((o) => {
-    if (dateFrom) {
-      const orderDate = new Date(o.createdAt).toISOString().split("T")[0];
-      if (orderDate < dateFrom) return false;
-    }
-    if (dateTo) {
-      const orderDate = new Date(o.createdAt).toISOString().split("T")[0];
-      if (orderDate > dateTo) return false;
-    }
-    return true;
-  });
+  const filtered = orders;
 
   const handleExportCSV = () => {
     const headers = ["Order #", "Date", "First Name", "Last Name", "Email", "Status", "Payment", "Total"];
@@ -163,7 +155,7 @@ export default function AdminOrdersPage() {
                       </Link>
                     </td>
                     <td className="px-4 py-3 text-gray-500">
-                      {new Date(order.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      {formatDateShort(order.createdAt)}
                     </td>
                     <td className="px-4 py-3">
                       <div>{order.customerFirstName} {order.customerLastName}</div>
@@ -188,7 +180,7 @@ export default function AdminOrdersPage() {
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-green-700 font-medium text-sm">{order.orderNumber}</span>
                   <span className="text-xs text-gray-500">
-                    {new Date(order.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    {formatDateShort(order.createdAt)}
                   </span>
                 </div>
                 <p className="text-sm text-gray-900 mt-1">{order.customerFirstName} {order.customerLastName}</p>

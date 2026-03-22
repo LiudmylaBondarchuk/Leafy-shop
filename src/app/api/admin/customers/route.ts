@@ -94,28 +94,43 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Detect similar customers (same email or same phone but different name)
+    // Detect similar customers using Maps for O(n) lookup
+    const emailMap = new Map<string, CustomerRecord[]>();
+    const phoneMap = new Map<string, CustomerRecord[]>();
+
     for (const c of customers) {
-      for (const other of customers) {
+      const emailKey = c.email.toLowerCase();
+      if (!emailMap.has(emailKey)) emailMap.set(emailKey, []);
+      emailMap.get(emailKey)!.push(c);
+
+      if (c.phone) {
+        if (!phoneMap.has(c.phone)) phoneMap.set(c.phone, []);
+        phoneMap.get(c.phone)!.push(c);
+      }
+    }
+
+    for (const c of customers) {
+      const emailKey = c.email.toLowerCase();
+      const sameEmail = emailMap.get(emailKey) || [];
+      for (const other of sameEmail) {
         if (c.id === other.id) continue;
-
-        let reason = "";
-        if (c.email.toLowerCase() === other.email.toLowerCase() && (c.firstName !== other.firstName || c.lastName !== other.lastName)) {
-          reason = "Same email, different name";
-        } else if (c.phone === other.phone && c.email.toLowerCase() !== other.email.toLowerCase()) {
-          reason = "Same phone, different email";
-        } else if (c.phone === other.phone && (c.firstName !== other.firstName || c.lastName !== other.lastName)) {
-          reason = "Same phone, different name";
+        if (c.firstName !== other.firstName || c.lastName !== other.lastName) {
+          if (!c.similarCustomers.some((s) => s.id === other.id)) {
+            c.similarCustomers.push({ id: other.id, email: other.email, firstName: other.firstName, lastName: other.lastName, reason: "Same email, different name" });
+          }
         }
+      }
 
-        if (reason && !c.similarCustomers.some((s) => s.id === other.id)) {
-          c.similarCustomers.push({
-            id: other.id,
-            email: other.email,
-            firstName: other.firstName,
-            lastName: other.lastName,
-            reason,
-          });
+      if (c.phone) {
+        const samePhone = phoneMap.get(c.phone) || [];
+        for (const other of samePhone) {
+          if (c.id === other.id) continue;
+          if (c.similarCustomers.some((s) => s.id === other.id)) continue;
+          if (c.email.toLowerCase() !== other.email.toLowerCase()) {
+            c.similarCustomers.push({ id: other.id, email: other.email, firstName: other.firstName, lastName: other.lastName, reason: "Same phone, different email" });
+          } else if (c.firstName !== other.firstName || c.lastName !== other.lastName) {
+            c.similarCustomers.push({ id: other.id, email: other.email, firstName: other.firstName, lastName: other.lastName, reason: "Same phone, different name" });
+          }
         }
       }
     }

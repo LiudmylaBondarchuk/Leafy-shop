@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store/cart-store";
 import { SITE_LINKS } from "@/constants/links";
 import { SearchBar } from "./SearchBar";
+import { ThemeToggle } from "./ThemeToggle";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -72,7 +73,7 @@ export function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-200">
+    <header className="sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur border-b border-gray-200 dark:border-gray-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -83,13 +84,13 @@ export function Navbar() {
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-6">
-            <Link href={SITE_LINKS.teas.href} className="text-sm font-medium text-gray-600 hover:text-green-700 transition-colors">
+            <Link href={SITE_LINKS.teas.href} className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-green-700 dark:hover:text-green-400 transition-colors">
               {SITE_LINKS.teas.label}
             </Link>
-            <Link href={SITE_LINKS.coffees.href} className="text-sm font-medium text-gray-600 hover:text-green-700 transition-colors">
+            <Link href={SITE_LINKS.coffees.href} className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-green-700 dark:hover:text-green-400 transition-colors">
               {SITE_LINKS.coffees.label}
             </Link>
-            <Link href={SITE_LINKS.products.href} className="text-sm font-medium text-green-700 bg-green-50 px-3 py-1.5 rounded-lg hover:bg-green-100 transition-colors">
+            <Link href={SITE_LINKS.products.href} className="text-sm font-medium text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/50 px-3 py-1.5 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/70 transition-colors">
               {SITE_LINKS.products.label}
             </Link>
           </nav>
@@ -98,6 +99,9 @@ export function Navbar() {
           <div className="flex items-center gap-3">
             {/* Search */}
             <SearchBar />
+
+            {/* Theme toggle */}
+            <ThemeToggle />
 
             {/* User menu */}
             <div className="relative" ref={userMenuRef}>
@@ -115,18 +119,18 @@ export function Navbar() {
               </button>
 
               {userMenuOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl border border-gray-200 shadow-lg py-1 z-50">
+                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg py-1 z-50">
                   {customer ? (
                     <>
-                      <div className="px-4 py-3 border-b border-gray-100">
-                        <p className="text-sm font-medium text-gray-900">
+                      <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
                           {customer.firstName} {customer.lastName}
                         </p>
                       </div>
                       <Link
                         href="/account"
                         onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                       >
                         <User className="h-4 w-4" />
                         My Account
@@ -134,7 +138,7 @@ export function Navbar() {
                       <Link
                         href="/account/orders"
                         onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                       >
                         <Package className="h-4 w-4" />
                         My Orders
@@ -153,7 +157,7 @@ export function Navbar() {
                       <Link
                         href="/account/login"
                         onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                       >
                         <User className="h-4 w-4" />
                         Log In
@@ -161,7 +165,7 @@ export function Navbar() {
                       <Link
                         href="/account/register"
                         onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                       >
                         <Settings className="h-4 w-4" />
                         Register
@@ -175,7 +179,7 @@ export function Navbar() {
             {/* Cart */}
             <Link
               href="/cart"
-              className="relative p-2 rounded-lg text-gray-500 hover:text-green-700 hover:bg-gray-100 transition-colors"
+              className="relative p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-green-700 dark:hover:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               aria-label="Shopping cart"
             >
               <ShoppingCart className="h-5 w-5" />
@@ -188,7 +192,7 @@ export function Navbar() {
 
             {/* Mobile menu toggle */}
             <button
-              className="md:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100"
+              className="md:hidden p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
             >
@@ -209,7 +213,7 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-green-700 hover:bg-gray-50 transition-colors"
+                className="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-green-700 dark:hover:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {link.label}

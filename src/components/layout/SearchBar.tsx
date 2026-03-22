@@ -122,7 +122,7 @@ export function SearchBar() {
         <div className="fixed inset-0 z-[60] bg-black/30 backdrop-blur-sm flex justify-center pt-20 px-4">
           <div
             ref={overlayRef}
-            className="w-full max-w-lg h-fit bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden"
+            className="w-full max-w-lg h-fit bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden"
           >
             {/* Search input */}
             <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
@@ -136,7 +136,7 @@ export function SearchBar() {
                   setActiveIndex(-1);
                 }}
                 placeholder="Search products..."
-                className="flex-1 text-sm text-gray-900 placeholder-gray-400 outline-none bg-transparent"
+                className="flex-1 text-sm text-gray-900 dark:text-white placeholder-gray-400 outline-none bg-transparent"
               />
               {loading && <Loader2 className="h-4 w-4 text-gray-400 animate-spin shrink-0" />}
               <button

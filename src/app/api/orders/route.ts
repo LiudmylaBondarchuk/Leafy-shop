@@ -22,8 +22,13 @@ export async function GET(request: NextRequest) {
     const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
     const limit = Math.min(50, parseInt(searchParams.get("limit") || "20"));
 
+    const from = searchParams.get("from");
+    const to = searchParams.get("to");
+
     const conditions = [];
     if (status) conditions.push(eq(orders.status, status));
+    if (from) conditions.push(sql`${orders.createdAt} >= ${from}`);
+    if (to) conditions.push(sql`${orders.createdAt} <= ${to + "T23:59:59"}`);
     if (search) {
       conditions.push(
         or(

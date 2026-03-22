@@ -39,6 +39,11 @@ export async function GET() {
       users = users.filter((u) => u.role !== "admin");
     }
 
+    // Testers only see users they created + themselves
+    if (requestingUser.role === "tester") {
+      users = users.filter((u: any) => u.id === requestingUser.id);
+    }
+
     return apiSuccess(users.map((u) => ({
       ...u,
       permissions: JSON.parse(u.permissions || "[]"),
@@ -75,6 +80,11 @@ export async function POST(request: Request) {
     // Non-admins can't create admins
     if (requestingUser.role !== "admin" && role === "admin") {
       return apiError("Only admins can create admin accounts", 403, "FORBIDDEN");
+    }
+
+    // Testers can only create tester accounts
+    if (requestingUser.role === "tester" && role !== "tester") {
+      return apiError("Testers can only create other tester accounts", 403, "FORBIDDEN");
     }
 
     // Non-admins can't grant permissions they don't have

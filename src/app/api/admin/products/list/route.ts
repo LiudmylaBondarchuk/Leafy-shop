@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { products, productVariants, categories } from "@/lib/db/schema-pg";
+import { products, productVariants, categories, adminUsers } from "@/lib/db/schema-pg";
 import { eq, and, sql } from "drizzle-orm";
 import { getAdminFromCookie } from "@/lib/auth";
 import { apiSuccess, apiError } from "@/lib/utils";
@@ -9,6 +9,12 @@ export async function GET() {
   if (!admin) return apiError("Unauthorized", 401, "UNAUTHORIZED");
 
   try {
+    // Get requesting user role
+    const requestingUser = await db.query.adminUsers.findFirst({
+      where: eq(adminUsers.id, Number(admin.sub)),
+    });
+    const isTester = requestingUser?.role === "tester";
+
     const allProducts = await db
       .select({
         id: products.id,
@@ -18,6 +24,8 @@ export async function GET() {
         productType: products.productType,
         isActive: products.isActive,
         isFeatured: products.isFeatured,
+        isTestData: products.isTestData,
+        createdBy: products.createdBy,
         categoryId: categories.id,
         categoryName: categories.name,
         minPrice: sql<number>`MIN(${productVariants.price})`,
@@ -30,11 +38,17 @@ export async function GET() {
       .groupBy(
         products.id, products.name, products.slug, products.imageUrl,
         products.productType, products.isActive, products.isFeatured,
+        products.isTestData, products.createdBy,
         categories.id, categories.name
       )
       .orderBy(products.name);
 
-    const data = allProducts.map((p: any) => ({
+    // Tester sees only their own products
+    const filtered = isTester
+      ? allProducts.filter((p: any) => p.createdBy === Number(admin.sub))
+      : allProducts;
+
+    const data = filtered.map((p: any) => ({
       id: p.id,
       name: p.name,
       slug: p.slug,
@@ -42,6 +56,8 @@ export async function GET() {
       productType: p.productType,
       isActive: p.isActive,
       isFeatured: p.isFeatured,
+      isTestData: p.isTestData,
+      createdBy: p.createdBy,
       category: { id: p.categoryId, name: p.categoryName },
       priceFrom: p.minPrice || 0,
       totalStock: p.totalStock || 0,

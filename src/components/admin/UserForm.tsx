@@ -18,6 +18,7 @@ export function UserForm({ userId }: UserFormProps) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [defaults, setDefaults] = useState<Record<string, string[]>>({});
+  const [currentUserRole, setCurrentUserRole] = useState("");
 
   const [form, setForm] = useState({
     name: "",
@@ -27,6 +28,13 @@ export function UserForm({ userId }: UserFormProps) {
     permissions: ["products.view", "orders.view", "discounts.view", "customers.view"] as string[],
     isActive: true,
   });
+
+  // Get current user role
+  useEffect(() => {
+    fetch("/api/auth/me").then((r) => r.json()).then((json) => {
+      if (json.data?.user) setCurrentUserRole(json.data.user.role || "");
+    });
+  }, []);
 
   // Load default permissions from settings
   useEffect(() => {
@@ -172,7 +180,11 @@ export function UserForm({ userId }: UserFormProps) {
             onChange={(e) => handleRoleChange(e.target.value)}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
           >
-            {ROLES.map((role) => (
+            {ROLES.filter((role) => {
+              if (currentUserRole === "tester") return role === "tester";
+              if (currentUserRole === "manager") return role !== "admin";
+              return true;
+            }).map((role) => (
               <option key={role} value={role}>{ROLE_LABELS[role]}</option>
             ))}
           </select>

@@ -355,20 +355,16 @@ export default function AdminProductsPage() {
                       )}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      {userRole === "tester" && p.createdBy !== currentUserId ? (
-                        <span className="text-xs text-gray-300">Not yours</span>
-                      ) : (
-                        <div className="flex justify-end gap-2">
-                          <Link href={`/management/products/${p.id}/edit`}>
-                            <Button variant="ghost" size="sm">
-                              <Pencil className="h-3.5 w-3.5" />
-                            </Button>
-                          </Link>
-                          <Button variant="ghost" size="sm" onClick={() => setDeleteModal({ id: p.id, name: p.name })}>
-                            <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                      <div className="flex justify-end gap-2">
+                        <Link href={`/management/products/${p.id}/edit`}>
+                          <Button variant="ghost" size="sm">
+                            <Pencil className="h-3.5 w-3.5" />
                           </Button>
-                        </div>
-                      )}
+                        </Link>
+                        <Button variant="ghost" size="sm" onClick={() => setDeleteModal({ id: p.id, name: p.name })}>
+                          <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}

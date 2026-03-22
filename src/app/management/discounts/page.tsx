@@ -54,7 +54,7 @@ export default function AdminDiscountsPage() {
       toast.success(`"${deleteModal.code}" deleted`);
       fetchCodes();
     } else {
-      toast.error("Failed to delete");
+      toast.error(json.message || "Failed to delete");
     }
     setDeleteModal(null);
   };

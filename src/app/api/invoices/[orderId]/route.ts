@@ -69,10 +69,15 @@ export async function GET(
     <!-- Header -->
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px">
       <div>
-        <div>
-          <h1 style="font-size:28px;color:#15803d;margin:0;letter-spacing:-0.5px"><span style="font-size:32px;margin-right:6px">🍃</span>Leafy</h1>
-          <p style="color:#666;font-size:12px;margin:2px 0 0 42px">Premium Teas & Coffees</p>
-        </div>
+        <table cellpadding="0" cellspacing="0" border="0"><tr>
+          <td style="vertical-align:middle;padding-right:10px">
+            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 1c1 2 2 4.5 2 8 0 5.5-4.78 12-10 12Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>
+          </td>
+          <td style="vertical-align:middle">
+            <div style="font-size:28px;font-weight:700;color:#15803d;line-height:1">Leafy</div>
+            <div style="font-size:12px;color:#666;margin-top:2px">Premium Teas & Coffees</div>
+          </td>
+        </tr></table>
       </div>
       <div style="text-align:right">
         <h2 style="font-size:24px;color:#333;margin-bottom:8px">INVOICE</h2>

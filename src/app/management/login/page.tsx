@@ -15,6 +15,7 @@ export default function ManagementLoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState("");
+  const [testerName, setTesterName] = useState("");
   const [generating, setGenerating] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -62,6 +63,7 @@ export default function ManagementLoginPage() {
         setEmail(json.data.email);
         setPassword(json.data.password);
         setGeneratedPassword(json.data.password);
+        setTesterName(json.data.name || "");
         toast.success("Test password generated! Click Sign In to continue.");
       } else {
         setError(json.message || "Failed to generate test password");
@@ -149,7 +151,7 @@ export default function ManagementLoginPage() {
               <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-4">
                 <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm">
                   <p className="text-green-800 font-medium mb-1">Password generated!</p>
-                  <p className="text-green-700">Email: <code className="bg-green-100 px-1 rounded">{email}</code></p>
+                  {testerName && <p className="text-green-700">Account: <code className="bg-green-100 px-1 rounded">{testerName}</code></p>}
                   <p className="text-green-700">Password: <code className="bg-green-100 px-1 rounded">{generatedPassword}</code></p>
                 </div>
                 <Input label="Email" id="testerEmail" type="email" value={email} disabled />

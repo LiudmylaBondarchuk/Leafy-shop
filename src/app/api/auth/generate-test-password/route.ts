@@ -27,6 +27,7 @@ export async function POST() {
 
     return apiSuccess({
       email: tester.email,
+      name: tester.name,
       password,
     });
   } catch (error) {

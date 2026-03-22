@@ -182,6 +182,7 @@ export default function AdminDiscountsPage() {
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Usage</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500">Valid</th>
                   <th className="text-center px-4 py-3 font-medium text-gray-500">Status</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500">Created by</th>
                   <th className="text-right px-4 py-3 font-medium text-gray-500">Actions</th>
                 </tr>
               </thead>
@@ -209,6 +210,9 @@ export default function AdminDiscountsPage() {
                       </td>
                       <td className="px-4 py-3 text-center">
                         <Badge variant={status.variant}>{status.label}</Badge>
+                      </td>
+                      <td className="px-4 py-3 text-gray-600 text-sm">
+                        {code.creatorName || "—"}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex justify-end gap-1">

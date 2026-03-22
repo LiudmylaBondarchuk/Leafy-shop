@@ -1,11 +1,13 @@
 import { db } from "@/lib/db";
-import { orders, orderItems, orderStatusHistory, productVariants, products, discountCodes } from "@/lib/db/schema-pg";
+import { orders, orderItems, orderStatusHistory, productVariants, products, discountCodes, adminUsers } from "@/lib/db/schema-pg";
 import { eq, and, sql, like, or, desc } from "drizzle-orm";
 import { orderSchema } from "@/lib/validators/order";
 import { validateDiscountCode, calculateDiscountAmount } from "@/lib/discount-engine";
 import { SHIPPING_METHODS, FREE_SHIPPING_THRESHOLD, COD_SURCHARGE } from "@/constants/shipping-methods";
 import { generateOrderNumber, apiSuccess, apiError } from "@/lib/utils";
 import { sendOrderConfirmationEmail } from "@/lib/email";
+import { getAdminFromCookie } from "@/lib/auth";
+import { getSettings } from "@/lib/settings";
 import { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -60,6 +62,27 @@ export async function POST(request: NextRequest) {
     }
 
     const data = parsed.data;
+
+    // Check tester limits if logged-in tester
+    let isTester = false;
+    const admin = await getAdminFromCookie();
+    if (admin) {
+      const requestingUser = await db.query.adminUsers.findFirst({
+        where: eq(adminUsers.id, Number(admin.sub)),
+      });
+      if (requestingUser?.role === "tester") {
+        isTester = true;
+        const existingOrders = await db
+          .select({ id: orders.id })
+          .from(orders)
+          .where(eq(orders.isTestData, true));
+        const settings = await getSettings();
+        const limit = parseInt(settings["tester.max_orders"] || "20", 10);
+        if (existingOrders.length >= limit) {
+          return apiError(`Tester limit reached: maximum ${limit} test orders allowed`, 403, "TESTER_LIMIT");
+        }
+      }
+    }
 
     // Fetch variants with product info
     const variantIds = data.items.map((i) => i.variant_id);
@@ -183,6 +206,7 @@ export async function POST(request: NextRequest) {
         discountCodeId,
         total,
         notes: data.notes || null,
+        isTestData: isTester,
       })
       .returning();
     const order = orderResults[0];

@@ -2,8 +2,9 @@ import { db } from "@/lib/db";
 import { products, productVariants, adminUsers } from "@/lib/db/schema-pg";
 import { getAdminFromCookie } from "@/lib/auth";
 import { apiSuccess, apiError, slugify } from "@/lib/utils";
-import { eq } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 import { logAudit } from "@/lib/audit";
+import { getSettings } from "@/lib/settings";
 
 export async function POST(request: Request) {
   const admin = await getAdminFromCookie();
@@ -26,6 +27,25 @@ export async function POST(request: Request) {
       where: eq(adminUsers.id, Number(admin.sub)),
     });
     const isTester = requestingUser?.role === "tester";
+
+    // Enforce tester limits
+    if (isTester) {
+      const existing = await db
+        .select({ id: products.id })
+        .from(products)
+        .where(
+          and(
+            eq(products.createdBy, Number(admin.sub)),
+            eq(products.isTestData, true),
+            isNull(products.deletedAt)
+          )
+        );
+      const settings = await getSettings();
+      const limit = parseInt(settings["tester.max_products"] || "20", 10);
+      if (existing.length >= limit) {
+        return apiError(`Tester limit reached: maximum ${limit} test products allowed`, 403, "TESTER_LIMIT");
+      }
+    }
 
     // Generate unique slug
     let slug = slugify(name);

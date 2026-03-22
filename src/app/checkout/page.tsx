@@ -10,6 +10,8 @@ import { toast } from "sonner";
 import { Check, ChevronLeft, ChevronRight, Info, User, LogIn } from "lucide-react";
 import { SITE_LINKS } from "@/constants/links";
 import { COUNTRIES, getCountry } from "@/constants/countries";
+import { FREE_SHIPPING_THRESHOLD } from "@/constants/shipping-methods";
+import { STORE_PICKUP_ADDRESS, STORE_PICKUP_HOURS } from "@/constants/store";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -182,7 +184,7 @@ export default function CheckoutPage() {
   const subtotal = getSubtotal();
   const shippingCosts = { courier: 1499, inpost: 999, pickup: 0 };
   let shippingCost = shippingCosts[form.shippingMethod];
-  if (subtotal >= 10000) shippingCost = 0;
+  if (subtotal >= FREE_SHIPPING_THRESHOLD) shippingCost = 0;
   if (form.paymentMethod === "cod") shippingCost += 500;
   const vatRate = selectedCountry.vatRate;
   const vatAmount = vatRate > 0 ? Math.round(subtotal * vatRate / 100) : 0;
@@ -442,7 +444,7 @@ export default function CheckoutPage() {
         <div className="space-y-4">
           {(["courier", "inpost", "pickup"] as const).map((method) => {
             const labels = { courier: "Courier (DPD)", inpost: "InPost Parcel Locker", pickup: "In-store Pickup" };
-            const costs = { courier: subtotal >= 10000 ? "Free" : "$14.99", inpost: "$9.99", pickup: "Free" };
+            const costs = { courier: subtotal >= FREE_SHIPPING_THRESHOLD ? "Free" : "$14.99", inpost: "$9.99", pickup: "Free" };
             return (
               <label key={method} className={cn("flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-colors", form.shippingMethod === method ? "border-green-700 bg-green-50" : "border-gray-200 hover:border-gray-300")}>
                 <input type="radio" name="shipping" value={method} checked={form.shippingMethod === method} onChange={() => updateField("shippingMethod", method)} className="mt-0.5 text-green-700 focus:ring-green-600" />
@@ -452,7 +454,7 @@ export default function CheckoutPage() {
                     <span className="text-sm font-medium text-gray-600">{costs[method]}</span>
                   </div>
                   {method === "pickup" && form.shippingMethod === "pickup" && (
-                    <p className="text-sm text-gray-500 mt-1">5 Leafy Lane, Warsaw — Mon–Fri 10am–6pm</p>
+                    <p className="text-sm text-gray-500 mt-1">{STORE_PICKUP_ADDRESS} — {STORE_PICKUP_HOURS}</p>
                   )}
                 </div>
               </label>

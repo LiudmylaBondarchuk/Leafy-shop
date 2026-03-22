@@ -112,7 +112,7 @@ export function DiscountForm({ discountId }: DiscountFormProps) {
 
       if (json.data) {
         toast.success(discountId ? "Discount code updated" : "Discount code created");
-        router.push("/admin/discounts");
+        router.push("/management/discounts");
       } else {
         toast.error(json.message || "Failed to save");
       }
@@ -233,7 +233,7 @@ export function DiscountForm({ discountId }: DiscountFormProps) {
       </Card>
 
       <div className="flex gap-3">
-        <Button variant="secondary" onClick={() => router.push("/admin/discounts")}>Cancel</Button>
+        <Button variant="secondary" onClick={() => router.push("/management/discounts")}>Cancel</Button>
         <Button onClick={handleSubmit} loading={saving}>
           {discountId ? "Save Changes" : "Create Discount Code"}
         </Button>

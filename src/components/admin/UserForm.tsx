@@ -7,6 +7,7 @@ import { ALL_PERMISSIONS, getPermissionGroups, ROLES, ROLE_LABELS } from "@/cons
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Save } from "lucide-react";
 
 interface UserFormProps {
   userId?: number;
@@ -16,6 +17,7 @@ export function UserForm({ userId }: UserFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [defaults, setDefaults] = useState<Record<string, string[]>>({});
 
   const [form, setForm] = useState({
     name: "",
@@ -25,6 +27,30 @@ export function UserForm({ userId }: UserFormProps) {
     permissions: ["products.view", "orders.view", "discounts.view", "customers.view"] as string[],
     isActive: true,
   });
+
+  // Load default permissions from settings
+  useEffect(() => {
+    fetch("/api/admin/settings")
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.data) {
+          const defs: Record<string, string[]> = {};
+          for (const role of ["manager", "tester"]) {
+            const key = `defaults.role.${role}.permissions`;
+            if (json.data[key]) {
+              try { defs[role] = JSON.parse(json.data[key]); } catch {}
+            }
+          }
+          setDefaults(defs);
+
+          // If creating new user, apply defaults for current role
+          if (!userId && defs[form.role]) {
+            setForm((f) => ({ ...f, permissions: defs[f.role] || f.permissions }));
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!userId) return;
@@ -55,6 +81,28 @@ export function UserForm({ userId }: UserFormProps) {
     }));
   };
 
+  // When role changes and creating new user, load defaults
+  const handleRoleChange = (role: string) => {
+    const perms = role === "admin" ? [] : (defaults[role] || form.permissions);
+    setForm({ ...form, role: role as any, permissions: perms });
+  };
+
+  const saveAsDefault = async () => {
+    const key = `defaults.role.${form.role}.permissions`;
+    const res = await fetch("/api/admin/settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ [key]: JSON.stringify(form.permissions) }),
+    });
+    const json = await res.json();
+    if (json.data) {
+      toast.success(`Default permissions saved for ${ROLE_LABELS[form.role]}`);
+      setDefaults((d) => ({ ...d, [form.role]: [...form.permissions] }));
+    } else {
+      toast.error("Failed to save defaults");
+    }
+  };
+
   const handleSubmit = async () => {
     if (!form.name.trim()) { toast.error("Name is required"); return; }
     if (!form.email.trim()) { toast.error("Email is required"); return; }
@@ -82,7 +130,7 @@ export function UserForm({ userId }: UserFormProps) {
 
       if (json.data) {
         toast.success(userId ? "User updated" : "User created");
-        router.push("/admin/users");
+        router.push("/management/users");
       } else {
         toast.error(json.message || "Failed to save");
       }
@@ -121,7 +169,7 @@ export function UserForm({ userId }: UserFormProps) {
         <div>
           <select
             value={form.role}
-            onChange={(e) => setForm({ ...form, role: e.target.value as any, permissions: e.target.value === "admin" ? [] : form.permissions })}
+            onChange={(e) => handleRoleChange(e.target.value)}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
           >
             {ROLES.map((role) => (
@@ -156,8 +204,18 @@ export function UserForm({ userId }: UserFormProps) {
       {/* Permissions (only for manager/tester) */}
       {form.role !== "admin" && (
         <Card className="p-5 space-y-4">
-          <h2 className="font-semibold text-gray-900">Permissions</h2>
-          <p className="text-xs text-gray-400">Select what this user can access and do.</p>
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold text-gray-900">Permissions</h2>
+            <button
+              onClick={saveAsDefault}
+              className="flex items-center gap-1 text-xs text-green-700 hover:text-green-800"
+              title={`Save current permissions as default for new ${ROLE_LABELS[form.role]} accounts`}
+            >
+              <Save className="h-3.5 w-3.5" />
+              Save as default for {ROLE_LABELS[form.role]}
+            </button>
+          </div>
+          <p className="text-xs text-gray-400">Select what this user can access and do.{defaults[form.role] ? " Defaults loaded from saved configuration." : ""}</p>
 
           {Object.entries(permissionGroups).map(([group, perms]) => (
             <div key={group}>
@@ -186,6 +244,14 @@ export function UserForm({ userId }: UserFormProps) {
             <button onClick={() => setForm({ ...form, permissions: [] })} className="text-xs text-gray-500 hover:text-gray-700">
               Clear all
             </button>
+            {defaults[form.role] && (
+              <>
+                <span className="text-xs text-gray-300">|</span>
+                <button onClick={() => setForm({ ...form, permissions: defaults[form.role] })} className="text-xs text-blue-600 hover:text-blue-800">
+                  Load defaults
+                </button>
+              </>
+            )}
           </div>
         </Card>
       )}
@@ -200,7 +266,7 @@ export function UserForm({ userId }: UserFormProps) {
 
       {/* Actions */}
       <div className="flex gap-3">
-        <Button variant="secondary" onClick={() => router.push("/admin/users")}>Cancel</Button>
+        <Button variant="secondary" onClick={() => router.push("/management/users")}>Cancel</Button>
         <Button onClick={handleSubmit} loading={saving}>
           {userId ? "Save Changes" : "Create User"}
         </Button>

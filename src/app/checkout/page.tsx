@@ -186,9 +186,10 @@ export default function CheckoutPage() {
   let shippingCost = shippingCosts[form.shippingMethod];
   if (subtotal >= FREE_SHIPPING_THRESHOLD) shippingCost = 0;
   if (form.paymentMethod === "cod") shippingCost += 500;
+  // Prices are gross (VAT included). Extract VAT for display.
   const vatRate = selectedCountry.vatRate;
-  const vatAmount = vatRate > 0 ? Math.round(subtotal * vatRate / 100) : 0;
-  const total = subtotal + vatAmount + shippingCost; // discount handled server-side
+  const vatAmount = vatRate > 0 ? Math.round(subtotal - subtotal / (1 + vatRate / 100)) : 0;
+  const total = subtotal + shippingCost; // VAT already in prices, discount handled server-side
 
   const handleSubmit = async () => {
     if (!form.acceptTerms) { toast.error("Please accept the terms and conditions"); return; }
@@ -532,7 +533,7 @@ export default function CheckoutPage() {
           {/* Totals */}
           <div className="bg-white rounded-xl border border-gray-200 p-4 text-sm space-y-2">
             <div className="flex justify-between"><span>Subtotal</span><span>{formatPrice(subtotal)}</span></div>
-            {vatRate > 0 && <div className="flex justify-between"><span>VAT ({vatRate}%)</span><span>{formatPrice(vatAmount)}</span></div>}
+            {vatRate > 0 && <div className="flex justify-between text-gray-500 text-xs"><span>incl. VAT ({vatRate}%)</span><span>{formatPrice(vatAmount)}</span></div>}
             <div className="flex justify-between"><span>Shipping</span><span>{shippingCost === 0 ? "Free" : formatPrice(shippingCost)}</span></div>
             {discountCode && <div className="flex justify-between text-green-700"><span>Discount ({discountCode})</span><span>Applied at checkout</span></div>}
             <div className="flex justify-between font-bold text-base border-t border-gray-200 pt-2">

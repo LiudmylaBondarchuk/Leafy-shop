@@ -137,7 +137,7 @@ export async function GET(
     <div style="display:flex;justify-content:flex-end">
       <table style="width:280px">
         <tr>
-          <td style="padding:6px 0;color:#666">Subtotal</td>
+          <td style="padding:6px 0;color:#666">Subtotal (gross)</td>
           <td style="padding:6px 0;text-align:right">${formatPrice(order.subtotal)}</td>
         </tr>
         ${order.discountAmount > 0 ? `
@@ -147,6 +147,10 @@ export async function GET(
         </tr>
         ` : ""}
         ${vatAmount > 0 ? `
+        <tr>
+          <td style="padding:6px 0;color:#666">Net amount</td>
+          <td style="padding:6px 0;text-align:right">${formatPrice(Math.max(0, order.subtotal - order.discountAmount) - vatAmount)}</td>
+        </tr>
         <tr>
           <td style="padding:6px 0;color:#666">VAT (${vatRate}%)</td>
           <td style="padding:6px 0;text-align:right">${formatPrice(vatAmount)}</td>

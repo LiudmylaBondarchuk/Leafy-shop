@@ -34,6 +34,12 @@ export async function PATCH(
 
     const currentStatus = order.status as OrderStatus;
 
+    // Fetch admin user info early (needed for changedBy and audit)
+    const adminUserId = admin ? Number(admin.sub) : 0;
+    const requestingUser = adminUserId ? await db.query.adminUsers.findFirst({
+      where: eq(adminUsers.id, adminUserId),
+    }) : null;
+
     const allowedTransitions = getTransitionsForOrder(currentStatus, order.paymentMethod);
     if (!allowedTransitions.includes(newStatus as OrderStatus)) {
       return apiError(
@@ -74,7 +80,7 @@ export async function PATCH(
         orderId: parseInt(id),
         fromStatus: currentStatus,
         toStatus: newStatus,
-        changedBy: "admin",
+        changedBy: admin ? `admin:${admin.sub}:${requestingUser?.name || "Unknown"}` : "admin",
         note: note || null,
       });
 
@@ -103,10 +109,6 @@ export async function PATCH(
     ).catch(() => {});
 
     // Audit log
-    const adminUserId = admin ? Number(admin.sub) : 0;
-    const requestingUser = adminUserId ? await db.query.adminUsers.findFirst({
-      where: eq(adminUsers.id, adminUserId),
-    }) : null;
     logAudit({
       userId: adminUserId,
       userName: requestingUser?.name || "Unknown",

@@ -5,6 +5,7 @@ import type { OrderStatus } from "@/constants/order-statuses";
 import { getTransitionsForOrder } from "@/constants/order-statuses";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { getAdminFromCookie } from "@/lib/auth";
+import { getCustomerFromCookie } from "@/lib/customer-auth";
 import { NextRequest } from "next/server";
 
 export async function GET(
@@ -12,6 +13,13 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const admin = await getAdminFromCookie();
+    const customer = await getCustomerFromCookie();
+
+    if (!admin && !customer) {
+      return apiError("Unauthorized", 401, "UNAUTHORIZED");
+    }
+
     const { id } = await params;
     const order = await db.query.orders.findFirst({
       where: eq(orders.id, parseInt(id)),
@@ -26,6 +34,11 @@ export async function GET(
 
     if (!order) {
       return apiError("Order not found", 404, "NOT_FOUND");
+    }
+
+    // Customers can only view their own orders
+    if (!admin && customer && order.customerEmail !== customer.email) {
+      return apiError("Forbidden", 403, "FORBIDDEN");
     }
 
     const availableTransitions = getTransitionsForOrder(order.status as OrderStatus, order.paymentMethod);

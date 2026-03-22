@@ -32,7 +32,7 @@ export function Navbar() {
         const res = await fetch("/api/customer/me");
         if (res.ok) {
           const json = await res.json();
-          setCustomer(json.data);
+          setCustomer(json.data?.customer);
         } else {
           setCustomer(null);
         }

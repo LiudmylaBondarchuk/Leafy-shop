@@ -1,9 +1,10 @@
 import { db } from "@/lib/db";
 import { products, productVariants, categories, adminUsers } from "@/lib/db/schema-pg";
-import { eq } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 import { getAdminFromCookie } from "@/lib/auth";
 import { apiSuccess, apiError, slugify } from "@/lib/utils";
 import { logAudit } from "@/lib/audit";
+import { getSettings } from "@/lib/settings";
 
 interface CSVRow {
   name: string;
@@ -83,6 +84,30 @@ export async function POST(request: Request) {
       where: eq(adminUsers.id, Number(admin.sub)),
     });
     const isTester = requestingUser?.role === "tester";
+
+    // Enforce tester limits before importing
+    if (isTester) {
+      const existingTestProducts = await db
+        .select({ id: products.id })
+        .from(products)
+        .where(
+          and(
+            eq(products.createdBy, Number(admin.sub)),
+            eq(products.isTestData, true),
+            isNull(products.deletedAt)
+          )
+        );
+      const appSettings = await getSettings();
+      const limit = parseInt(appSettings["tester.max_products"] || "20", 10);
+      const uniqueProductCount = new Set(rows.map((r) => r.name?.trim()).filter(Boolean)).size;
+      if (existingTestProducts.length + uniqueProductCount > limit) {
+        return apiError(
+          `Tester limit reached: maximum ${limit} test products allowed (you have ${existingTestProducts.length}, trying to import ${uniqueProductCount})`,
+          403,
+          "TESTER_LIMIT"
+        );
+      }
+    }
 
     // Cache categories
     const allCategories = await db.select().from(categories);

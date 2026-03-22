@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { Check, ChevronLeft, ChevronRight, Info, User, LogIn } from "lucide-react";
 import { SITE_LINKS } from "@/constants/links";
 import { COUNTRIES, getCountry } from "@/constants/countries";
-import { FREE_SHIPPING_THRESHOLD } from "@/constants/shipping-methods";
+import { FREE_SHIPPING_THRESHOLD, COD_SURCHARGE, SHIPPING_METHODS } from "@/constants/shipping-methods";
 import { STORE_PICKUP_ADDRESS, STORE_PICKUP_HOURS } from "@/constants/store";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { cn } from "@/lib/utils";
@@ -184,10 +184,9 @@ export default function CheckoutPage() {
   const goBack = () => setStep(step - 1);
 
   const subtotal = getSubtotal();
-  const shippingCosts = { courier: 1499, inpost: 999, pickup: 0 };
-  let shippingCost = shippingCosts[form.shippingMethod];
+  let shippingCost = SHIPPING_METHODS[form.shippingMethod]?.cost ?? SHIPPING_METHODS.courier.cost;
   if (subtotal >= FREE_SHIPPING_THRESHOLD) shippingCost = 0;
-  if (form.paymentMethod === "cod") shippingCost += 500;
+  if (form.paymentMethod === "cod") shippingCost += COD_SURCHARGE;
   // Prices are gross (VAT included). Extract VAT for display.
   const vatRate = selectedCountry.vatRate;
   const vatAmount = vatRate > 0 ? Math.round(subtotal - subtotal / (1 + vatRate / 100)) : 0;
@@ -446,8 +445,9 @@ export default function CheckoutPage() {
       {step === 1 && (
         <div className="space-y-4">
           {(["courier", "inpost", "pickup"] as const).map((method) => {
-            const labels = { courier: "Courier (DPD)", inpost: "InPost Parcel Locker", pickup: "In-store Pickup" };
-            const costs = { courier: subtotal >= FREE_SHIPPING_THRESHOLD ? "Free" : "$14.99", inpost: "$9.99", pickup: "Free" };
+            const labels = { courier: SHIPPING_METHODS.courier.label, inpost: SHIPPING_METHODS.inpost.label, pickup: SHIPPING_METHODS.pickup.label };
+            const methodCost = SHIPPING_METHODS[method]?.cost ?? 0;
+            const costs = { courier: subtotal >= FREE_SHIPPING_THRESHOLD ? "Free" : formatPrice(SHIPPING_METHODS.courier.cost), inpost: formatPrice(SHIPPING_METHODS.inpost.cost), pickup: "Free" };
             return (
               <label key={method} className={cn("flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-colors", form.shippingMethod === method ? "border-green-700 bg-green-50 dark:bg-green-900/20 dark:border-green-600" : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600")}>
                 <input type="radio" name="shipping" value={method} checked={form.shippingMethod === method} onChange={() => updateField("shippingMethod", method)} className="mt-0.5 text-green-700 focus:ring-green-600" />

@@ -6,33 +6,43 @@ import { apiSuccess, apiError } from "@/lib/utils";
 
 export async function POST(request: Request) {
   try {
-    const { paypalOrderId, orderNumber } = await request.json();
+    const { paypalOrderId, orderNumber, email } = await request.json();
 
     if (!paypalOrderId || !orderNumber) {
       return apiError("PayPal order ID and order number are required", 400);
     }
 
+    // Verify order exists and belongs to the requesting customer
+    const order = await db.query.orders.findFirst({
+      where: eq(orders.orderNumber, orderNumber),
+    });
+
+    if (!order) {
+      return apiError("Order not found", 404);
+    }
+
+    if (email && order.customerEmail !== email.trim().toLowerCase()) {
+      return apiError("Order does not belong to this customer", 403);
+    }
+
+    if (order.status !== "new") {
+      return apiError("Order has already been processed", 400);
+    }
+
     const captureData = await capturePayPalOrder(paypalOrderId);
 
     if (captureData.status === "COMPLETED") {
-      // Update order status to paid
-      const order = await db.query.orders.findFirst({
-        where: eq(orders.orderNumber, orderNumber),
+      await db.update(orders)
+        .set({ status: "paid", updatedAt: new Date().toISOString() })
+        .where(eq(orders.id, order.id));
+
+      await db.insert(orderStatusHistory).values({
+        orderId: order.id,
+        fromStatus: "new",
+        toStatus: "paid",
+        changedBy: "paypal",
+        note: `PayPal payment captured. Transaction ID: ${captureData.purchase_units?.[0]?.payments?.captures?.[0]?.id || paypalOrderId}`,
       });
-
-      if (order) {
-        await db.update(orders)
-          .set({ status: "paid", updatedAt: new Date().toISOString() })
-          .where(eq(orders.id, order.id));
-
-        await db.insert(orderStatusHistory).values({
-          orderId: order.id,
-          fromStatus: "new",
-          toStatus: "paid",
-          changedBy: "paypal",
-          note: `PayPal payment captured. Transaction ID: ${captureData.purchase_units?.[0]?.payments?.captures?.[0]?.id || paypalOrderId}`,
-        });
-      }
 
       return apiSuccess({
         status: "COMPLETED",

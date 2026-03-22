@@ -269,7 +269,7 @@ export default function CartPage() {
                 <div className="flex justify-between text-base">
                   <span className="font-semibold">Total</span>
                   <span className="font-bold text-green-800 dark:text-green-400">
-                    {formatPrice(calculation?.total || subtotal + 1499)}
+                    {formatPrice(calculation?.total ?? (subtotal + (subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : 1499)))}
                   </span>
                 </div>
               </div>

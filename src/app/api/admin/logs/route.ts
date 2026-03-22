@@ -2,11 +2,20 @@ import { db } from "@/lib/db";
 import { auditLogs, adminUsers } from "@/lib/db/schema-pg";
 import { desc, eq } from "drizzle-orm";
 import { getAdminFromCookie } from "@/lib/auth";
+import { hasPermission } from "@/constants/permissions";
 import { apiSuccess, apiError } from "@/lib/utils";
 
 export async function GET() {
   const admin = await getAdminFromCookie();
   if (!admin) return apiError("Unauthorized", 401, "UNAUTHORIZED");
+
+  const user = await db.query.adminUsers.findFirst({ where: eq(adminUsers.id, Number(admin.sub)) });
+  if (user) {
+    const perms = user.permissions ? JSON.parse(user.permissions) : [];
+    if (!hasPermission(user.role, perms, "logs.view")) {
+      return apiError("Insufficient permissions", 403);
+    }
+  }
 
   try {
     const logs = await db.select().from(auditLogs).orderBy(desc(auditLogs.createdAt)).limit(200);

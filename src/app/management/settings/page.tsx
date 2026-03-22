@@ -254,9 +254,24 @@ export default function SettingsPage() {
           <h2 className="font-semibold text-gray-900">Email Templates</h2>
           <Tooltip text="Customize the text content of emails sent to customers. Use {name} for customer name, {orderNumber} for order number, {total} for order total." />
         </div>
-        <p className="text-xs text-gray-400">Variables: <code className="bg-gray-100 px-1 rounded">{"{name}"}</code> <code className="bg-gray-100 px-1 rounded">{"{orderNumber}"}</code> <code className="bg-gray-100 px-1 rounded">{"{total}"}</code> <code className="bg-gray-100 px-1 rounded">{"{paymentMethod}"}</code> <code className="bg-gray-100 px-1 rounded">{"{shippingMethod}"}</code></p>
+        <p className="text-sm text-gray-500">
+          {"Customize the message content for each email type. The header (logo, 'Leafy', 'Premium Teas & Coffees') and footer are shared across all emails."}
+        </p>
+
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+          <p className="text-xs font-medium text-blue-800 mb-1">Available variables</p>
+          <p className="text-xs text-blue-700">
+            <code className="bg-blue-100 px-1 rounded">{"{name}"}</code>{" "}
+            <code className="bg-blue-100 px-1 rounded">{"{orderNumber}"}</code>{" "}
+            <code className="bg-blue-100 px-1 rounded">{"{total}"}</code>{" "}
+            <code className="bg-blue-100 px-1 rounded">{"{paymentMethod}"}</code>{" "}
+            <code className="bg-blue-100 px-1 rounded">{"{shippingMethod}"}</code>
+          </p>
+        </div>
 
         <div className="space-y-4 pt-2">
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Customer Emails — Message Body</h3>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Order confirmation — greeting</label>
             <textarea
@@ -265,6 +280,7 @@ export default function SettingsPage() {
               value={settings["email.tpl.order_greeting"] || "Hi {name}, thank you for your order!"}
               onChange={(e) => updateSetting("email.tpl.order_greeting", e.target.value)}
             />
+            <p className="text-xs text-gray-400 -mt-2">{"Default: Hi {name}, thank you for your order!"}</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Status: Paid</label>
@@ -274,6 +290,7 @@ export default function SettingsPage() {
               value={settings["email.tpl.status_paid"] || "Your payment has been received. We'll start preparing your order shortly."}
               onChange={(e) => updateSetting("email.tpl.status_paid", e.target.value)}
             />
+            <p className="text-xs text-gray-400 -mt-2">{"Default: Your payment has been received. We'll start preparing your order shortly."}</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Status: Processing</label>
@@ -283,6 +300,7 @@ export default function SettingsPage() {
               value={settings["email.tpl.status_processing"] || "Our team is carefully packing your teas and coffees. We'll notify you once it's shipped."}
               onChange={(e) => updateSetting("email.tpl.status_processing", e.target.value)}
             />
+            <p className="text-xs text-gray-400 -mt-2">{"Default: Our team is carefully packing your teas and coffees. We'll notify you once it's shipped."}</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Status: Shipped</label>
@@ -292,6 +310,7 @@ export default function SettingsPage() {
               value={settings["email.tpl.status_shipped"] || "Your package is on its way! It should arrive within 2–4 business days."}
               onChange={(e) => updateSetting("email.tpl.status_shipped", e.target.value)}
             />
+            <p className="text-xs text-gray-400 -mt-2">{"Default: Your package is on its way! It should arrive within 2\u20134 business days."}</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Status: Delivered</label>
@@ -301,6 +320,7 @@ export default function SettingsPage() {
               value={settings["email.tpl.status_delivered"] || "We hope you enjoy your products! If you have any questions, don't hesitate to contact us."}
               onChange={(e) => updateSetting("email.tpl.status_delivered", e.target.value)}
             />
+            <p className="text-xs text-gray-400 -mt-2">{"Default: We hope you enjoy your products! If you have any questions, don't hesitate to contact us."}</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Status: Cancelled</label>
@@ -310,6 +330,7 @@ export default function SettingsPage() {
               value={settings["email.tpl.status_cancelled"] || "Your order has been cancelled. All reserved items have been returned to stock."}
               onChange={(e) => updateSetting("email.tpl.status_cancelled", e.target.value)}
             />
+            <p className="text-xs text-gray-400 -mt-2">Default: Your order has been cancelled. All reserved items have been returned to stock.</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Status: Returned</label>
@@ -319,6 +340,7 @@ export default function SettingsPage() {
               value={settings["email.tpl.status_returned"] || "We've received your return. Your refund will be processed within 5–10 business days."}
               onChange={(e) => updateSetting("email.tpl.status_returned", e.target.value)}
             />
+            <p className="text-xs text-gray-400 -mt-2">{"Default: We've received your return. Your refund will be processed within 5\u201310 business days."}</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Email footer text</label>

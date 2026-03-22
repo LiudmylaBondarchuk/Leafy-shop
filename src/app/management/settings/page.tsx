@@ -279,88 +279,50 @@ export default function SettingsPage() {
           </p>
         </div>
 
-        <div className="space-y-4 pt-2">
+        <div className="space-y-3 pt-2">
           <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Customer Emails — Message Body</h3>
+          <p className="text-xs text-gray-400">Left column describes when the email is sent. Right column is the editable message text.</p>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Order confirmation — greeting</label>
-            <textarea
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-              rows={2}
-              value={settings["email.tpl.order_greeting"] || "Hi {name}, thank you for your order!"}
-              onChange={(e) => updateSetting("email.tpl.order_greeting", e.target.value)}
-            />
-            <p className="text-xs text-gray-400 -mt-2">{"Default: Hi {name}, thank you for your order!"}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status: Paid</label>
-            <textarea
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-              rows={2}
-              value={settings["email.tpl.status_paid"] || "Your payment has been received. We'll start preparing your order shortly."}
-              onChange={(e) => updateSetting("email.tpl.status_paid", e.target.value)}
-            />
-            <p className="text-xs text-gray-400 -mt-2">{"Default: Your payment has been received. We'll start preparing your order shortly."}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status: Processing</label>
-            <textarea
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-              rows={2}
-              value={settings["email.tpl.status_processing"] || "Our team is carefully packing your teas and coffees. We'll notify you once it's shipped."}
-              onChange={(e) => updateSetting("email.tpl.status_processing", e.target.value)}
-            />
-            <p className="text-xs text-gray-400 -mt-2">{"Default: Our team is carefully packing your teas and coffees. We'll notify you once it's shipped."}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status: Shipped</label>
-            <textarea
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-              rows={2}
-              value={settings["email.tpl.status_shipped"] || "Your package is on its way! It should arrive within 2–4 business days."}
-              onChange={(e) => updateSetting("email.tpl.status_shipped", e.target.value)}
-            />
-            <p className="text-xs text-gray-400 -mt-2">{"Default: Your package is on its way! It should arrive within 2\u20134 business days."}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status: Delivered</label>
-            <textarea
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-              rows={2}
-              value={settings["email.tpl.status_delivered"] || "We hope you enjoy your products! If you have any questions, don't hesitate to contact us."}
-              onChange={(e) => updateSetting("email.tpl.status_delivered", e.target.value)}
-            />
-            <p className="text-xs text-gray-400 -mt-2">{"Default: We hope you enjoy your products! If you have any questions, don't hesitate to contact us."}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status: Cancelled</label>
-            <textarea
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-              rows={2}
-              value={settings["email.tpl.status_cancelled"] || "Your order has been cancelled. All reserved items have been returned to stock."}
-              onChange={(e) => updateSetting("email.tpl.status_cancelled", e.target.value)}
-            />
-            <p className="text-xs text-gray-400 -mt-2">Default: Your order has been cancelled. All reserved items have been returned to stock.</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status: Returned</label>
-            <textarea
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-              rows={2}
-              value={settings["email.tpl.status_returned"] || "We've received your return. Your refund will be processed within 5–10 business days."}
-              onChange={(e) => updateSetting("email.tpl.status_returned", e.target.value)}
-            />
-            <p className="text-xs text-gray-400 -mt-2">{"Default: We've received your return. Your refund will be processed within 5\u201310 business days."}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email footer text</label>
-            <Input
-              label=""
-              id="emailFooter"
-              value={settings["email.tpl.footer"] || ""}
-              onChange={(e) => updateSetting("email.tpl.footer", e.target.value)}
-              placeholder="e.g. Thank you for choosing Leafy!"
-            />
+          {[
+            { key: "email.tpl.order_greeting", label: "Order Confirmation", desc: "Greeting shown at the top of the order confirmation email", placeholder: "Hi {name}, thank you for your order!" },
+            { key: "email.tpl.status_paid", label: "Payment Confirmed", desc: "Sent when payment is received (PayPal)", placeholder: "Your payment has been received. We'll start preparing your order shortly." },
+            { key: "email.tpl.status_processing", label: "Order Processing", desc: "Sent when admin starts preparing the order", placeholder: "Our team is carefully packing your teas and coffees. We'll notify you once it's shipped." },
+            { key: "email.tpl.status_shipped", label: "Order Shipped", desc: "Sent when order is dispatched to courier/locker", placeholder: "Your package is on its way! It should arrive within 2–4 business days." },
+            { key: "email.tpl.status_delivered", label: "Order Delivered", desc: "Sent when order is marked as delivered", placeholder: "We hope you enjoy your products! If you have any questions, don't hesitate to contact us." },
+            { key: "email.tpl.status_cancelled", label: "Order Cancelled", desc: "Sent when order is cancelled (by admin or customer)", placeholder: "Your order has been cancelled. All reserved items have been returned to stock." },
+            { key: "email.tpl.status_returned", label: "Return Processed", desc: "Sent when a return is confirmed", placeholder: "We've received your return. Your refund will be processed within 5–10 business days." },
+          ].map((tpl) => (
+            <div key={tpl.key} className="grid grid-cols-1 md:grid-cols-3 gap-3 py-2 border-t border-gray-100 first:border-t-0">
+              <div className="md:col-span-1">
+                <p className="text-sm font-medium text-gray-900">{tpl.label}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{tpl.desc}</p>
+              </div>
+              <div className="md:col-span-2">
+                <textarea
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                  rows={2}
+                  value={settings[tpl.key] || tpl.placeholder}
+                  onChange={(e) => updateSetting(tpl.key, e.target.value)}
+                  placeholder={tpl.placeholder}
+                />
+              </div>
+            </div>
+          ))}
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 py-2 border-t border-gray-100">
+            <div className="md:col-span-1">
+              <p className="text-sm font-medium text-gray-900">Email Footer</p>
+              <p className="text-xs text-gray-400 mt-0.5">Extra text shown at the bottom of every email</p>
+            </div>
+            <div className="md:col-span-2">
+              <Input
+                label=""
+                id="emailFooter"
+                value={settings["email.tpl.footer"] || ""}
+                onChange={(e) => updateSetting("email.tpl.footer", e.target.value)}
+                placeholder="e.g. Thank you for choosing Leafy!"
+              />
+            </div>
           </div>
         </div>
       </Card>

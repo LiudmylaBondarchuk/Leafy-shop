@@ -67,9 +67,12 @@ export default function AdminCustomersPage() {
                 {customers.map((c: any) => (
                   <tr key={c.id} className="border-t border-gray-100 hover:bg-gray-50">
                     <td className="px-4 py-3">
-                      <Link href={`/management/customers/${c.id}`} className="font-medium text-gray-900 hover:text-green-700">
-                        {c.firstName} {c.lastName}
-                      </Link>
+                      <div className="flex items-center gap-2">
+                        <Link href={`/management/customers/${c.id}`} className="font-medium text-gray-900 hover:text-green-700">
+                          {c.firstName} {c.lastName}
+                        </Link>
+                        {c.hasAccount && <Badge variant="success">Account</Badge>}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-gray-600">{c.email}</td>
                     <td className="px-4 py-3 text-gray-600">{c.phone}</td>

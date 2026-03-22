@@ -1,9 +1,9 @@
 import { db } from "@/lib/db";
-import { orders } from "@/lib/db/schema-pg";
+import { orders, customers as customersTable } from "@/lib/db/schema-pg";
 import { getAdminFromCookie } from "@/lib/auth";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { NextRequest } from "next/server";
-import { sql } from "drizzle-orm";
+import { sql, eq } from "drizzle-orm";
 
 interface CustomerRecord {
   id: string; // composite key
@@ -15,6 +15,8 @@ interface CustomerRecord {
   totalSpent: number;
   lastOrderDate: string;
   lastOrderNumber: string;
+  hasAccount: boolean;
+  accountId: number | null;
   similarCustomers: { id: string; email: string; firstName: string; lastName: string; reason: string }[];
 }
 
@@ -60,6 +62,8 @@ export async function GET(request: NextRequest) {
         totalSpent: Number(row.totalSpent),
         lastOrderDate: row.lastOrderDate,
         lastOrderNumber: "", // filled below
+        hasAccount: false,
+        accountId: null,
         similarCustomers: [],
       });
     }
@@ -113,6 +117,20 @@ export async function GET(request: NextRequest) {
             reason,
           });
         }
+      }
+    }
+
+    // Match with customer accounts
+    const allAccounts = await db.select({ id: customersTable.id, email: customersTable.email, deletedAt: customersTable.deletedAt }).from(customersTable);
+    const accountMap = new Map<string, number>();
+    for (const a of allAccounts) {
+      if (!(a as any).deletedAt) accountMap.set((a.email as string).toLowerCase(), a.id as number);
+    }
+    for (const c of customers) {
+      const accId = accountMap.get(c.email.toLowerCase());
+      if (accId !== undefined) {
+        c.hasAccount = true;
+        c.accountId = accId;
       }
     }
 

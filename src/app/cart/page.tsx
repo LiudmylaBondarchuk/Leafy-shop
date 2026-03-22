@@ -4,6 +4,7 @@ import { useCartStore } from "@/store/cart-store";
 import { Button } from "@/components/ui/Button";
 import { formatPrice } from "@/lib/utils";
 import { ShoppingCart, Minus, Plus, Trash2, Tag, X, ArrowRight } from "lucide-react";
+import { FREE_SHIPPING_THRESHOLD } from "@/constants/shipping-methods";
 import { ProductImage } from "@/components/products/ProductImage";
 import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
@@ -111,7 +112,7 @@ export default function CartPage() {
   }
 
   const subtotal = items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
-  const freeShippingRemaining = Math.max(0, 10000 - subtotal);
+  const freeShippingRemaining = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal);
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

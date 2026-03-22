@@ -47,25 +47,25 @@ export default function ForgotPasswordPage() {
     <div className="min-h-[60vh] flex items-center justify-center px-4 py-12">
       <Card className="w-full max-w-md p-8">
         <div className="flex items-center justify-center gap-2 mb-6">
-          <Leaf className="h-7 w-7 text-green-700" />
-          <span className="text-xl font-bold text-green-900">Leafy</span>
+          <Leaf className="h-7 w-7 text-green-700 dark:text-green-300" />
+          <span className="text-xl font-bold text-green-900 dark:text-green-300">Leafy</span>
         </div>
 
         {sent ? (
           <div className="text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Leaf className="h-8 w-8 text-green-700" />
+            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Leaf className="h-8 w-8 text-green-700 dark:text-green-300" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
               Check your email
             </h1>
-            <p className="text-sm text-gray-500 mb-6">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
               If an account exists for <strong>{email}</strong>, we&apos;ve sent
               password reset instructions to that address.
             </p>
             <Link
               href="/account/login"
-              className="inline-flex items-center gap-1 text-sm text-green-700 font-medium hover:text-green-800 transition-colors"
+              className="inline-flex items-center gap-1 text-sm text-green-700 dark:text-green-300 font-medium hover:text-green-800 dark:hover:text-green-200 transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
               Back to login
@@ -73,10 +73,10 @@ export default function ForgotPasswordPage() {
           </div>
         ) : (
           <>
-            <h1 className="text-2xl font-bold text-gray-900 text-center mb-2">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 text-center mb-2">
               Forgot your password?
             </h1>
-            <p className="text-sm text-gray-500 text-center mb-6">
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-6">
               Enter your email and we&apos;ll send you instructions to reset
               your password.
             </p>
@@ -105,10 +105,10 @@ export default function ForgotPasswordPage() {
               </Button>
             </form>
 
-            <p className="mt-6 text-sm text-gray-500 text-center">
+            <p className="mt-6 text-sm text-gray-500 dark:text-gray-400 text-center">
               <Link
                 href="/account/login"
-                className="inline-flex items-center gap-1 text-green-700 font-medium hover:text-green-800 transition-colors"
+                className="inline-flex items-center gap-1 text-green-700 dark:text-green-300 font-medium hover:text-green-800 dark:hover:text-green-200 transition-colors"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to login

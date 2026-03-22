@@ -117,8 +117,8 @@ export default function ProductDetailPage() {
   if (!product) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Product not found</h1>
-        <Link href="/products" className="text-green-700 hover:text-green-800">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Product not found</h1>
+        <Link href="/products" className="text-green-700 dark:text-green-400 hover:text-green-800">
           Back to products
         </Link>
       </div>
@@ -161,14 +161,14 @@ export default function ProductDetailPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Breadcrumb */}
-      <nav className="text-sm text-gray-500 mb-6">
+      <nav className="text-sm text-gray-500 dark:text-gray-400 mb-6">
         <Link href="/products" className="hover:text-green-700">Products</Link>
         {" / "}
         <Link href={`/products?category=${product.category.slug}`} className="hover:text-green-700">
           {product.category.name}
         </Link>
         {" / "}
-        <span className="text-gray-900">{product.name}</span>
+        <span className="text-gray-900 dark:text-gray-100">{product.name}</span>
       </nav>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -187,20 +187,20 @@ export default function ProductDetailPage() {
             {product.isFeatured && <BestsellerBadge label={badgeCfg.label} color={badgeCfg.color} />}
           </div>
 
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{product.name}</h1>
 
           {product.shortDescription && (
-            <p className="text-gray-600 mb-4">{product.shortDescription}</p>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">{product.shortDescription}</p>
           )}
 
           {/* Price */}
           {selectedVariant && (
             <div className="flex items-baseline gap-3 mb-6">
-              <span className="text-3xl font-bold text-green-800">
+              <span className="text-3xl font-bold text-green-800 dark:text-green-300">
                 {formatPrice(selectedVariant.price)}
               </span>
               {selectedVariant.comparePrice && (
-                <span className="text-lg text-gray-400 line-through">
+                <span className="text-lg text-gray-400 dark:text-gray-500 line-through">
                   {formatPrice(selectedVariant.comparePrice)}
                 </span>
               )}
@@ -243,11 +243,11 @@ export default function ProductDetailPage() {
 
           {/* Quantity + Add to cart */}
           <div className="flex items-center gap-4 mb-8">
-            <div className="flex items-center border border-gray-300 rounded-lg">
+            <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg">
               <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
                 disabled={quantity <= 1}
-                className="p-2 hover:bg-gray-100 disabled:opacity-40 rounded-l-lg"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-40 rounded-l-lg"
               >
                 <Minus className="h-4 w-4" />
               </button>
@@ -257,7 +257,7 @@ export default function ProductDetailPage() {
               <button
                 onClick={() => setQuantity(Math.min(maxQuantity, quantity + 1))}
                 disabled={quantity >= maxQuantity}
-                className="p-2 hover:bg-gray-100 disabled:opacity-40 rounded-r-lg"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-40 rounded-r-lg"
                 title={quantity >= maxQuantity ? "Maximum available quantity" : ""}
               >
                 <Plus className="h-4 w-4" />
@@ -276,27 +276,27 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Details */}
-          <div className="border-t border-gray-200 pt-6 space-y-3">
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-6 space-y-3">
             {product.origin && (
-              <div className="flex items-center gap-3 text-sm text-gray-600">
-                <MapPin className="h-4 w-4 text-gray-400" />
+              <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+                <MapPin className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                 <span>Origin: {product.origin}</span>
               </div>
             )}
             {product.brewTempMin && product.brewTempMax && (
-              <div className="flex items-center gap-3 text-sm text-gray-600">
-                <Thermometer className="h-4 w-4 text-gray-400" />
+              <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+                <Thermometer className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                 <span>Brew temperature: {product.brewTempMin}–{product.brewTempMax}°C</span>
               </div>
             )}
             {product.brewTimeMin && product.brewTimeMax && (
-              <div className="flex items-center gap-3 text-sm text-gray-600">
-                <Clock className="h-4 w-4 text-gray-400" />
+              <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+                <Clock className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                 <span>Brew time: {formatBrewTime(product.brewTimeMin)}–{formatBrewTime(product.brewTimeMax)}</span>
               </div>
             )}
             {product.flavorNotes && (
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
                 <span className="font-medium">Flavor notes:</span> {product.flavorNotes}
               </div>
             )}
@@ -306,20 +306,20 @@ export default function ProductDetailPage() {
 
       {/* Description */}
       <div className="mt-12 max-w-3xl">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">About this product</h2>
-        <p className="text-gray-600 leading-relaxed">{product.description}</p>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">About this product</h2>
+        <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{product.description}</p>
       </div>
 
       {/* Related products */}
       {product.relatedProducts.length > 0 && (
         <div className="mt-16">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">You might also like</h2>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">You might also like</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {product.relatedProducts.map((p: any) => (
               <Link
                 key={p.id}
                 href={`/products/${p.slug}`}
-                className="group bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-all"
+                className="group bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all"
               >
                 <ProductImage
                   src={p.imageUrl}
@@ -329,7 +329,7 @@ export default function ProductDetailPage() {
                   className="w-full group-hover:scale-105 transition-transform duration-300"
                 />
                 <div className="p-3">
-                  <h3 className="font-medium text-sm text-gray-900 group-hover:text-green-700">{p.name}</h3>
+                  <h3 className="font-medium text-sm text-gray-900 dark:text-gray-100 group-hover:text-green-700">{p.name}</h3>
                 </div>
               </Link>
             ))}

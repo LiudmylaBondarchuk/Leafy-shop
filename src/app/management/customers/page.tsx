@@ -130,7 +130,9 @@ export default function AdminCustomersPage() {
                     <td className="px-4 py-3 text-right font-medium">{c.orderCount}</td>
                     <td className="px-4 py-3 text-right font-medium">{formatPrice(c.totalSpent)}</td>
                     <td className="px-4 py-3 text-gray-500 text-xs">
-                      {formatDateShort(c.lastOrderDate)}
+                      {c.orderCount > 0 ? formatDateShort(c.lastOrderDate) : (
+                        <span className="italic">No orders yet</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-center">
                       <div className="flex items-center justify-center gap-1">

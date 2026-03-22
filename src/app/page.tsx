@@ -47,31 +47,31 @@ export default function HomePage() {
       {/* Features */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-28">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex items-center gap-4">
-            <div className="bg-green-100 p-2.5 rounded-lg">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-4">
+            <div className="bg-green-100 dark:bg-green-900/30 p-2.5 rounded-lg">
               <Truck className="h-5 w-5 text-green-700" />
             </div>
             <div>
-              <p className="font-semibold text-gray-900 text-sm">Free Shipping</p>
-              <p className="text-xs text-gray-500">On orders over $100</p>
+              <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm">Free Shipping</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">On orders over $100</p>
             </div>
           </div>
-          <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex items-center gap-4">
-            <div className="bg-green-100 p-2.5 rounded-lg">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-4">
+            <div className="bg-green-100 dark:bg-green-900/30 p-2.5 rounded-lg">
               <Award className="h-5 w-5 text-green-700" />
             </div>
             <div>
-              <p className="font-semibold text-gray-900 text-sm">Premium Quality</p>
-              <p className="text-xs text-gray-500">Hand-picked selection</p>
+              <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm">Premium Quality</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Hand-picked selection</p>
             </div>
           </div>
-          <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex items-center gap-4">
-            <div className="bg-green-100 p-2.5 rounded-lg">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-4">
+            <div className="bg-green-100 dark:bg-green-900/30 p-2.5 rounded-lg">
               <Shield className="h-5 w-5 text-green-700" />
             </div>
             <div>
-              <p className="font-semibold text-gray-900 text-sm">Secure Checkout</p>
-              <p className="text-xs text-gray-500">Safe & encrypted payments</p>
+              <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm">Secure Checkout</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Safe & encrypted payments</p>
             </div>
           </div>
         </div>
@@ -79,7 +79,7 @@ export default function HomePage() {
 
       {/* Categories */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
-        <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-8 text-center">
           Shop by Category
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -125,12 +125,12 @@ export default function HomePage() {
       </section>
 
       {/* CTA */}
-      <section className="bg-green-50 border-y border-green-100">
+      <section className="bg-green-50 dark:bg-green-900/30 border-y border-green-100 dark:border-green-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
             Ready to discover your new favorite?
           </h2>
-          <p className="text-gray-600 mb-8 max-w-md mx-auto">
+          <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
             Browse our full collection of premium teas and coffees, sourced from the finest estates worldwide.
           </p>
           <Link href="/products">

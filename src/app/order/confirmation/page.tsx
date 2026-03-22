@@ -13,16 +13,16 @@ function ConfirmationContent() {
 
   return (
     <div className="max-w-lg mx-auto px-4 py-24 text-center">
-      <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-6" />
-      <h1 className="text-3xl font-bold text-gray-900 mb-3">Thank you for your order!</h1>
-      <p className="text-gray-600 mb-2">
+      <CheckCircle className="h-16 w-16 text-green-600 dark:text-green-400 mx-auto mb-6" />
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-3">Thank you for your order!</h1>
+      <p className="text-gray-600 dark:text-gray-400 mb-2">
         Your order number is:
       </p>
-      <p className="text-xl sm:text-2xl font-mono font-bold text-green-800 mb-4 break-all">
+      <p className="text-xl sm:text-2xl font-mono font-bold text-green-800 dark:text-green-300 mb-4 break-all">
         {orderNumber}
       </p>
       {email && (
-        <p className="text-sm text-gray-500 mb-8">
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
           Confirmation sent to {email}
         </p>
       )}
@@ -41,7 +41,7 @@ function ConfirmationContent() {
 
 export default function OrderConfirmationPage() {
   return (
-    <Suspense fallback={<div className="text-center py-24 text-gray-500">Loading...</div>}>
+    <Suspense fallback={<div className="text-center py-24 text-gray-500 dark:text-gray-400">Loading...</div>}>
       <ConfirmationContent />
     </Suspense>
   );

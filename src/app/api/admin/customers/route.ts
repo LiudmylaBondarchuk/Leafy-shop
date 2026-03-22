@@ -135,18 +135,49 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Match with customer accounts
-    const allAccounts = await db.select({ id: customersTable.id, email: customersTable.email, deletedAt: customersTable.deletedAt }).from(customersTable);
-    const accountMap = new Map<string, number>();
+    // Match with customer accounts and add accounts without orders
+    const allAccounts = await db.select({
+      id: customersTable.id,
+      email: customersTable.email,
+      firstName: customersTable.firstName,
+      lastName: customersTable.lastName,
+      phone: customersTable.phone,
+      deletedAt: customersTable.deletedAt,
+      createdAt: customersTable.createdAt,
+    }).from(customersTable);
+
+    const accountMap = new Map<string, typeof allAccounts[number]>();
     for (const a of allAccounts) {
-      if (!(a as any).deletedAt) accountMap.set((a.email as string).toLowerCase(), a.id as number);
+      if (!a.deletedAt) accountMap.set(a.email.toLowerCase(), a);
     }
+
+    const matchedEmails = new Set<string>();
     for (const c of customers) {
-      const accId = accountMap.get(c.email.toLowerCase());
-      if (accId !== undefined) {
+      const acc = accountMap.get(c.email.toLowerCase());
+      if (acc) {
         c.hasAccount = true;
-        c.accountId = accId;
+        c.accountId = acc.id;
+        matchedEmails.add(c.email.toLowerCase());
       }
+    }
+
+    // Add registered accounts that have no orders
+    for (const [emailKey, acc] of accountMap) {
+      if (matchedEmails.has(emailKey)) continue;
+      customers.push({
+        id: Buffer.from(`account|${acc.id}`).toString("base64url"),
+        email: acc.email,
+        phone: acc.phone || "",
+        firstName: acc.firstName,
+        lastName: acc.lastName,
+        orderCount: 0,
+        totalSpent: 0,
+        lastOrderDate: acc.createdAt,
+        lastOrderNumber: "",
+        hasAccount: true,
+        accountId: acc.id,
+        similarCustomers: [],
+      });
     }
 
     // Filter by search

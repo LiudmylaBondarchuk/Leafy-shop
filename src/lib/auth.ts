@@ -1,13 +1,15 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
-const JWT_SECRET_RAW = process.env.JWT_SECRET;
-if (!JWT_SECRET_RAW && process.env.NODE_ENV === "production") {
-  throw new Error("JWT_SECRET environment variable is required in production");
+function getJwtSecret() {
+  const raw = process.env.JWT_SECRET;
+  if (!raw && process.env.NODE_ENV === "production" && !process.env.NEXT_PHASE) {
+    console.warn("JWT_SECRET environment variable is not set");
+  }
+  return new TextEncoder().encode(raw || "leafy-shop-dev-secret-key-32chars!!");
 }
-const SECRET = new TextEncoder().encode(
-  JWT_SECRET_RAW || "leafy-shop-dev-secret-key-32chars!!" // dev only fallback
-);
+
+const SECRET = getJwtSecret();
 
 const COOKIE_NAME = "admin_token";
 

@@ -151,7 +151,7 @@ export async function GET(request: NextRequest) {
 
     return apiSuccess(filtered);
   } catch (error) {
-    console.error("GET /api/admin/customers error:", error);
+    console.error("GET /api/admin/customers error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to fetch customers", 500);
   }
 }

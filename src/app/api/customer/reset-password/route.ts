@@ -24,6 +24,13 @@ export async function POST(request: Request) {
       return apiError("Invalid or expired reset token", 400, "INVALID_TOKEN");
     }
 
+    // Clear token immediately (single-use: invalidate on any attempt)
+    await db.update(customers).set({
+      resetToken: null,
+      resetTokenExpiry: null,
+      updatedAt: new Date().toISOString(),
+    }).where(eq(customers.id, customer.id));
+
     if (!customer.resetTokenExpiry || new Date(customer.resetTokenExpiry) < new Date()) {
       return apiError("Reset token has expired", 400, "TOKEN_EXPIRED");
     }
@@ -32,14 +39,12 @@ export async function POST(request: Request) {
 
     await db.update(customers).set({
       passwordHash,
-      resetToken: null,
-      resetTokenExpiry: null,
       updatedAt: new Date().toISOString(),
     }).where(eq(customers.id, customer.id));
 
     return apiSuccess({ message: "Password has been reset successfully" });
   } catch (error) {
-    console.error("POST /api/customer/reset-password error:", error);
+    console.error("POST /api/customer/reset-password error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to reset password", 500);
   }
 }

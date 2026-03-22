@@ -22,6 +22,9 @@ export async function POST(request: Request) {
     if (!password || password.length < 8) {
       return apiError("Password must be at least 8 characters", 400, "VALIDATION_ERROR");
     }
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+      return apiError("Password must contain at least one uppercase letter, one lowercase letter, and one number", 400, "VALIDATION_ERROR");
+    }
     if (!firstName || !lastName) {
       return apiError("First name and last name are required", 400, "VALIDATION_ERROR");
     }
@@ -67,7 +70,7 @@ export async function POST(request: Request) {
       },
     }, 201);
   } catch (error) {
-    console.error("POST /api/customer/register error:", error);
+    console.error("POST /api/customer/register error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Registration failed", 500);
   }
 }

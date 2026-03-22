@@ -120,12 +120,12 @@ export async function GET(request: NextRequest) {
         }
       }
     } catch (err) {
-      console.error("[CRON] Low stock alert error:", err);
+      console.error("[CRON] Low stock alert error:", err instanceof Error ? err.message : "Unknown error");
     }
 
     return apiSuccess({ ...summary, lowStockAlerts: lowStockCount });
   } catch (error) {
-    console.error("[CRON] Cleanup error:", error);
+    console.error("[CRON] Cleanup error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Cleanup failed", 500);
   }
 }

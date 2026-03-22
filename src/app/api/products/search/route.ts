@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
 
     return apiSuccess(results);
   } catch (error) {
-    console.error("GET /api/products/search error:", error);
+    console.error("GET /api/products/search error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Search failed", 500);
   }
 }

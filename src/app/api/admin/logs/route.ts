@@ -15,7 +15,7 @@ export async function GET() {
       changes: l.changes ? JSON.parse(l.changes) : null,
     })));
   } catch (error) {
-    console.error("GET /api/admin/logs error:", error);
+    console.error("GET /api/admin/logs error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to fetch logs", 500);
   }
 }
@@ -36,7 +36,7 @@ export async function DELETE() {
     await db.delete(auditLogs);
     return apiSuccess({ message: "All logs cleared" });
   } catch (error) {
-    console.error("DELETE /api/admin/logs error:", error);
+    console.error("DELETE /api/admin/logs error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to clear logs", 500);
   }
 }

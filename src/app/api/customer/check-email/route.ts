@@ -26,7 +26,7 @@ export async function POST(request: Request) {
 
     return apiSuccess({ hasAccount: !!customer });
   } catch (error) {
-    console.error("POST /api/customer/check-email error:", error);
+    console.error("POST /api/customer/check-email error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to check email", 500);
   }
 }

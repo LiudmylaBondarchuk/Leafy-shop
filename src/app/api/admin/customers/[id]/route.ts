@@ -89,7 +89,7 @@ export async function GET(
       similarCustomers,
     });
   } catch (error) {
-    console.error("GET /api/admin/customers/[id] error:", error);
+    console.error("GET /api/admin/customers/[id] error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to fetch customer", 500);
   }
 }

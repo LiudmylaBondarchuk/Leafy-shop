@@ -22,7 +22,7 @@ export async function GET() {
 
     return apiSuccess(result);
   } catch (error) {
-    console.error("GET /api/categories error:", error);
+    console.error("GET /api/categories error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to fetch categories", 500);
   }
 }

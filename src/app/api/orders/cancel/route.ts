@@ -74,7 +74,7 @@ export async function POST(request: Request) {
 
     return apiSuccess({ orderNumber: order.orderNumber, status: "cancelled" });
   } catch (error) {
-    console.error("POST /api/orders/cancel error:", error);
+    console.error("POST /api/orders/cancel error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to cancel order", 500);
   }
 }

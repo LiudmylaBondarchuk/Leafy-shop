@@ -101,7 +101,7 @@ export async function POST(request: Request) {
 
     return apiSuccess(product, 201);
   } catch (error) {
-    console.error("POST /api/admin/products error:", error);
+    console.error("POST /api/admin/products error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to create product", 500);
   }
 }

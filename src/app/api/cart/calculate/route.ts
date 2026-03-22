@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
       total: Math.max(0, total),
     });
   } catch (error) {
-    console.error("POST /api/cart/calculate error:", error);
+    console.error("POST /api/cart/calculate error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to calculate cart", 500);
   }
 }

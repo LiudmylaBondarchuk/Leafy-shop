@@ -54,7 +54,7 @@ export async function POST(request: Request) {
 
     return apiSuccess({ message: "Password reset email sent" });
   } catch (error) {
-    console.error("POST /api/admin/users/reset-password error:", error);
+    console.error("POST /api/admin/users/reset-password error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to reset password", 500);
   }
 }

@@ -16,7 +16,7 @@ export async function GET() {
     }
     return apiSuccess(settingsMap);
   } catch (error) {
-    console.error("GET /api/admin/settings error:", error);
+    console.error("GET /api/admin/settings error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to fetch settings", 500);
   }
 }
@@ -44,7 +44,7 @@ export async function PUT(request: Request) {
 
     return apiSuccess({ message: "Settings updated" });
   } catch (error) {
-    console.error("PUT /api/admin/settings error:", error);
+    console.error("PUT /api/admin/settings error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to update settings", 500);
   }
 }

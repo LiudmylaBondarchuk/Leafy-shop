@@ -67,7 +67,7 @@ export async function GET() {
 
     return apiSuccess(data);
   } catch (error) {
-    console.error("GET /api/admin/products/list error:", error);
+    console.error("GET /api/admin/products/list error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to fetch products", 500);
   }
 }

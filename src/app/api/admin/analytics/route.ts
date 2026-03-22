@@ -140,7 +140,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("GET /api/admin/analytics error:", error);
+    console.error("GET /api/admin/analytics error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to fetch analytics", 500);
   }
 }

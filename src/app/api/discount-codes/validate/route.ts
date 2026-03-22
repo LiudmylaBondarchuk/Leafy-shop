@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     return apiSuccess(result);
   } catch (error) {
-    console.error("POST /api/discount-codes/validate error:", error);
+    console.error("POST /api/discount-codes/validate error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to validate discount code", 500);
   }
 }

@@ -38,13 +38,15 @@ export async function POST(request: Request) {
       mustChangePassword: false,
     }).where(eq(adminUsers.id, tester.id));
 
+    // NOTE: Password returned intentionally — tester demo flow requires it.
+    // In production, send via email only.
     return apiSuccess({
       email: TESTER_EMAIL,
       name: TESTER_NAME,
       password,
     });
   } catch (error) {
-    console.error("POST /api/auth/generate-test-password error:", error);
+    console.error("POST /api/auth/generate-test-password error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to generate test password", 500);
   }
 }

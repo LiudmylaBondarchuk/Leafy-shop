@@ -47,7 +47,7 @@ export async function GET() {
     const now = new Date().toISOString();
     return apiSuccess(codes.filter((c: any) => c.isActive && !c.deletedAt && (!c.expiresAt || c.expiresAt > now)));
   } catch (error) {
-    console.error("GET /api/discount-codes error:", error);
+    console.error("GET /api/discount-codes error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to fetch discount codes", 500);
   }
 }

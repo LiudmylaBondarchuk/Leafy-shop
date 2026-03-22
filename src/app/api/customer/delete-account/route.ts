@@ -26,7 +26,7 @@ export async function POST() {
 
     return apiSuccess({ message: "Account deleted" });
   } catch (error) {
-    console.error("POST /api/customer/delete-account error:", error);
+    console.error("POST /api/customer/delete-account error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to delete account", 500);
   }
 }

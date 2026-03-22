@@ -1,8 +1,12 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
-const CUSTOMER_JWT_SECRET = new TextEncoder().encode(
-  process.env.CUSTOMER_JWT_SECRET || "customer-secret-change-me"
+const CUSTOMER_JWT_SECRET_RAW = process.env.CUSTOMER_JWT_SECRET;
+if (!CUSTOMER_JWT_SECRET_RAW && process.env.NODE_ENV === "production") {
+  throw new Error("CUSTOMER_JWT_SECRET environment variable is required in production");
+}
+const CUSTOMER_SECRET = new TextEncoder().encode(
+  CUSTOMER_JWT_SECRET_RAW || "customer-secret-change-me" // dev only fallback
 );
 
 const COOKIE_NAME = "customer_token";
@@ -19,12 +23,12 @@ export async function signCustomerToken(payload: CustomerPayload) {
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("7d")
-    .sign(CUSTOMER_JWT_SECRET);
+    .sign(CUSTOMER_SECRET);
 }
 
 export async function verifyCustomerToken(token: string) {
   try {
-    const { payload } = await jwtVerify(token, CUSTOMER_JWT_SECRET);
+    const { payload } = await jwtVerify(token, CUSTOMER_SECRET);
     return payload as unknown as CustomerPayload;
   } catch {
     return null;

@@ -2,8 +2,12 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "leafy-shop-dev-secret-key-32chars!!"
+const JWT_SECRET_RAW = process.env.JWT_SECRET;
+if (!JWT_SECRET_RAW && process.env.NODE_ENV === "production") {
+  throw new Error("JWT_SECRET environment variable is required in production");
+}
+const SECRET = new TextEncoder().encode(
+  JWT_SECRET_RAW || "leafy-shop-dev-secret-key-32chars!!" // dev only fallback
 );
 
 export async function middleware(request: NextRequest) {
@@ -37,7 +41,7 @@ export async function middleware(request: NextRequest) {
     }
 
     try {
-      await jwtVerify(token, JWT_SECRET);
+      await jwtVerify(token, SECRET);
       return NextResponse.next();
     } catch {
       if (pathname.startsWith("/api/")) {

@@ -82,19 +82,19 @@ export default function RegisterPage() {
     <div className="min-h-[60vh] flex items-center justify-center px-4 py-12">
       <Card className="w-full max-w-md p-8">
         <div className="flex items-center justify-center gap-2 mb-6">
-          <Leaf className="h-7 w-7 text-green-700" />
-          <span className="text-xl font-bold text-green-900">Leafy</span>
+          <Leaf className="h-7 w-7 text-green-700 dark:text-green-300" />
+          <span className="text-xl font-bold text-green-900 dark:text-green-300">Leafy</span>
         </div>
 
-        <h1 className="text-2xl font-bold text-gray-900 text-center mb-2">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 text-center mb-2">
           Create an account
         </h1>
-        <p className="text-sm text-gray-500 text-center mb-6">
+        <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-6">
           Join Leafy to track your orders and enjoy a faster checkout.
         </p>
 
         {errors.form && (
-          <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3 mb-4">
+          <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm rounded-lg p-3 mb-4">
             {errors.form}
           </div>
         )}
@@ -168,11 +168,11 @@ export default function RegisterPage() {
           </Button>
         </form>
 
-        <p className="mt-6 text-sm text-gray-500 text-center">
+        <p className="mt-6 text-sm text-gray-500 dark:text-gray-400 text-center">
           Already have an account?{" "}
           <Link
             href="/account/login"
-            className="text-green-700 font-medium hover:text-green-800 transition-colors"
+            className="text-green-700 dark:text-green-300 font-medium hover:text-green-800 dark:hover:text-green-200 transition-colors"
           >
             Log in
           </Link>

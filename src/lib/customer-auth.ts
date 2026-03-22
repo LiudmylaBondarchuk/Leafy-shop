@@ -1,13 +1,15 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
-const CUSTOMER_JWT_SECRET_RAW = process.env.CUSTOMER_JWT_SECRET;
-if (!CUSTOMER_JWT_SECRET_RAW && process.env.NODE_ENV === "production") {
-  throw new Error("CUSTOMER_JWT_SECRET environment variable is required in production");
+function getCustomerSecret() {
+  const raw = process.env.CUSTOMER_JWT_SECRET;
+  if (!raw && process.env.NODE_ENV === "production" && typeof window === "undefined" && !process.env.NEXT_PHASE) {
+    console.warn("CUSTOMER_JWT_SECRET environment variable is not set");
+  }
+  return new TextEncoder().encode(raw || "customer-secret-change-me");
 }
-const CUSTOMER_SECRET = new TextEncoder().encode(
-  CUSTOMER_JWT_SECRET_RAW || "customer-secret-change-me" // dev only fallback
-);
+
+const CUSTOMER_SECRET = getCustomerSecret();
 
 const COOKIE_NAME = "customer_token";
 

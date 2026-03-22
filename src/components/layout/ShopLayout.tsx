@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { usePathname } from "next/navigation";
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
@@ -14,7 +15,9 @@ export function ShopLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#FFFBF0] dark:bg-gray-900">
-      <Navbar />
+      <Suspense>
+        <Navbar />
+      </Suspense>
       <main className="flex-1">{children}</main>
       <Footer />
     </div>

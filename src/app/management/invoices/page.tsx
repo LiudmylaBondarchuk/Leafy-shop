@@ -119,7 +119,9 @@ export default function AdminInvoicesPage() {
             {hasFilters ? "No invoices match your filters." : "No invoices yet. Invoices are created when customers select \"I need a VAT invoice\" during checkout."}
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Desktop table */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-sm min-w-[700px]">
               <thead className="bg-gray-50">
                 <tr>
@@ -183,6 +185,49 @@ export default function AdminInvoicesPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile card layout */}
+          <div className="sm:hidden space-y-3 p-3">
+            {filtered.map((order: any) => {
+              const paid = isPaid(order);
+              const d = new Date(order.createdAt);
+              const invoiceNum = `INV/${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(order.id).padStart(4, "0")}`;
+
+              return (
+                <div key={order.id} className="border border-gray-200 rounded-lg p-3">
+                  <div className="flex items-center gap-2 text-sm">
+                    <FileText className="h-4 w-4 text-gray-400 shrink-0" />
+                    <span className="font-mono text-gray-900 truncate">{invoiceNum}</span>
+                  </div>
+                  <div className="mt-2 text-sm">
+                    <p className="font-medium text-gray-900">{order.invoiceCompany || `${order.customerFirstName} ${order.customerLastName}`}</p>
+                    {order.invoiceNip && <p className="text-xs text-gray-400">NIP: {order.invoiceNip}</p>}
+                  </div>
+                  <div className="flex items-center justify-between mt-2">
+                    <Link href={`/management/orders/${order.id}`} className="font-mono text-green-700 hover:text-green-800 text-xs">
+                      {order.orderNumber}
+                    </Link>
+                    <span className="font-medium text-sm">{formatPrice(order.total)}</span>
+                  </div>
+                  <div className="flex items-center justify-between mt-2 border-t border-gray-100 pt-2">
+                    {order.status === "cancelled" ? (
+                      <Badge variant="error">Cancelled</Badge>
+                    ) : paid ? (
+                      <Badge variant="success">Issued</Badge>
+                    ) : (
+                      <Badge variant="warning">Pending</Badge>
+                    )}
+                    {paid && (
+                      <a href={`/api/invoices/${order.id}`} target="_blank" className="text-green-700 hover:text-green-800">
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          </>
         )}
       </Card>
     </div>

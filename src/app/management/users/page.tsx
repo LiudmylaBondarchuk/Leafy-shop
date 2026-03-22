@@ -139,7 +139,9 @@ export default function AdminUsersPage() {
         ) : filtered.length === 0 ? (
           <div className="p-8 text-center text-gray-400">{hasFilters ? "No users match your filters." : "No users found."}</div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Desktop table */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-sm min-w-[600px]">
               <thead className="bg-gray-50">
                 <tr>
@@ -224,6 +226,57 @@ export default function AdminUsersPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile card layout */}
+          <div className="sm:hidden space-y-3 p-3">
+            {filtered.map((u: any) => {
+              const permCount = permissionsBadge(u);
+              return (
+                <div key={u.id} className={`border border-gray-200 rounded-lg p-3 ${!u.isActive ? "opacity-40" : ""}`}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-green-700 text-white flex items-center justify-center text-xs font-medium shrink-0">
+                      {u.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900 truncate">{u.name}</p>
+                      <p className="text-xs text-gray-400 truncate">{u.email}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 mt-2 text-sm">
+                    <Badge className={ROLE_COLORS[u.role] || ""}>
+                      {ROLE_LABELS[u.role as Role] || u.role}
+                    </Badge>
+                    {u.isActive ? (
+                      <Badge variant="success">Active</Badge>
+                    ) : (
+                      <Badge variant="default">Inactive</Badge>
+                    )}
+                  </div>
+                  {u.id !== currentUserId && (
+                    <div className="flex justify-end gap-1 mt-2 border-t border-gray-100 pt-2">
+                      <Link href={`/management/users/${u.id}/edit`}>
+                        <Button variant="ghost" size="sm" title="Edit"><Pencil className="h-3.5 w-3.5" /></Button>
+                      </Link>
+                      <Button variant="ghost" size="sm" title="Reset password" onClick={() => setResetModal({ id: u.id, name: u.name, email: u.email })}>
+                        <KeyRound className="h-3.5 w-3.5 text-blue-500" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleToggleActive(u.id, u.name, !u.isActive)}>
+                        <span className={`text-xs font-medium ${u.isActive ? "text-orange-500" : "text-green-600"}`}>
+                          {u.isActive ? "Deactivate" : "Activate"}
+                        </span>
+                      </Button>
+                    </div>
+                  )}
+                  {u.id === currentUserId && (
+                    <div className="text-right mt-2 border-t border-gray-100 pt-2">
+                      <span className="text-xs text-gray-400">You</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          </>
         )}
       </Card>
 

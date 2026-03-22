@@ -83,7 +83,7 @@ export default function CheckoutPage() {
               street: data.shippingStreet || f.street,
               city: data.shippingCity || f.city,
               zip: data.shippingZip || f.zip,
-              country: data.shippingCountry || f.country,
+              country: (data.shippingCountry && data.shippingCountry.length === 2) ? data.shippingCountry : f.country,
             }));
             setConfirmEmail(data.email || "");
           }

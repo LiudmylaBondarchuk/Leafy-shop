@@ -177,7 +177,7 @@ export default function ProfilePage() {
     <div className="space-y-6">
       {/* Profile form */}
       <Card className="p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
           <User className="h-5 w-5 text-green-700" />
           Personal Information
         </h2>
@@ -211,9 +211,9 @@ export default function ProfilePage() {
             placeholder="123456789"
           />
 
-          <hr className="border-gray-200" />
+          <hr className="border-gray-200 dark:border-gray-700" />
 
-          <h3 className="text-sm font-semibold text-gray-700">Shipping Address</h3>
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Shipping Address</h3>
 
           <Input
             label="Street & number"
@@ -258,7 +258,7 @@ export default function ProfilePage() {
 
       {/* Change password */}
       <Card className="p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
           <Lock className="h-5 w-5 text-green-700" />
           Change Password
         </h2>
@@ -307,12 +307,12 @@ export default function ProfilePage() {
       </Card>
 
       {/* Delete Account */}
-      <Card className="p-5 border-red-200">
+      <Card className="p-5 border-red-200 dark:border-red-800">
         <div className="flex items-center gap-2 mb-3">
           <Trash2 className="h-5 w-5 text-red-500" />
-          <h2 className="font-semibold text-red-900">Delete Account</h2>
+          <h2 className="font-semibold text-red-900 dark:text-red-300">Delete Account</h2>
         </div>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
           Permanently delete your account. Your order history will be preserved but your personal data and login will be removed. This action cannot be undone.
         </p>
         <Button

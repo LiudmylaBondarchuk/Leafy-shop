@@ -1,12 +1,12 @@
 export default function TermsPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Terms & Conditions</h1>
-      <p className="text-sm text-gray-400 mb-8">Last updated: March 2026</p>
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">Terms & Conditions</h1>
+      <p className="text-sm text-gray-400 dark:text-gray-500 mb-8">Last updated: March 2026</p>
 
-      <div className="prose prose-gray prose-sm max-w-none space-y-8 text-gray-600">
+      <div className="prose prose-gray prose-sm max-w-none space-y-8 text-gray-600 dark:text-gray-400">
         <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">1. General</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">1. General</h2>
           <p>
             These Terms & Conditions govern your use of the Leafy online store (leafyshop.eu)
             and any purchases made through it. By placing an order, you agree to be bound by these terms.
@@ -14,7 +14,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">2. Products & Pricing</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">2. Products & Pricing</h2>
           <p>
             All prices are displayed in US Dollars (USD) and include applicable taxes. Prices are subject
             to change without notice, but changes will not affect orders that have already been confirmed.
@@ -26,7 +26,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">3. Orders</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">3. Orders</h2>
           <p>
             An order is confirmed once you receive an order number and confirmation page. We reserve the right
             to cancel orders due to stock unavailability, pricing errors, or suspected fraudulent activity.
@@ -38,7 +38,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">4. Shipping</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">4. Shipping</h2>
           <p>We offer the following shipping methods:</p>
           <ul className="list-disc pl-5 space-y-1">
             <li><strong>Courier (DPD):</strong> $14.99 — estimated delivery 2–4 business days</li>
@@ -51,7 +51,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">5. Returns & Refunds</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">5. Returns & Refunds</h2>
           <p>
             You may return products within 14 days of delivery for a full refund, provided the items are
             unopened and in their original packaging.
@@ -66,7 +66,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">6. Discount Codes</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">6. Discount Codes</h2>
           <p>
             Discount codes are subject to the conditions specified at the time of issue, including
             minimum order values, expiration dates, and usage limits. Only one discount code may be
@@ -75,7 +75,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">7. Privacy</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">7. Privacy</h2>
           <p>
             We collect only the personal data necessary to process your order (name, email, phone,
             shipping address). We do not share your data with third parties except as required for
@@ -84,17 +84,17 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">8. Contact</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">8. Contact</h2>
           <p>
             For any questions regarding these terms, please contact us at{" "}
-            <a href="mailto:support@leafyshop.eu" className="text-green-700 hover:text-green-800">
+            <a href="mailto:support@leafyshop.eu" className="text-green-700 dark:text-green-400 hover:text-green-800">
               support@leafyshop.eu
             </a>.
           </p>
         </section>
 
-        <div className="border-t border-gray-200 pt-6 mt-6">
-          <p className="text-xs text-gray-400 italic">
+        <div className="border-t border-gray-200 dark:border-gray-700 pt-6 mt-6">
+          <p className="text-xs text-gray-400 dark:text-gray-500 italic">
             This is a portfolio project. Leafy is a fictional store created for demonstration purposes.
             No real transactions are processed.
           </p>

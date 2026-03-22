@@ -29,8 +29,8 @@ export function CookieConsent() {
       style={{ "--tw-animate-slideUp": "slideUp" } as React.CSSProperties}
     >
       <div className="mx-auto max-w-4xl px-4 pb-4">
-        <div className="rounded-xl border border-green-200 bg-white/95 p-4 shadow-lg backdrop-blur-sm sm:flex sm:items-center sm:gap-6 sm:p-5">
-          <p className="text-sm text-gray-600 sm:flex-1">
+        <div className="rounded-xl border border-green-200 dark:border-green-800 bg-white/95 dark:bg-gray-800/95 p-4 shadow-lg backdrop-blur-sm sm:flex sm:items-center sm:gap-6 sm:p-5">
+          <p className="text-sm text-gray-600 dark:text-gray-400 sm:flex-1">
             We use cookies to improve your experience. We store your cart
             locally and use essential cookies for authentication.{" "}
             <Link
@@ -44,7 +44,7 @@ export function CookieConsent() {
           <div className="mt-3 flex items-center gap-3 sm:mt-0 sm:shrink-0">
             <button
               onClick={() => handleChoice("declined")}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
+              className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               Decline
             </button>

@@ -113,10 +113,10 @@ function OrderStatusContent() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Track Your Order</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Track Your Order</h1>
 
       {/* Search form */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 mb-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input label="Order number" id="orderNum" value={orderNum} onChange={(e) => setOrderNum(e.target.value)} placeholder="LEA-20260320-0001" />
           <Input label="Email address" id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="john@example.com" />
@@ -128,7 +128,7 @@ function OrderStatusContent() {
 
       {/* Error */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700 mb-8">
+        <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl p-4 text-sm text-red-700 dark:text-red-300 mb-8">
           {error}
         </div>
       )}
@@ -137,10 +137,10 @@ function OrderStatusContent() {
       {order && (
         <div className="space-y-6">
           {/* Header */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
               <div className="min-w-0">
-                <p className="text-sm text-gray-500">Order</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Order</p>
                 <p className="text-lg sm:text-xl font-mono font-bold break-all">{order.orderNumber}</p>
               </div>
               <Badge variant={order.status === "delivered" ? "success" : order.status === "cancelled" ? "error" : "info"} className={ORDER_STATUS_COLORS[order.status as OrderStatus]}>
@@ -150,8 +150,8 @@ function OrderStatusContent() {
 
             {/* Tracking number */}
             {order.trackingNumber && (
-              <div className="mt-4 bg-purple-50 border border-purple-200 rounded-lg p-3">
-                <p className="text-sm text-purple-800">
+              <div className="mt-4 bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-800 rounded-lg p-3">
+                <p className="text-sm text-purple-800 dark:text-purple-300">
                   <strong>Tracking Number:</strong>{" "}
                   <span className="font-mono">{order.trackingNumber}</span>
                 </p>
@@ -160,7 +160,7 @@ function OrderStatusContent() {
 
             {/* Timeline */}
             <div className="mt-6">
-              <h3 className="text-sm font-medium text-gray-700 mb-4">Order Timeline</h3>
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">Order Timeline</h3>
               <div className="space-y-4">
                 {order.history.map((entry, i) => {
                   const Icon = STATUS_ICONS[entry.status] || Circle;
@@ -170,22 +170,22 @@ function OrderStatusContent() {
                       <div className="flex flex-col items-center">
                         <div className={cn(
                           "w-8 h-8 rounded-full flex items-center justify-center",
-                          isLast ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
+                          isLast ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300" : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
                         )}>
                           <Icon className="h-4 w-4" />
                         </div>
-                        {i < order.history.length - 1 && <div className="w-0.5 h-6 bg-gray-200 mt-1" />}
+                        {i < order.history.length - 1 && <div className="w-0.5 h-6 bg-gray-200 dark:bg-gray-700 mt-1" />}
                       </div>
                       <div className="pb-2">
                         <p className="font-medium text-sm">
                           {ORDER_STATUS_LABELS[entry.status as OrderStatus] || entry.status}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
                           {new Date(entry.date).toLocaleString("en-US", {
                             dateStyle: "medium", timeStyle: "short",
                           })}
                         </p>
-                        {entry.note && <p className="text-xs text-gray-500 mt-0.5">{entry.note}</p>}
+                        {entry.note && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{entry.note}</p>}
                       </div>
                     </div>
                   );
@@ -196,11 +196,11 @@ function OrderStatusContent() {
                   const Icon = STATUS_ICONS[s] || Circle;
                   return (
                     <div key={s} className="flex gap-3 opacity-40">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 text-gray-400">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500">
                         <Icon className="h-4 w-4" />
                       </div>
                       <div className="pt-1.5">
-                        <p className="text-sm text-gray-400">{ORDER_STATUS_LABELS[s as OrderStatus]}</p>
+                        <p className="text-sm text-gray-400 dark:text-gray-500">{ORDER_STATUS_LABELS[s as OrderStatus]}</p>
                       </div>
                     </div>
                   );
@@ -210,28 +210,28 @@ function OrderStatusContent() {
           </div>
 
           {/* Items */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
             <h3 className="font-semibold mb-3">Items</h3>
             {order.items.map((item: any, i: number) => (
-              <div key={i} className="flex justify-between py-2 border-b border-gray-100 last:border-0 text-sm">
+              <div key={i} className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700 last:border-0 text-sm">
                 <div>
                   <span className="font-medium">{item.productName}</span>
-                  <span className="text-gray-500 ml-2">{item.variantDesc} × {item.quantity}</span>
+                  <span className="text-gray-500 dark:text-gray-400 ml-2">{item.variantDesc} × {item.quantity}</span>
                 </div>
                 <span>{formatPrice(item.totalPrice)}</span>
               </div>
             ))}
-            <div className="border-t border-gray-200 mt-3 pt-3 space-y-1 text-sm">
+            <div className="border-t border-gray-200 dark:border-gray-700 mt-3 pt-3 space-y-1 text-sm">
               <div className="flex justify-between"><span>Subtotal</span><span>{formatPrice(order.subtotal)}</span></div>
               {order.discountAmount > 0 && (
-                <div className="flex justify-between text-green-700"><span>Discount</span><span>-{formatPrice(order.discountAmount)}</span></div>
+                <div className="flex justify-between text-green-700 dark:text-green-300"><span>Discount</span><span>-{formatPrice(order.discountAmount)}</span></div>
               )}
               <div className="flex justify-between"><span>Shipping</span><span>{order.shippingCost === 0 ? "Free" : formatPrice(order.shippingCost)}</span></div>
               <div className="flex justify-between font-bold text-base pt-1"><span>Total</span><span>{formatPrice(order.total)}</span></div>
             </div>
             {order.wantsInvoice && order.isPaid && (
-              <div className="mt-3 pt-3 border-t border-gray-200">
-                <a href={`/api/invoices/${order.orderId}`} target="_blank" className="text-sm text-green-700 hover:text-green-800 font-medium">
+              <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                <a href={`/api/invoices/${order.orderId}`} target="_blank" className="text-sm text-green-700 dark:text-green-300 hover:text-green-800 dark:hover:text-green-200 font-medium">
                   📄 Download Invoice
                 </a>
               </div>
@@ -248,8 +248,8 @@ function OrderStatusContent() {
           )}
 
           {!order.canCancel && ["processing", "shipped"].includes(order.status) && (
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-600">
-              Need to cancel? Contact us at <a href="mailto:support@leafyshop.eu" className="text-green-700 underline">support@leafyshop.eu</a> with your order number.
+            <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 text-sm text-gray-600 dark:text-gray-400">
+              Need to cancel? Contact us at <a href="mailto:support@leafyshop.eu" className="text-green-700 dark:text-green-300 underline">support@leafyshop.eu</a> with your order number.
             </div>
           )}
 
@@ -264,9 +264,9 @@ function OrderStatusContent() {
           {/* Cancel confirmation modal */}
           {showCancelModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowCancelModal(false)}>
-              <div className="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
-                <h3 className="font-semibold text-gray-900 text-lg mb-2">Cancel this order?</h3>
-                <p className="text-sm text-gray-600 mb-4">
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-sm mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-lg mb-2">Cancel this order?</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                   Are you sure you want to cancel order <strong>{order.orderNumber}</strong>?
                   {order.paymentMethod !== "cod" && " Your payment will be refunded within 5–10 business days."}
                 </p>

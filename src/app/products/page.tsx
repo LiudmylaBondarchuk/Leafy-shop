@@ -40,7 +40,7 @@ export default async function ProductsPage({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">{pageTitle}</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">{pageTitle}</h1>
       <div className="flex flex-col lg:flex-row gap-8">
         <aside className="w-full lg:w-64 shrink-0">
           <Suspense>
@@ -49,7 +49,7 @@ export default async function ProductsPage({
         </aside>
         <div className="flex-1">
           <div className="flex items-center justify-between mb-6">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               {pagination.total} product{pagination.total !== 1 ? "s" : ""} found
             </p>
             <Suspense>
@@ -64,8 +64,8 @@ export default async function ProductsPage({
             </div>
           ) : (
             <div className="text-center py-16">
-              <p className="text-gray-500 mb-4">No products match your criteria.</p>
-              <a href="/products" className="text-green-700 hover:text-green-800 text-sm font-medium">Clear filters</a>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">No products match your criteria.</p>
+              <a href="/products" className="text-green-700 dark:text-green-400 hover:text-green-800 text-sm font-medium">Clear filters</a>
             </div>
           )}
           {pagination.totalPages > 1 && (
@@ -73,7 +73,7 @@ export default async function ProductsPage({
               {pagination.page > 1 && (
                 <a
                   href={`/products?${new URLSearchParams({ ...params, page: String(pagination.page - 1) }).toString()}`}
-                  className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 hover:bg-gray-100"
+                  className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
                   ← Previous
                 </a>
@@ -82,7 +82,7 @@ export default async function ProductsPage({
                 <a
                   key={p}
                   href={`/products?${new URLSearchParams({ ...params, page: String(p) }).toString()}`}
-                  className={`px-3 py-1.5 text-sm rounded-lg ${p === pagination.page ? "bg-green-700 text-white" : "border border-gray-300 hover:bg-gray-100 text-gray-700"}`}
+                  className={`px-3 py-1.5 text-sm rounded-lg ${p === pagination.page ? "bg-green-700 text-white" : "border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"}`}
                 >
                   {p}
                 </a>
@@ -90,7 +90,7 @@ export default async function ProductsPage({
               {pagination.page < pagination.totalPages && (
                 <a
                   href={`/products?${new URLSearchParams({ ...params, page: String(pagination.page + 1) }).toString()}`}
-                  className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 hover:bg-gray-100"
+                  className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
                   Next →
                 </a>

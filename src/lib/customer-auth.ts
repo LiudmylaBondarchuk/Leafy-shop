@@ -18,7 +18,7 @@ export async function signCustomerToken(payload: CustomerPayload) {
   return new SignJWT({ ...payload, sub: String(payload.sub) })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("30d")
+    .setExpirationTime("7d")
     .sign(CUSTOMER_JWT_SECRET);
 }
 
@@ -45,7 +45,7 @@ export function createCustomerCookie(token: string) {
     httpOnly: true,
     sameSite: "lax" as const,
     secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60 * 24 * 30, // 30 days
+    maxAge: 60 * 60 * 24 * 7, // 7 days
     path: "/",
   };
 }

@@ -5,6 +5,10 @@ import { apiError } from "@/lib/utils";
 import { getSettings } from "@/lib/settings";
 import { NextResponse } from "next/server";
 
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 function generateInvoiceNumber(orderId: number, date: string): string {
   const d = new Date(date);
   const year = d.getFullYear();
@@ -43,7 +47,7 @@ export async function GET(
 
     const itemsHtml = (order.items as any[]).map((item: any) => `
       <tr>
-        <td style="padding:10px 12px;border-bottom:1px solid #e5e7eb">${item.productName}<br><small style="color:#666">${item.variantDesc}</small></td>
+        <td style="padding:10px 12px;border-bottom:1px solid #e5e7eb">${escapeHtml(item.productName)}<br><small style="color:#666">${escapeHtml(item.variantDesc)}</small></td>
         <td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;text-align:center">${item.quantity}</td>
         <td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;text-align:right">${formatPrice(item.unitPrice)}</td>
         <td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;text-align:right">${formatPrice(item.totalPrice)}</td>
@@ -102,18 +106,18 @@ export async function GET(
       <div style="flex:1">
         <h3 style="font-size:11px;text-transform:uppercase;color:#999;letter-spacing:1px;margin-bottom:8px">Bill To</h3>
         ${order.wantsInvoice && order.invoiceCompany ? `
-          <p style="font-weight:600">${order.invoiceCompany}</p>
-          <p style="color:#666">Tax ID: ${order.invoiceNip}</p>
-          <p style="color:#666">${order.invoiceAddress}</p>
+          <p style="font-weight:600">${escapeHtml(order.invoiceCompany)}</p>
+          <p style="color:#666">Tax ID: ${escapeHtml(order.invoiceNip || '')}</p>
+          <p style="color:#666">${escapeHtml(order.invoiceAddress || '')}</p>
           <div style="margin-top:8px;padding-top:8px;border-top:1px solid #eee">
-            <p style="color:#666">${order.customerFirstName} ${order.customerLastName}</p>
-            <p style="color:#666">${order.customerEmail}</p>
+            <p style="color:#666">${escapeHtml(order.customerFirstName)} ${escapeHtml(order.customerLastName)}</p>
+            <p style="color:#666">${escapeHtml(order.customerEmail)}</p>
           </div>
         ` : `
-          <p style="font-weight:600">${order.customerFirstName} ${order.customerLastName}</p>
-          <p style="color:#666">${order.shippingStreet}</p>
-          <p style="color:#666">${order.shippingZip} ${order.shippingCity}</p>
-          <p style="color:#666;margin-top:4px">${order.customerEmail}</p>
+          <p style="font-weight:600">${escapeHtml(order.customerFirstName)} ${escapeHtml(order.customerLastName)}</p>
+          <p style="color:#666">${escapeHtml(order.shippingStreet)}</p>
+          <p style="color:#666">${escapeHtml(order.shippingZip)} ${escapeHtml(order.shippingCity)}</p>
+          <p style="color:#666;margin-top:4px">${escapeHtml(order.customerEmail)}</p>
         `}
       </div>
     </div>

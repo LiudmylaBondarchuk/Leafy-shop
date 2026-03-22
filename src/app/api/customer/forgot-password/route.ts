@@ -75,7 +75,7 @@ export async function POST(request: Request) {
         console.error("[EMAIL] Failed to send password reset email:", error);
       }
     } else {
-      console.log("[EMAIL] Resend not configured — reset token for", customer.email, ":", resetToken);
+      console.log("[EMAIL] Resend not configured — reset email sent for", customer.email);
     }
 
     return apiSuccess({ message: "If an account with that email exists, a reset link has been sent." });

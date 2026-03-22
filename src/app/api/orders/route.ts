@@ -174,10 +174,12 @@ export async function POST(request: NextRequest) {
     // COD surcharge
     if (data.payment.method === "cod") shippingCost += COD_SURCHARGE;
 
-    // VAT calculation (on subtotal after discount)
+    // VAT calculation — use country rate, fallback to Settings default
     const settingsData = await getSettings();
     const defaultVatRate = parseInt(settingsData["store.vat_rate"] || "23", 10);
-    const vatRate = defaultVatRate;
+    const { COUNTRIES } = await import("@/constants/countries");
+    const customerCountry = COUNTRIES.find((c) => c.code === data.shipping.country);
+    const vatRate = customerCountry ? customerCountry.vatRate : defaultVatRate;
     const taxableAmount = Math.max(0, subtotal - discountAmount);
     const vatAmount = vatRate > 0 ? Math.round(taxableAmount * vatRate / 100) : 0;
 

@@ -69,15 +69,17 @@ export async function GET(
     <!-- Header -->
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px">
       <div>
-        <table cellpadding="0" cellspacing="0" border="0"><tr>
-          <td style="vertical-align:middle;padding-right:10px">
-            <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 1c1 2 2 4.5 2 8 0 5.5-4.78 12-10 12Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>
-          </td>
-          <td style="vertical-align:middle">
-            <div style="font-size:28px;font-weight:700;color:#15803d;line-height:1">Leafy</div>
-            <div style="font-size:12px;color:#666;margin-top:2px">Premium Teas & Coffees</div>
-          </td>
-        </tr></table>
+        <div>
+          <div style="display:inline-flex;align-items:center;gap:10px">
+            <div style="width:38px;height:38px;background:#15803d;border-radius:10px;display:flex;align-items:center;justify-content:center">
+              <span style="color:white;font-size:22px;font-weight:700;font-family:Georgia,serif">L</span>
+            </div>
+            <div>
+              <div style="font-size:28px;font-weight:700;color:#15803d;line-height:1">Leafy</div>
+              <div style="font-size:11px;color:#888;margin-top:2px;letter-spacing:0.5px">Premium Teas & Coffees</div>
+            </div>
+          </div>
+        </div>
       </div>
       <div style="text-align:right">
         <h2 style="font-size:24px;color:#333;margin-bottom:8px">INVOICE</h2>

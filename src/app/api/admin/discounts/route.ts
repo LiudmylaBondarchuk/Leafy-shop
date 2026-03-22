@@ -1,9 +1,10 @@
 import { db } from "@/lib/db";
 import { discountCodes, adminUsers } from "@/lib/db/schema-pg";
-import { eq } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 import { getAdminFromCookie } from "@/lib/auth";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { logAudit } from "@/lib/audit";
+import { getSettings } from "@/lib/settings";
 
 export async function POST(request: Request) {
   const admin = await getAdminFromCookie();
@@ -42,6 +43,25 @@ export async function POST(request: Request) {
       where: eq(adminUsers.id, Number(admin.sub)),
     });
     const isTester = requestingUser?.role === "tester";
+
+    // Enforce tester limits
+    if (isTester) {
+      const existing = await db
+        .select({ id: discountCodes.id })
+        .from(discountCodes)
+        .where(
+          and(
+            eq(discountCodes.createdBy, Number(admin.sub)),
+            eq(discountCodes.isTestData, true),
+            isNull(discountCodes.deletedAt)
+          )
+        );
+      const settings = await getSettings();
+      const limit = parseInt(settings["tester.max_discounts"] || "10", 10);
+      if (existing.length >= limit) {
+        return apiError(`Tester limit reached: maximum ${limit} test discounts allowed`, 403, "TESTER_LIMIT");
+      }
+    }
 
     const [created] = await db.insert(discountCodes).values({
       code: code.trim().toUpperCase(),

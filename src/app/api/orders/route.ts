@@ -291,7 +291,7 @@ export async function POST(request: NextRequest) {
       shippingAddress: `${data.shipping.street}, ${data.shipping.zip} ${data.shipping.city}`,
       orderId: order.id,
       wantsInvoice: data.invoice?.wants_invoice || false,
-    }).catch(() => {});
+    }).catch((err) => console.error("[EMAIL] Order confirmation failed:", err));
 
     return apiSuccess(
       { orderNumber, status: "new", total },

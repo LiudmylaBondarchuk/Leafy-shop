@@ -29,16 +29,15 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
     const checkAuth = async () => {
       try {
         const res = await fetch("/api/customer/me");
-        if (res.ok) {
+        const json = await res.json();
+        if (res.ok && json.data?.customer) {
           setLoggedIn(true);
-          // If logged in user tries to access login/register, redirect to account
           if (isPublicPage) {
             router.push("/account");
             return;
           }
         } else {
           setLoggedIn(false);
-          // If not logged in and trying to access protected page, redirect to login
           if (!isPublicPage) {
             router.push("/account/login");
             return;

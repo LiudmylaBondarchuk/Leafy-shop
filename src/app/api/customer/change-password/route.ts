@@ -36,7 +36,7 @@ export async function POST(request: Request) {
       return apiError("Current password is incorrect", 401, "INVALID_CREDENTIALS");
     }
 
-    const newHash = hashSync(newPassword, 10);
+    const newHash = hashSync(newPassword, 12);
     await db.update(customers).set({
       passwordHash: newHash,
       updatedAt: new Date().toISOString(),

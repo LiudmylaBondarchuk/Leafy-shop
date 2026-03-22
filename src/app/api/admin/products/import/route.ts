@@ -63,6 +63,10 @@ export async function POST(request: Request) {
     const file = formData.get("file") as File;
     if (!file) return apiError("No file uploaded", 400);
 
+    if (!file.name.endsWith('.csv') && !file.type.includes('text')) {
+      return apiError("Only CSV files are allowed", 400);
+    }
+
     const text = await file.text();
     const rows = parseCSV(text);
     if (rows.length === 0) return apiError("CSV is empty or has invalid format", 400);

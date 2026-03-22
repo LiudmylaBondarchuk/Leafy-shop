@@ -43,7 +43,9 @@ export async function GET() {
       }
     }
 
-    return apiSuccess(codes);
+    // Unauthenticated requests only get active, non-expired, non-deleted codes
+    const now = new Date().toISOString();
+    return apiSuccess(codes.filter((c: any) => c.isActive && !c.deletedAt && (!c.expiresAt || c.expiresAt > now)));
   } catch (error) {
     console.error("GET /api/discount-codes error:", error);
     return apiError("Failed to fetch discount codes", 500);

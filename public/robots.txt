@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /management/
+Disallow: /api/
+Sitemap: https://www.leafyshop.eu/sitemap.xml

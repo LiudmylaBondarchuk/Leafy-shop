@@ -7,7 +7,7 @@ import { rateLimit } from "@/lib/rate-limit";
 export async function POST(request: Request) {
   try {
     const ip = request.headers.get("x-forwarded-for") || "unknown";
-    const { success } = rateLimit(`check-email:${ip}`, 10, 60000);
+    const { success } = rateLimit(`check-email:${ip}`, 5, 60000);
     if (!success) return apiError("Too many requests. Please try again later.", 429);
 
     const body = await request.json();

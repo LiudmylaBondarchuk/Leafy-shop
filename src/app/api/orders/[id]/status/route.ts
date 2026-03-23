@@ -16,6 +16,7 @@ export async function PATCH(
 ) {
   try {
     const admin = await getAdminFromCookie();
+    if (!admin) return apiError("Unauthorized", 401, "UNAUTHORIZED");
     const { id } = await params;
     const body = await request.json();
     const { status: newStatus, note, trackingNumber } = body;

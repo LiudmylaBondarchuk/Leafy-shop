@@ -29,11 +29,11 @@ export async function GET() {
   }
 }
 
-export async function DELETE() {
+export async function DELETE(request: Request) {
   const admin = await getAdminFromCookie();
   if (!admin) return apiError("Unauthorized", 401);
 
-  // Only admin can clear logs
+  // Only admin (not manager) can clear logs
   const user = await db.query.adminUsers.findFirst({
     where: eq(adminUsers.id, Number(admin.sub)),
   });
@@ -42,6 +42,11 @@ export async function DELETE() {
   }
 
   try {
+    const body = await request.json();
+    if (body?.confirm !== true) {
+      return apiError("Confirmation required. Send { confirm: true } to delete all logs.", 400);
+    }
+
     await db.delete(auditLogs);
     return apiSuccess({ message: "All logs cleared" });
   } catch (error) {

@@ -14,6 +14,8 @@ export async function GET(
 
   try {
     const { id } = await params;
+    if (isNaN(parseInt(id))) return apiError("Invalid ID", 400);
+
     const code = await db.query.discountCodes.findFirst({
       where: eq(discountCodes.id, parseInt(id)),
       with: { category: true },
@@ -35,6 +37,8 @@ export async function PUT(
 
   try {
     const { id } = await params;
+    if (isNaN(parseInt(id))) return apiError("Invalid ID", 400);
+
     const body = await request.json();
     const { code, description, type, value, minOrderValue, maxDiscount, categoryId, usageLimit, startsAt, expiresAt, isActive } = body;
 
@@ -125,6 +129,7 @@ export async function DELETE(
   try {
     const { id } = await params;
     const discountId = parseInt(id);
+    if (isNaN(discountId)) return apiError("Invalid ID", 400);
 
     // Fetch discount info before deleting
     const discount = await db.query.discountCodes.findFirst({

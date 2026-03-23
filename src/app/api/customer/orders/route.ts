@@ -26,5 +26,9 @@ export async function GET() {
     },
   });
 
-  return apiSuccess({ orders: customerOrders });
+  // Exclude internalNotes from customer-facing response
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const sanitizedOrders = customerOrders.map(({ internalNotes: _notes, ...rest }: any) => rest);
+
+  return apiSuccess({ orders: sanitizedOrders });
 }

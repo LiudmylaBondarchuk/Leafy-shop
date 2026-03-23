@@ -15,6 +15,9 @@ export async function POST(request: Request) {
     if (!password || password.length < 8) {
       return apiError("Password must be at least 8 characters", 400, "VALIDATION_ERROR");
     }
+    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
+      return apiError("Password must contain at least one uppercase letter, one lowercase letter, and one digit", 400, "VALIDATION_ERROR");
+    }
 
     const customer = await db.query.customers.findFirst({
       where: eq(customers.resetToken, token),

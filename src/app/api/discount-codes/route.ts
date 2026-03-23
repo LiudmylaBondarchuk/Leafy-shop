@@ -45,9 +45,12 @@ export async function GET() {
       return apiSuccess(codes.filter((c: any) => !c.deletedAt));
     }
 
-    // Unauthenticated requests only get active, non-expired, non-deleted codes
+    // Unauthenticated requests only get active, non-expired, non-deleted codes — return only the code field
     const now = new Date().toISOString();
-    return apiSuccess(codes.filter((c: any) => c.isActive && !c.deletedAt && (!c.expiresAt || c.expiresAt > now)));
+    return apiSuccess(codes
+      .filter((c: any) => c.isActive && !c.deletedAt && (!c.expiresAt || c.expiresAt > now))
+      .map((c: any) => ({ code: c.code }))
+    );
   } catch (error) {
     console.error("GET /api/discount-codes error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to fetch discount codes", 500);

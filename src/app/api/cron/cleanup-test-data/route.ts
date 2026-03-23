@@ -12,7 +12,11 @@ import { getSettings } from "@/lib/settings";
 export async function GET(request: NextRequest) {
   try {
     const token = request.nextUrl.searchParams.get("token");
-    const expectedToken = process.env.CRON_SECRET || "leafy-cron-secret-token";
+    const expectedToken = process.env.CRON_SECRET;
+    if (!expectedToken) {
+      console.error("[CRON] CRON_SECRET env var not set");
+      return apiError("Server configuration error", 500);
+    }
 
     if (token !== expectedToken) {
       return apiError("Invalid cron token", 401, "UNAUTHORIZED");

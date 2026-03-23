@@ -48,6 +48,7 @@ export default function CheckoutPage() {
   const [signupPassword, setSignupPassword] = useState("");
   const [signupSubmitting, setSignupSubmitting] = useState(false);
   const [confirmEmail, setConfirmEmail] = useState("");
+  const [calculatedDiscount, setCalculatedDiscount] = useState(0);
 
   const [form, setForm] = useState({
     firstName: "", lastName: "", email: "", phone: "",
@@ -120,6 +121,38 @@ export default function CheckoutPage() {
     if (mounted && items.length === 0 && !orderPlaced) router.push("/cart");
   }, [mounted, items.length, router, orderPlaced]);
 
+  // Fetch server-calculated discount amount when discount code is present
+  useEffect(() => {
+    if (!mounted || !discountCode || items.length === 0) {
+      setCalculatedDiscount(0);
+      return;
+    }
+
+    const fetchDiscount = async () => {
+      try {
+        const res = await fetch("/api/cart/calculate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            items: items.map((i) => ({ variant_id: i.variantId, quantity: i.quantity })),
+            discount_code: discountCode,
+            shipping_method: form.shippingMethod,
+          }),
+        });
+        const json = await res.json();
+        if (json.data?.discount?.amount) {
+          setCalculatedDiscount(json.data.discount.amount);
+        } else {
+          setCalculatedDiscount(0);
+        }
+      } catch {
+        setCalculatedDiscount(0);
+      }
+    };
+
+    fetchDiscount();
+  }, [mounted, discountCode, items, form.shippingMethod]);
+
   if (!mounted || (items.length === 0 && !orderPlaced)) return null;
 
   const updateField = (field: string, value: any) => {
@@ -191,7 +224,7 @@ export default function CheckoutPage() {
   // The invoice will show the correct VAT breakdown based on country/VAT ID.
   const vatRate = 23;
   const vatAmount = Math.round(subtotal - subtotal / (1 + vatRate / 100));
-  const total = subtotal + shippingCost; // VAT already in prices, discount handled server-side
+  const total = Math.max(0, subtotal - calculatedDiscount + shippingCost); // VAT already in prices
 
   const handleSubmit = async () => {
     if (!form.acceptTerms) { toast.error("Please accept the terms and conditions"); return; }
@@ -545,7 +578,7 @@ export default function CheckoutPage() {
             <div className="flex justify-between"><span>Subtotal</span><span>{formatPrice(subtotal)}</span></div>
             <div className="flex justify-between text-gray-500 text-xs"><span>incl. VAT ({vatRate}%)</span><span>{formatPrice(vatAmount)}</span></div>
             <div className="flex justify-between"><span>Shipping</span><span>{shippingCost === 0 ? "Free" : formatPrice(shippingCost)}</span></div>
-            {discountCode && <div className="flex justify-between text-green-700"><span>Discount ({discountCode})</span><span>Applied at checkout</span></div>}
+            {discountCode && calculatedDiscount > 0 && <div className="flex justify-between text-green-700"><span>Discount ({discountCode})</span><span>-{formatPrice(calculatedDiscount)}</span></div>}
             <div className="flex justify-between font-bold text-base border-t border-gray-200 dark:border-gray-700 pt-2">
               <span>Total</span><span className="text-green-800">{formatPrice(total)}</span>
             </div>

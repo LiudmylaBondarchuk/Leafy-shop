@@ -1,5 +1,8 @@
 import { createPayPalOrder } from "@/lib/paypal";
 import { apiSuccess, apiError } from "@/lib/utils";
+import { db } from "@/lib/db";
+import { orders } from "@/lib/db/schema-pg";
+import { eq } from "drizzle-orm";
 
 export async function POST(request: Request) {
   try {
@@ -7,6 +10,19 @@ export async function POST(request: Request) {
 
     if (!totalInCents || !orderNumber) {
       return apiError("Total and order number are required", 400);
+    }
+
+    // Server-side validation: look up the order and verify the total
+    const order = await db.query.orders.findFirst({
+      where: eq(orders.orderNumber, orderNumber),
+    });
+
+    if (!order) {
+      return apiError("Order not found", 404);
+    }
+
+    if (order.total !== totalInCents) {
+      return apiError("Total mismatch. Payment rejected.", 400);
     }
 
     const paypalOrder = await createPayPalOrder(totalInCents, orderNumber);

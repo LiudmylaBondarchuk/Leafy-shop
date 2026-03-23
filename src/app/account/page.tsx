@@ -77,10 +77,10 @@ export default function AccountDashboardPage() {
     <div className="space-y-6">
       {/* Welcome card */}
       <Card className="p-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">
           Welcome back, {profile?.firstName}!
         </h1>
-        <p className="text-sm text-gray-500">{profile?.email}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{profile?.email}</p>
         <div className="mt-4 flex flex-wrap gap-3">
           <Link
             href="/account/profile"
@@ -101,7 +101,7 @@ export default function AccountDashboardPage() {
       {/* Recent orders */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
             <Package className="h-5 w-5 text-green-700" />
             Recent Orders
           </h2>
@@ -135,7 +135,7 @@ export default function AccountDashboardPage() {
                 className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
               >
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                     {order.orderNumber}
                   </p>
                   <p className="text-xs text-gray-500 mt-0.5">

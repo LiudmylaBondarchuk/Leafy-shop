@@ -5,8 +5,9 @@ import type { OrderStatus } from "@/constants/order-statuses";
 import { getTransitionsForOrder } from "@/constants/order-statuses";
 import { logAudit } from "@/lib/audit";
 import { apiSuccess, apiError } from "@/lib/utils";
-import { sendOrderStatusEmail } from "@/lib/email";
+import { sendOrderStatusEmail, sendCreditNoteEmail } from "@/lib/email";
 import { getAdminFromCookie } from "@/lib/auth";
+import { generateCreditNote, markCreditNoteEmailSent } from "@/lib/credit-notes";
 import { NextRequest } from "next/server";
 
 export async function PATCH(
@@ -107,6 +108,26 @@ export async function PATCH(
       productTypes,
       newStatus === "shipped" ? trackingNumber : undefined,
     ).catch(() => {});
+
+    // Generate credit note for cancelled orders with invoices
+    if (newStatus === "cancelled" && order.wantsInvoice) {
+      try {
+        const creditNote = await generateCreditNote(order.id, note || "Order cancelled");
+        if (creditNote) {
+          sendCreditNoteEmail(
+            order.customerEmail,
+            order.customerFirstName,
+            order.orderNumber,
+            creditNote.creditNoteNumber,
+            creditNote.originalInvoiceNumber,
+            creditNote.total,
+            order.id,
+          ).then(() => markCreditNoteEmailSent(creditNote.id)).catch(() => {});
+        }
+      } catch (err) {
+        console.error("Failed to generate credit note:", err instanceof Error ? err.message : "Unknown error");
+      }
+    }
 
     // Audit log
     logAudit({

@@ -1,15 +1,17 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
-function getJwtSecret() {
-  const raw = process.env.JWT_SECRET;
-  if (!raw && process.env.NODE_ENV === "production" && !process.env.NEXT_PHASE) {
-    console.warn("JWT_SECRET environment variable is not set");
-  }
-  return new TextEncoder().encode(raw || "leafy-shop-dev-secret-key-32chars!!");
-}
+let _cachedSecret: Uint8Array | null = null;
 
-const SECRET = getJwtSecret();
+function getJwtSecret(): Uint8Array {
+  if (_cachedSecret) return _cachedSecret;
+  const raw = process.env.JWT_SECRET;
+  if (!raw && !process.env.NEXT_PHASE) {
+    throw new Error("JWT_SECRET environment variable is required");
+  }
+  _cachedSecret = new TextEncoder().encode(raw || "");
+  return _cachedSecret;
+}
 
 const COOKIE_NAME = "admin_token";
 
@@ -18,12 +20,12 @@ export async function signToken(payload: { sub: number; email: string; name: str
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("24h")
-    .sign(SECRET);
+    .sign(getJwtSecret());
 }
 
 export async function verifyToken(token: string) {
   try {
-    const { payload } = await jwtVerify(token, SECRET);
+    const { payload } = await jwtVerify(token, getJwtSecret());
     return payload as unknown as { sub: number; email: string; name: string };
   } catch {
     return null;

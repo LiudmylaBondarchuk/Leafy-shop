@@ -3,13 +3,17 @@ import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 import { neon } from "@neondatabase/serverless";
 
-const JWT_SECRET_RAW = process.env.JWT_SECRET;
-if (!JWT_SECRET_RAW && process.env.NODE_ENV === "production") {
-  throw new Error("JWT_SECRET environment variable is required in production");
+let _cachedMiddlewareSecret: Uint8Array | null = null;
+
+function getMiddlewareSecret(): Uint8Array {
+  if (_cachedMiddlewareSecret) return _cachedMiddlewareSecret;
+  const raw = process.env.JWT_SECRET;
+  if (!raw && !process.env.NEXT_PHASE) {
+    throw new Error("JWT_SECRET environment variable is required");
+  }
+  _cachedMiddlewareSecret = new TextEncoder().encode(raw || "");
+  return _cachedMiddlewareSecret;
 }
-const SECRET = new TextEncoder().encode(
-  JWT_SECRET_RAW || "leafy-shop-dev-secret-key-32chars!!" // dev only fallback
-);
 
 /**
  * Check if an admin/manager user must change their password.
@@ -67,7 +71,7 @@ export async function middleware(request: NextRequest) {
     }
 
     try {
-      const { payload } = await jwtVerify(token, SECRET);
+      const { payload } = await jwtVerify(token, getMiddlewareSecret());
 
       // For management pages (not API), check if admin/manager must change password
       if (pathname.startsWith("/management") && payload.sub) {

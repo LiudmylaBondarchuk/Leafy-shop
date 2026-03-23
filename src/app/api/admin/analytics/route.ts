@@ -64,9 +64,26 @@ export async function GET(request: NextRequest) {
       dailyOrders[day] = (dailyOrders[day] || 0) + 1;
     }
 
-    const revenueChart = Object.entries(dailyRevenue)
-      .map(([date, revenue]) => ({ date, revenue, orders: dailyOrders[date] || 0 }))
-      .sort((a, b) => a.date.localeCompare(b.date));
+    // Build a continuous date range so the chart includes all days (even with 0 orders)
+    const sortedDays = Object.keys(dailyRevenue).sort();
+    const today = new Date().toISOString().split("T")[0];
+    const rangeStart = from ? from.split("T")[0] : sortedDays[0];
+    const rangeEnd = to || today;
+
+    const revenueChart: { date: string; revenue: number; orders: number }[] = [];
+    if (rangeStart) {
+      const cursor = new Date(rangeStart);
+      const end = new Date(rangeEnd);
+      while (cursor <= end) {
+        const day = cursor.toISOString().split("T")[0];
+        revenueChart.push({
+          date: day,
+          revenue: dailyRevenue[day] || 0,
+          orders: dailyOrders[day] || 0,
+        });
+        cursor.setDate(cursor.getDate() + 1);
+      }
+    }
 
     // Orders by status
     const statusBreakdown: Record<string, number> = {};

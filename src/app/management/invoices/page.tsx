@@ -75,7 +75,7 @@ export default function AdminInvoicesPage() {
       <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Invoices</h1>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 mb-6">
         <Card className="p-4">
           <p className="text-xs text-gray-500 dark:text-gray-400">Total Invoices</p>
           <p className="text-xl font-bold text-gray-900 dark:text-gray-100">{orders.length}</p>
@@ -87,6 +87,10 @@ export default function AdminInvoicesPage() {
         <Card className="p-4">
           <p className="text-xs text-gray-500 dark:text-gray-400">Pending (Awaiting Payment)</p>
           <p className="text-xl font-bold text-yellow-600">{orders.filter((o) => !isPaid(o) && o.status !== "cancelled").length}</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-xs text-gray-500 dark:text-gray-400">Cancelled</p>
+          <p className="text-xl font-bold text-gray-400">{orders.filter((o) => o.status === "cancelled").length}</p>
         </Card>
         <Card className="p-4">
           <p className="text-xs text-gray-500 dark:text-gray-400">Credit Notes</p>

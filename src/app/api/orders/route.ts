@@ -194,48 +194,69 @@ export async function POST(request: NextRequest) {
     // Total = subtotal - discount + shipping (VAT already in prices)
     const total = Math.max(0, subtotal - discountAmount + shippingCost);
 
-    // Generate order number
+    // Generate order number and INSERT with retry on unique constraint violation
     const today = new Date();
     const todayStr = today.toISOString().slice(0, 10);
     const existingOrders = await db
       .select({ id: orders.id })
       .from(orders)
       .where(sql`date(${orders.createdAt}) = ${todayStr}`);
-    const orderNumber = generateOrderNumber(today, existingOrders.length + 1);
 
-    // INSERT order
-    const orderResults = await db
-      .insert(orders)
-      .values({
-        orderNumber,
-        status: "new",
-        customerEmail: data.customer.email.trim().toLowerCase(),
-        customerPhone: data.customer.phone,
-        customerFirstName: data.customer.first_name.trim(),
-        customerLastName: data.customer.last_name.trim(),
-        shippingStreet: data.shipping.street.trim(),
-        shippingCity: data.shipping.city.trim(),
-        shippingZip: data.shipping.zip,
-        shippingCountry: data.shipping.country || null,
-        shippingMethod: data.shipping.method,
-        shippingCost,
-        inpostCode: data.shipping.inpost_code || null,
-        paymentMethod: data.payment.method,
-        wantsInvoice: data.invoice?.wants_invoice || false,
-        invoiceCompany: data.invoice?.company || null,
-        invoiceNip: data.invoice?.nip || null,
-        invoiceAddress: data.invoice?.address || null,
-        subtotal,
-        discountAmount,
-        discountCodeId,
-        vatRate,
-        vatAmount,
-        total,
-        notes: data.notes || null,
-        isTestData: isTester,
-      })
-      .returning();
-    const order = orderResults[0];
+    let order: typeof orders.$inferSelect | undefined;
+    let orderNumber = "";
+    const maxRetries = 3;
+
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      orderNumber = generateOrderNumber(today, existingOrders.length + 1 + attempt);
+      try {
+        const orderResults = await db
+          .insert(orders)
+          .values({
+            orderNumber,
+            status: "new",
+            customerEmail: data.customer.email.trim().toLowerCase(),
+            customerPhone: data.customer.phone,
+            customerFirstName: data.customer.first_name.trim(),
+            customerLastName: data.customer.last_name.trim(),
+            shippingStreet: data.shipping.street.trim(),
+            shippingCity: data.shipping.city.trim(),
+            shippingZip: data.shipping.zip,
+            shippingCountry: data.shipping.country || null,
+            shippingMethod: data.shipping.method,
+            shippingCost,
+            inpostCode: data.shipping.inpost_code || null,
+            paymentMethod: data.payment.method,
+            wantsInvoice: data.invoice?.wants_invoice || false,
+            invoiceCompany: data.invoice?.company || null,
+            invoiceNip: data.invoice?.nip || null,
+            invoiceAddress: data.invoice?.address || null,
+            subtotal,
+            discountAmount,
+            discountCodeId,
+            vatRate,
+            vatAmount,
+            total,
+            notes: data.notes || null,
+            isTestData: isTester,
+          })
+          .returning();
+        order = orderResults[0];
+        break; // success — exit retry loop
+      } catch (insertError: any) {
+        const isUniqueViolation =
+          insertError?.code === "23505" ||
+          insertError?.message?.includes("unique") ||
+          insertError?.message?.includes("duplicate");
+        if (!isUniqueViolation || attempt === maxRetries - 1) {
+          throw insertError; // rethrow non-unique errors or final attempt
+        }
+        // unique constraint violation — retry with incremented sequence
+      }
+    }
+
+    if (!order) {
+      return apiError("Failed to generate unique order number. Please try again.", 500);
+    }
 
     // Insert order items
     for (const v of variantRows) {

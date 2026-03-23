@@ -1,15 +1,17 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
-function getCustomerSecret() {
-  const raw = process.env.CUSTOMER_JWT_SECRET;
-  if (!raw && process.env.NODE_ENV === "production" && typeof window === "undefined" && !process.env.NEXT_PHASE) {
-    console.warn("CUSTOMER_JWT_SECRET environment variable is not set");
-  }
-  return new TextEncoder().encode(raw || "customer-secret-change-me");
-}
+let _cachedCustomerSecret: Uint8Array | null = null;
 
-const CUSTOMER_SECRET = getCustomerSecret();
+function getCustomerSecret(): Uint8Array {
+  if (_cachedCustomerSecret) return _cachedCustomerSecret;
+  const raw = process.env.CUSTOMER_JWT_SECRET;
+  if (!raw && !process.env.NEXT_PHASE) {
+    throw new Error("CUSTOMER_JWT_SECRET environment variable is required");
+  }
+  _cachedCustomerSecret = new TextEncoder().encode(raw || "");
+  return _cachedCustomerSecret;
+}
 
 const COOKIE_NAME = "customer_token";
 
@@ -25,12 +27,12 @@ export async function signCustomerToken(payload: CustomerPayload) {
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("7d")
-    .sign(CUSTOMER_SECRET);
+    .sign(getCustomerSecret());
 }
 
 export async function verifyCustomerToken(token: string) {
   try {
-    const { payload } = await jwtVerify(token, CUSTOMER_SECRET);
+    const { payload } = await jwtVerify(token, getCustomerSecret());
     return payload as unknown as CustomerPayload;
   } catch {
     return null;

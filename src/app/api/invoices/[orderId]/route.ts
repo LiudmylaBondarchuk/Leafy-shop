@@ -3,8 +3,10 @@ import { orders, orderItems } from "@/lib/db/schema-pg";
 import { eq } from "drizzle-orm";
 import { apiError } from "@/lib/utils";
 import { getSettings } from "@/lib/settings";
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { getVatScenario, calculateInvoiceVat } from "@/constants/countries";
+import { getAdminFromCookie } from "@/lib/auth";
+import { getCustomerFromCookie } from "@/lib/customer-auth";
 
 function escapeHtml(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -22,10 +24,14 @@ function formatPrice(cents: number): string {
 }
 
 export async function GET(
-  _request: Request,
+  _request: NextRequest,
   { params }: { params: Promise<{ orderId: string }> }
 ) {
   try {
+    const admin = await getAdminFromCookie();
+    const customer = await getCustomerFromCookie();
+    if (!admin && !customer) return apiError("Unauthorized", 401);
+
     const { orderId } = await params;
 
     const order = await db.query.orders.findFirst({
@@ -34,6 +40,12 @@ export async function GET(
     });
 
     if (!order) return apiError("Order not found", 404);
+
+    // Customer can only view their own invoices
+    if (!admin && customer && customer.email !== order.customerEmail) {
+      return apiError("Unauthorized", 401);
+    }
+
     if (!order.wantsInvoice) return apiError("No invoice requested for this order", 400);
 
     const cfg = await getSettings();

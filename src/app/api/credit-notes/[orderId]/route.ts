@@ -3,7 +3,9 @@ import { orders, orderItems, creditNotes } from "@/lib/db/schema-pg";
 import { eq } from "drizzle-orm";
 import { apiError } from "@/lib/utils";
 import { getSettings } from "@/lib/settings";
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
+import { getAdminFromCookie } from "@/lib/auth";
+import { getCustomerFromCookie } from "@/lib/customer-auth";
 
 function escapeHtml(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -14,10 +16,14 @@ function formatPrice(cents: number): string {
 }
 
 export async function GET(
-  _request: Request,
+  _request: NextRequest,
   { params }: { params: Promise<{ orderId: string }> }
 ) {
   try {
+    const admin = await getAdminFromCookie();
+    const customer = await getCustomerFromCookie();
+    if (!admin && !customer) return apiError("Unauthorized", 401);
+
     const { orderId } = await params;
 
     const creditNote = await db.query.creditNotes.findFirst({
@@ -32,6 +38,11 @@ export async function GET(
     });
 
     if (!order) return apiError("Order not found", 404);
+
+    // Customer can only view their own credit notes
+    if (!admin && customer && customer.email !== order.customerEmail) {
+      return apiError("Unauthorized", 401);
+    }
 
     const cfg = await getSettings();
     const storeName = cfg["store.name"] || "Leafy Tea & Coffee Ltd.";

@@ -55,6 +55,8 @@ export async function PUT(
       return apiError("No permission", 403, "FORBIDDEN");
     }
 
+    const body = await request.json();
+
     const targetUser = await db.query.adminUsers.findFirst({
       where: eq(adminUsers.id, userId),
     });
@@ -67,7 +69,6 @@ export async function PUT(
 
     // Can't demote yourself
     if (userId === Number(admin.sub)) {
-      const body = await request.json();
       if (body.role && body.role !== requestingUser.role) {
         return apiError("You can't change your own role", 403, "FORBIDDEN");
       }
@@ -75,8 +76,6 @@ export async function PUT(
         return apiError("You can't deactivate yourself", 403, "FORBIDDEN");
       }
     }
-
-    const body = await request.json();
     const updateData: any = {};
 
     if (body.name !== undefined) updateData.name = body.name.trim();

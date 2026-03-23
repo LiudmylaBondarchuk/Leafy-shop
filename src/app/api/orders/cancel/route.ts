@@ -1,14 +1,18 @@
 import { db } from "@/lib/db";
 import { orders, orderStatusHistory, productVariants, discountCodes } from "@/lib/db/schema-pg";
 import { eq, and, sql } from "drizzle-orm";
-import { canTransition } from "@/lib/order-state-machine";
 import type { OrderStatus } from "@/constants/order-statuses";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { sendOrderStatusEmail, sendCreditNoteEmail } from "@/lib/email";
 import { generateCreditNote, markCreditNoteEmailSent } from "@/lib/credit-notes";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   try {
+    const ip = request.headers.get("x-forwarded-for") || "unknown";
+    const { success } = rateLimit(`order-cancel:${ip}`, 5, 15 * 60 * 1000);
+    if (!success) return apiError("Too many cancellation attempts. Please try again later.", 429);
+
     const { orderNumber, email } = await request.json();
 
     if (!orderNumber || !email) {
@@ -40,10 +44,10 @@ export async function POST(request: Request) {
         .where(eq(productVariants.id, item.variantId));
     }
 
-    // Revert discount code usage
+    // Revert discount code usage (prevent going below 0)
     if (order.discountCodeId) {
       await db.update(discountCodes)
-        .set({ usageCount: sql`${discountCodes.usageCount} - 1` })
+        .set({ usageCount: sql`GREATEST(${discountCodes.usageCount} - 1, 0)` })
         .where(eq(discountCodes.id, order.discountCodeId));
     }
 

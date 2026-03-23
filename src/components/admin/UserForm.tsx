@@ -128,7 +128,7 @@ export function UserForm({ userId }: UserFormProps) {
     if (!userId) {
       payload.email = form.email.trim().toLowerCase();
     }
-    if (userId && form.password) payload.password = form.password;
+    if (userId && form.password && form.role !== "tester") payload.password = form.password;
 
     try {
       const url = userId ? `/api/admin/users/${userId}` : "/api/admin/users";
@@ -166,8 +166,13 @@ export function UserForm({ userId }: UserFormProps) {
             They will be required to change it on first login.
           </p>
         )}
-        {userId && (
+        {userId && form.role !== "tester" && (
           <Input label="New password (leave empty to keep current)" id="password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Min 8 characters" />
+        )}
+        {userId && form.role === "tester" && (
+          <p className="text-xs text-gray-500 bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3">
+            Testers receive one-time generated passwords. Password cannot be manually changed.
+          </p>
         )}
       </Card>
 

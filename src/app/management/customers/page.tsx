@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { formatPrice, formatDateShort } from "@/lib/utils";
+import { hasPermission } from "@/constants/permissions";
 import { AlertTriangle, Search, Pencil, X, KeyRound } from "lucide-react";
 import Link from "next/link";
 import { TableSkeleton } from "@/components/ui/Skeleton";
@@ -18,6 +19,7 @@ export default function AdminCustomersPage() {
   const [accountFilter, setAccountFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState("");
+  const [userPermissions, setUserPermissions] = useState<string[]>([]);
   const [editModal, setEditModal] = useState<{ accountId: number; email: string; firstName: string; lastName: string; phone: string; shippingStreet: string; shippingCity: string; shippingZip: string; shippingCountry: string } | null>(null);
   const [editSaving, setEditSaving] = useState(false);
   const [sendingReset, setSendingReset] = useState(false);
@@ -37,11 +39,14 @@ export default function AdminCustomersPage() {
   useEffect(() => {
     fetchCustomers();
     fetch("/api/auth/me").then((r) => r.json()).then((json) => {
-      if (json.data?.user) setUserRole(json.data.user.role || "");
+      if (json.data?.user) {
+        setUserRole(json.data.user.role || "");
+        setUserPermissions(json.data.user.permissions || []);
+      }
     });
   }, [search]);
 
-  const canEdit = userRole === "admin" || userRole === "manager";
+  const canEdit = hasPermission(userRole, userPermissions, "customers.edit");
 
   const filtered = customers.filter((c) => {
     if (accountFilter === "with" && !c.hasAccount) return false;

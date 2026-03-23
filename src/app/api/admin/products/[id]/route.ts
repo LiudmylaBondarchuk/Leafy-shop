@@ -14,8 +14,11 @@ export async function GET(
 
   try {
     const { id } = await params;
+    const productId = parseInt(id);
+    if (isNaN(productId)) return apiError("Invalid ID", 400);
+
     const product = await db.query.products.findFirst({
-      where: eq(products.id, parseInt(id)),
+      where: eq(products.id, productId),
       with: { category: true, variants: true },
     });
 
@@ -36,6 +39,8 @@ export async function PUT(
 
   try {
     const { id } = await params;
+    if (isNaN(parseInt(id))) return apiError("Invalid ID", 400);
+
     const body = await request.json();
     const {
       name, description, shortDescription, categoryId, productType,
@@ -164,6 +169,7 @@ export async function DELETE(
   try {
     const { id } = await params;
     const productId = parseInt(id);
+    if (isNaN(productId)) return apiError("Invalid ID", 400);
 
     // Fetch product before deactivating
     const product = await db.query.products.findFirst({

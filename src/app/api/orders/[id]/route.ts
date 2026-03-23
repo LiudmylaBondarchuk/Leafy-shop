@@ -21,8 +21,11 @@ export async function GET(
     }
 
     const { id } = await params;
+    const orderId = parseInt(id);
+    if (isNaN(orderId)) return apiError("Invalid ID", 400);
+
     const order = await db.query.orders.findFirst({
-      where: eq(orders.id, parseInt(id)),
+      where: eq(orders.id, orderId),
       with: {
         items: true,
         statusHistory: {
@@ -61,6 +64,8 @@ export async function PATCH(
     }
 
     const { id } = await params;
+    if (isNaN(parseInt(id))) return apiError("Invalid ID", 400);
+
     const body = await request.json();
     const { internalNotes } = body;
 

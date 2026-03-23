@@ -40,15 +40,10 @@ const BADGE_COLOR_MAP: Record<string, string> = {
   pink: "bg-pink-100 text-pink-800 border-pink-300",
 };
 
-const BADGE_STAR_MAP: Record<string, string> = {
-  green: "text-amber-500", amber: "text-amber-600", blue: "text-blue-500",
-  purple: "text-purple-500", red: "text-red-500", pink: "text-pink-500",
-};
 
 function BadgePreview({ name, color }: { name: string; color: string }) {
   return (
     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${BADGE_COLOR_MAP[color] || BADGE_COLOR_MAP.green}`}>
-      <span className={BADGE_STAR_MAP[color] || BADGE_STAR_MAP.green}>★</span>
       {name}
     </span>
   );
@@ -71,6 +66,14 @@ export default function SettingsPage() {
   const [badgeForm, setBadgeForm] = useState<BadgeItem | null>(null);
   const [badgeFormIsNew, setBadgeFormIsNew] = useState(false);
   const [deleteBadgeModal, setDeleteBadgeModal] = useState<BadgeItem | null>(null);
+  const [userRole, setUserRole] = useState("");
+
+  // Get current user role
+  useEffect(() => {
+    fetch("/api/auth/me").then((r) => r.json()).then((json) => {
+      if (json.data?.user) setUserRole(json.data.user.role || "");
+    });
+  }, []);
 
   const fetchCategories = () => {
     fetch("/api/admin/categories")
@@ -114,6 +117,10 @@ export default function SettingsPage() {
   };
 
   const handleSave = async () => {
+    if (userRole === "tester") {
+      toast.error("This action is not available in test mode");
+      return;
+    }
     setSaving(true);
     try {
       const merged = syncBadgesToSettings(badges, settings);
@@ -136,6 +143,11 @@ export default function SettingsPage() {
   };
 
   const handleCleanup = async () => {
+    if (userRole === "tester") {
+      toast.error("This action is not available in test mode");
+      setCleanupModal(false);
+      return;
+    }
     setCleaning(true);
     try {
       const res = await fetch("/api/cron/cleanup-test-data?token=" + (process.env.NEXT_PUBLIC_CRON_SECRET || ""));
@@ -210,33 +222,6 @@ export default function SettingsPage() {
         <Input label="No-reply email (from)" id="emailNoreply" value={settings["email.noreply_from"] || ""} onChange={(e) => updateSetting("email.noreply_from", e.target.value)} />
         <p className="text-xs text-gray-400 dark:text-gray-500 -mt-2">Used for status updates, welcome emails, and password resets.</p>
         <p className="text-xs text-gray-400 dark:text-gray-500">All emails must use the @leafyshop.eu domain (verified with Resend).</p>
-
-        {/* Email overview table */}
-        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-          <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">All emails sent by the system</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {[
-              { type: "Order Confirmation", from: settings["email.orders_from"] || "orders@leafyshop.eu", trigger: "Customer places order", color: "bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-700" },
-              { type: "Payment Confirmed", from: settings["email.noreply_from"] || "noreply@leafyshop.eu", trigger: "Payment received", color: "bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-700" },
-              { type: "Order Processing", from: settings["email.noreply_from"] || "noreply@leafyshop.eu", trigger: "Status → Processing", color: "bg-yellow-50 dark:bg-yellow-900/30 border-yellow-200 dark:border-yellow-700" },
-              { type: "Order Shipped", from: settings["email.noreply_from"] || "noreply@leafyshop.eu", trigger: "Status → Shipped", color: "bg-purple-50 dark:bg-purple-900/30 border-purple-200 dark:border-purple-700" },
-              { type: "Order Delivered", from: settings["email.noreply_from"] || "noreply@leafyshop.eu", trigger: "Status → Delivered", color: "bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-700" },
-              { type: "Order Cancelled", from: settings["email.noreply_from"] || "noreply@leafyshop.eu", trigger: "Order cancelled", color: "bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-700" },
-              { type: "Return Processed", from: settings["email.noreply_from"] || "noreply@leafyshop.eu", trigger: "Return confirmed", color: "bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-700" },
-              { type: "Invoice", from: settings["email.invoices_from"] || "invoices@leafyshop.eu", trigger: "Shown on invoice PDF", color: "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700" },
-              { type: "Welcome (new user)", from: settings["email.noreply_from"] || "noreply@leafyshop.eu", trigger: "Admin creates user", color: "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700" },
-              { type: "Password Reset", from: settings["email.noreply_from"] || "noreply@leafyshop.eu", trigger: "Admin resets password", color: "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700" },
-              { type: "Low Stock Alert (critical)", from: settings["email.alerts_from"] || "alerts@leafyshop.eu", trigger: "Instant after order", color: "bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-700" },
-              { type: "Low Stock Report (daily)", from: settings["email.alerts_from"] || "alerts@leafyshop.eu", trigger: "Daily cron (3:00 AM)", color: "bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-700" },
-            ].map((e) => (
-              <div key={e.type} className={`rounded-lg border p-2.5 ${e.color}`}>
-                <p className="text-xs font-medium text-gray-900 dark:text-gray-100">{e.type}</p>
-                <p className="text-[11px] font-mono text-gray-500 dark:text-gray-400 mt-0.5">{e.from}</p>
-                <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">{e.trigger}</p>
-              </div>
-            ))}
-          </div>
-        </div>
       </Card>
 
       {/* Categories */}
@@ -418,8 +403,10 @@ export default function SettingsPage() {
           <h2 className="font-semibold text-gray-900 dark:text-gray-100">Tester Configuration</h2>
           <Tooltip text="Limits for tester accounts. Test data is automatically cleaned up daily at 3:00 AM." />
         </div>
-        <Input label="Session duration (minutes)" id="testerSession" type="number" value={settings["tester.session_minutes"] || "180"} onChange={(e) => updateSetting("tester.session_minutes", e.target.value)} />
-        <p className="text-xs text-gray-400 dark:text-gray-500 -mt-2">How long a tester session lasts before automatic logout. After this time, the tester must generate a new password.</p>
+        <div className="w-full">
+          <Input label="Session duration (minutes)" id="testerSession" type="number" value={settings["tester.session_minutes"] || "180"} onChange={(e) => updateSetting("tester.session_minutes", e.target.value)} className="w-full" />
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">How long a tester session lasts before automatic logout. After this time, the tester must generate a new password.</p>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="space-y-1">
             <Input label="Max test products" id="testerProducts" type="number" value={settings["tester.max_products"] || "20"} onChange={(e) => updateSetting("tester.max_products", e.target.value)} />

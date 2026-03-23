@@ -112,6 +112,10 @@ export function UserForm({ userId }: UserFormProps) {
   };
 
   const handleSubmit = async () => {
+    if (currentUserRole === "tester") {
+      toast.error("This action is not available in test mode");
+      return;
+    }
     if (!form.name.trim()) { toast.error("Name is required"); return; }
     if (!form.email.trim()) { toast.error("Email is required"); return; }
     if (userId && form.password && form.password.length < 8) { toast.error("Password must be at least 8 characters"); return; }
@@ -186,7 +190,6 @@ export function UserForm({ userId }: UserFormProps) {
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
           >
             {ROLES.filter((role) => {
-              if (currentUserRole === "tester") return role === "tester";
               if (currentUserRole === "manager") return role !== "admin";
               return true;
             }).map((role) => (
@@ -198,7 +201,7 @@ export function UserForm({ userId }: UserFormProps) {
         {/* Role description */}
         {form.role === "admin" && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-800">
-            <strong>Admin</strong> — Full access to all system features. Manages users, products, orders, and store configuration. Permissions cannot be restricted.
+            <strong>Admin</strong> — Full access to all features.
           </div>
         )}
         {form.role === "manager" && (
@@ -208,7 +211,7 @@ export function UserForm({ userId }: UserFormProps) {
         )}
         {form.role === "tester" && (
           <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 text-sm text-purple-800">
-            <strong>Tester</strong> — Account for testing the store. All data created by testers (products, discounts, orders) is marked as test data and not visible to customers. Test data is automatically cleaned up. Access limited based on granted permissions.
+            <strong>Tester</strong> — Test mode — can create and edit test data with limited permissions. All data is automatically cleaned up.
           </div>
         )}
 

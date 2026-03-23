@@ -8,6 +8,7 @@ export const ALL_PERMISSIONS = [
   { key: "discounts.edit", label: "Add & edit discount codes", group: "Discounts" },
   { key: "discounts.delete", label: "Delete discount codes", group: "Discounts" },
   { key: "customers.view", label: "View customers", group: "Customers" },
+  { key: "customers.edit", label: "Edit customers", group: "Customers" },
   { key: "analytics.view", label: "View analytics", group: "Analytics" },
   { key: "users.view", label: "View users", group: "Users" },
   { key: "users.manage", label: "Manage users", group: "Users" },

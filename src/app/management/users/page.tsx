@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { ROLE_LABELS } from "@/constants/permissions";
+import { ROLE_LABELS, ALL_PERMISSIONS } from "@/constants/permissions";
 import type { Role } from "@/constants/permissions";
 import { Plus, Pencil, Shield, ShieldCheck, TestTube, KeyRound, Search } from "lucide-react";
 import Link from "next/link";
@@ -34,10 +34,25 @@ function relativeTime(date: string): string {
   return `${Math.floor(days / 30)}mo ago`;
 }
 
-function permissionsBadge(u: any): string {
-  if (u.role === "admin") return "all";
-  if (u.permissions.length > 0) return String(u.permissions.length);
-  return "0";
+function permissionsLabel(u: any): { text: string; tooltip: string } {
+  if (u.role === "admin") return { text: "Full access", tooltip: "Full access" };
+  if (!u.permissions || u.permissions.length === 0) return { text: "None", tooltip: "No permissions" };
+
+  // Get unique group names for this user's permissions
+  const groups = Array.from(
+    new Set(
+      u.permissions
+        .map((key: string) => ALL_PERMISSIONS.find((p) => p.key === key)?.group)
+        .filter(Boolean) as string[]
+    )
+  );
+
+  const tooltip = groups.join(", ");
+  const MAX_DISPLAY = 3;
+  if (groups.length <= MAX_DISPLAY) {
+    return { text: groups.join(", "), tooltip };
+  }
+  return { text: `${groups.slice(0, MAX_DISPLAY).join(", ")} +${groups.length - MAX_DISPLAY}`, tooltip };
 }
 
 export default function AdminUsersPage() {
@@ -148,6 +163,7 @@ export default function AdminUsersPage() {
                 <tr>
                   <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">User</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Role</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Permissions</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Last Login</th>
                   <th className="text-center px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Status</th>
                   <th className="text-right px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Actions</th>
@@ -156,7 +172,7 @@ export default function AdminUsersPage() {
               <tbody>
                 {filtered.map((u: any) => {
                   const Icon = ROLE_ICONS[u.role] || Shield;
-                  const permCount = permissionsBadge(u);
+                  const perms = permissionsLabel(u);
                   return (
                     <tr key={u.id} className={`border-t border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 ${!u.isActive ? "opacity-40" : ""}`}>
                       <td className="px-4 py-3">
@@ -171,14 +187,14 @@ export default function AdminUsersPage() {
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-1.5">
-                          <Badge className={ROLE_COLORS[u.role] || ""}>
-                            {ROLE_LABELS[u.role as Role] || u.role}
-                          </Badge>
-                          <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-gray-100 dark:bg-gray-700 text-[10px] font-medium text-gray-500 dark:text-gray-400" title={`${permCount === "all" ? "Full access" : `${permCount} permissions`}`}>
-                            {permCount}
-                          </span>
-                        </div>
+                        <Badge className={ROLE_COLORS[u.role] || ""}>
+                          {ROLE_LABELS[u.role as Role] || u.role}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-xs text-gray-600 dark:text-gray-400" title={perms.tooltip}>
+                          {perms.text}
+                        </span>
                       </td>
                       <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">
                         {u.lastLoginAt
@@ -231,7 +247,7 @@ export default function AdminUsersPage() {
           {/* Mobile card layout */}
           <div className="sm:hidden space-y-3 p-3">
             {filtered.map((u: any) => {
-              const permCount = permissionsBadge(u);
+              const perms = permissionsLabel(u);
               return (
                 <div key={u.id} className={`border border-gray-200 dark:border-gray-700 rounded-lg p-3 ${!u.isActive ? "opacity-40" : ""}`}>
                   <div className="flex items-center gap-3">
@@ -252,6 +268,7 @@ export default function AdminUsersPage() {
                     ) : (
                       <Badge variant="default">Inactive</Badge>
                     )}
+                    <span className="text-xs text-gray-500 dark:text-gray-400" title={perms.tooltip}>{perms.text}</span>
                   </div>
                   {u.id !== currentUserId && (
                     <div className="flex justify-end gap-1 mt-2 border-t border-gray-100 dark:border-gray-700 pt-2">

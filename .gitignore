@@ -1,6 +1,9 @@
 node_modules/
 .next/
+.env
 .env.local
+.env.production.local
+.env.*.local
 *.db
 out/
 dist/

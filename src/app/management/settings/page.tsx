@@ -138,7 +138,7 @@ export default function SettingsPage() {
   const handleCleanup = async () => {
     setCleaning(true);
     try {
-      const res = await fetch("/api/cron/cleanup-test-data?token=" + (process.env.NEXT_PUBLIC_CRON_SECRET || "leafy-cron-secret-token"));
+      const res = await fetch("/api/cron/cleanup-test-data?token=" + (process.env.NEXT_PUBLIC_CRON_SECRET || ""));
       const json = await res.json();
       if (json.data) {
         toast.success(`Cleanup complete: ${json.data.products} products, ${json.data.discounts} discounts, ${json.data.orders} orders removed`);

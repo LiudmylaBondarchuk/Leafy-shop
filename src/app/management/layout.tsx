@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Leaf, LayoutDashboard, Package, ShoppingBag, Tag, BarChart3, Users, UserCog, FileText, ClipboardList, Settings, LogOut, Menu, X, ChevronRight } from "lucide-react";
+import { Leaf, LayoutDashboard, Package, ShoppingBag, Tag, BarChart3, Users, UserCog, FileText, ClipboardList, Settings, LogOut, KeyRound, Menu, X, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { hasPermission } from "@/constants/permissions";
@@ -156,6 +156,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
           <div className="px-3 py-4 border-t border-green-800">
             <div className="px-3 py-2 text-sm text-green-300 mb-1">{adminName}</div>
+            <Link
+              href="/management/change-password"
+              onClick={() => setSidebarOpen(false)}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-green-200 hover:bg-green-800/50 hover:text-white w-full transition-colors"
+            >
+              <KeyRound className="h-5 w-5" />
+              Change Password
+            </Link>
             <button
               onClick={handleLogout}
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-green-200 hover:bg-green-800/50 hover:text-white w-full transition-colors"

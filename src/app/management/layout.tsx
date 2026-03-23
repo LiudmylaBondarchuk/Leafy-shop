@@ -63,6 +63,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [userPermissions, setUserPermissions] = useState<string[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [mustChangePassword, setMustChangePassword] = useState(false);
 
   const isLoginPage = pathname === "/management/login";
   const isChangePasswordPage = pathname === "/management/change-password";
@@ -82,11 +83,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           setUserPermissions(json.data.user.permissions || []);
           // Force password change for admin and manager roles only (not tester)
           const role = json.data.user.role || "manager";
-          if (
-            json.data.user.mustChangePassword &&
-            role !== "tester" &&
-            !isChangePasswordPage
-          ) {
+          const forceChange =
+            json.data.user.mustChangePassword === true &&
+            role !== "tester";
+          setMustChangePassword(forceChange);
+          if (forceChange && !isChangePasswordPage) {
             router.push("/management/change-password");
           }
         } else {
@@ -95,14 +96,31 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       })
       .catch(() => router.push("/management/login"))
       .finally(() => setChecking(false));
-  }, [isLoginPage, router]);
+  }, [isLoginPage, isChangePasswordPage, pathname, router]);
+
+  // Block navigation when user must change password (covers client-side routing)
+  useEffect(() => {
+    if (mustChangePassword && !isChangePasswordPage && !isLoginPage) {
+      router.push("/management/change-password");
+    }
+  }, [mustChangePassword, isChangePasswordPage, isLoginPage, pathname, router]);
 
   if (isLoginPage) return <>{children}</>;
+  if (isChangePasswordPage) return <>{children}</>;
 
   if (checking) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-gray-400">Loading...</div>
+      </div>
+    );
+  }
+
+  // Prevent rendering any management content while redirect to change-password is in progress
+  if (mustChangePassword) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-gray-400">Redirecting...</div>
       </div>
     );
   }

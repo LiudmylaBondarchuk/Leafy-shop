@@ -49,6 +49,7 @@ export default function CheckoutPage() {
   const [signupSubmitting, setSignupSubmitting] = useState(false);
   const [confirmEmail, setConfirmEmail] = useState("");
   const [calculatedDiscount, setCalculatedDiscount] = useState(0);
+  const [effectiveShippingCost, setEffectiveShippingCost] = useState<number | null>(null);
 
   const [form, setForm] = useState({
     firstName: "", lastName: "", email: "", phone: "",
@@ -125,8 +126,11 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (!mounted || !discountCode || items.length === 0) {
       setCalculatedDiscount(0);
+      setEffectiveShippingCost(null);
       return;
     }
+
+    const controller = new AbortController();
 
     const fetchDiscount = async () => {
       try {
@@ -138,6 +142,7 @@ export default function CheckoutPage() {
             discount_code: discountCode,
             shipping_method: form.shippingMethod,
           }),
+          signal: controller.signal,
         });
         const json = await res.json();
         if (json.data?.discount?.amount) {
@@ -145,12 +150,24 @@ export default function CheckoutPage() {
         } else {
           setCalculatedDiscount(0);
         }
-      } catch {
+        // Apply server-side shipping cost (handles free_shipping discount type)
+        if (json.data?.shipping !== undefined) {
+          setEffectiveShippingCost(json.data.shipping);
+        } else if (json.data?.shippingCost !== undefined) {
+          setEffectiveShippingCost(json.data.shippingCost);
+        } else {
+          setEffectiveShippingCost(null);
+        }
+      } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") return;
         setCalculatedDiscount(0);
+        setEffectiveShippingCost(null);
       }
     };
 
     fetchDiscount();
+
+    return () => controller.abort();
   }, [mounted, discountCode, items, form.shippingMethod]);
 
   if (!mounted || (items.length === 0 && !orderPlaced)) return null;
@@ -220,11 +237,14 @@ export default function CheckoutPage() {
   let shippingCost = SHIPPING_METHODS[form.shippingMethod]?.cost ?? SHIPPING_METHODS.courier.cost;
   if (subtotal >= FREE_SHIPPING_THRESHOLD) shippingCost = 0;
   if (form.paymentMethod === "cod") shippingCost += COD_SURCHARGE;
+  // Use server-provided shipping cost when a discount code is active (handles free_shipping discounts)
+  const finalShippingCost = discountCode && effectiveShippingCost !== null ? effectiveShippingCost : shippingCost;
   // All prices are gross (include 23% Polish VAT). Always show 23% VAT in cart since customer pays gross.
   // The invoice will show the correct VAT breakdown based on country/VAT ID.
   const vatRate = 23;
-  const vatAmount = Math.round(subtotal - subtotal / (1 + vatRate / 100));
-  const total = Math.max(0, subtotal - calculatedDiscount + shippingCost); // VAT already in prices
+  const discountedSubtotal = subtotal - calculatedDiscount;
+  const vatAmount = Math.round(discountedSubtotal - discountedSubtotal / (1 + vatRate / 100));
+  const total = Math.max(0, discountedSubtotal + finalShippingCost); // VAT already in prices
 
   const handleSubmit = async () => {
     if (!form.acceptTerms) { toast.error("Please accept the terms and conditions"); return; }
@@ -577,7 +597,7 @@ export default function CheckoutPage() {
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-sm space-y-2">
             <div className="flex justify-between"><span>Subtotal</span><span>{formatPrice(subtotal)}</span></div>
             <div className="flex justify-between text-gray-500 text-xs"><span>incl. VAT ({vatRate}%)</span><span>{formatPrice(vatAmount)}</span></div>
-            <div className="flex justify-between"><span>Shipping</span><span>{shippingCost === 0 ? "Free" : formatPrice(shippingCost)}</span></div>
+            <div className="flex justify-between"><span>Shipping</span><span>{finalShippingCost === 0 ? "Free" : formatPrice(finalShippingCost)}</span></div>
             {discountCode && calculatedDiscount > 0 && <div className="flex justify-between text-green-700"><span>Discount ({discountCode})</span><span>-{formatPrice(calculatedDiscount)}</span></div>}
             <div className="flex justify-between font-bold text-base border-t border-gray-200 dark:border-gray-700 pt-2">
               <span>Total</span><span className="text-green-800">{formatPrice(total)}</span>

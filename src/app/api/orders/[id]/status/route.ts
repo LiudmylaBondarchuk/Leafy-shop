@@ -112,10 +112,11 @@ export async function PATCH(
       newStatus === "shipped" ? trackingNumber : undefined,
     ).catch(() => {});
 
-    // Generate credit note for cancelled orders with invoices
-    if (newStatus === "cancelled" && order.wantsInvoice) {
+    // Generate credit note for cancelled/returned orders with invoices
+    if ((newStatus === "cancelled" || newStatus === "returned") && order.wantsInvoice) {
       try {
-        const creditNote = await generateCreditNote(order.id, note || "Order cancelled");
+        const reason = newStatus === "returned" ? (note || "Order returned") : (note || "Order cancelled");
+        const creditNote = await generateCreditNote(order.id, reason);
         if (creditNote) {
           sendCreditNoteEmail(
             order.customerEmail,

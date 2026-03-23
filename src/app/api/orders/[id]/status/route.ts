@@ -18,6 +18,8 @@ export async function PATCH(
     const admin = await getAdminFromCookie();
     if (!admin) return apiError("Unauthorized", 401, "UNAUTHORIZED");
     const { id } = await params;
+    if (isNaN(parseInt(id))) return apiError("Invalid ID", 400);
+
     const body = await request.json();
     const { status: newStatus, note, trackingNumber } = body;
 

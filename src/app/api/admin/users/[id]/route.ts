@@ -16,6 +16,8 @@ export async function GET(
 
   try {
     const { id } = await params;
+    if (isNaN(parseInt(id))) return apiError("Invalid ID", 400);
+
     const user = await db.query.adminUsers.findFirst({
       where: eq(adminUsers.id, parseInt(id)),
     });
@@ -46,6 +48,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const userId = parseInt(id);
+    if (isNaN(userId)) return apiError("Invalid ID", 400);
 
     const requestingUser = await db.query.adminUsers.findFirst({
       where: eq(adminUsers.id, Number(admin.sub)),

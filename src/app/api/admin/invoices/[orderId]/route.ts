@@ -3,6 +3,7 @@ import { orders, orderItems } from "@/lib/db/schema-pg";
 import { eq } from "drizzle-orm";
 import { apiError } from "@/lib/utils";
 import { getSettings } from "@/lib/settings";
+import { getAdminFromCookie } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
 function escapeHtml(str: string): string {
@@ -24,6 +25,9 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ orderId: string }> }
 ) {
+  const admin = await getAdminFromCookie();
+  if (!admin) return apiError("Unauthorized", 401, "UNAUTHORIZED");
+
   try {
     const { orderId } = await params;
 

@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { email, password } = body;
+    const { email, password, mode } = body;
 
     if (!email || !password) {
       return apiError("Email and password are required", 400, "VALIDATION_ERROR");
@@ -37,6 +37,11 @@ export async function POST(request: Request) {
 
     if (!user || !user.isActive) {
       return apiError("Invalid email or password", 401, "INVALID_CREDENTIALS");
+    }
+
+    // Testers can only log in through the Tester tab
+    if (user.role === "tester" && mode !== "tester") {
+      return apiError("Tester accounts must use the Tester login tab", 401, "INVALID_CREDENTIALS");
     }
 
     const passwordValid = compareSync(password, user.passwordHash);

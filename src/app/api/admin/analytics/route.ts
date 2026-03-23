@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { orders, orderItems, products, productVariants } from "@/lib/db/schema-pg";
-import { eq, and, gte, sql, ne, notInArray } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { getAdminFromCookie } from "@/lib/auth";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { NextRequest } from "next/server";

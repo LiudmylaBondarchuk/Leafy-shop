@@ -1,15 +1,15 @@
 import { db } from "@/lib/db";
 import { adminUsers } from "@/lib/db/schema-pg";
 import { eq } from "drizzle-orm";
-import { hashSync } from "bcryptjs";
+import { hashSync, compareSync } from "bcryptjs";
 import { getAdminFromCookie } from "@/lib/auth";
 import { apiSuccess, apiError } from "@/lib/utils";
 
 /**
  * POST /api/auth/change-password
- * Allows any authenticated user to change their own password.
- * No special permissions required — users can always change their own password.
- * When called, mustChangePassword is automatically set to false.
+ * Two modes:
+ * - Forced (mustChangePassword=true): only newPassword required, rejects same password
+ * - Voluntary (from sidebar): currentPassword + newPassword required
  */
 export async function POST(request: Request) {
   const admin = await getAdminFromCookie();
@@ -17,10 +17,30 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { password } = body;
+    const { currentPassword, password } = body;
+    const userId = Number(admin.sub);
 
+    // Get current user
+    const user = await db.query.adminUsers.findFirst({
+      where: eq(adminUsers.id, userId),
+    });
+    if (!user) return apiError("User not found", 404);
+
+    const isForced = user.mustChangePassword === true;
+
+    // Voluntary change requires current password
+    if (!isForced) {
+      if (!currentPassword) {
+        return apiError("Current password is required", 400);
+      }
+      if (!compareSync(currentPassword, user.passwordHash)) {
+        return apiError("Current password is incorrect", 400);
+      }
+    }
+
+    // Validate new password
     if (!password || typeof password !== "string") {
-      return apiError("Password is required", 400);
+      return apiError("New password is required", 400);
     }
     if (password.length < 8) {
       return apiError("Password must be at least 8 characters", 400);
@@ -29,7 +49,11 @@ export async function POST(request: Request) {
       return apiError("Password must contain at least one uppercase letter, one lowercase letter, and one number", 400);
     }
 
-    const userId = Number(admin.sub);
+    // Reject same password as current
+    if (compareSync(password, user.passwordHash)) {
+      return apiError("New password must be different from the current password", 400);
+    }
+
     const passwordHash = hashSync(password, 12);
 
     await db

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Leaf } from "lucide-react";
@@ -15,6 +15,32 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [lockedUntil, setLockedUntil] = useState<number | null>(null);
+  const [countdown, setCountdown] = useState("");
+
+  const formatCountdown = useCallback((ms: number) => {
+    const totalSeconds = Math.ceil(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  }, []);
+
+  useEffect(() => {
+    if (!lockedUntil) { setCountdown(""); return; }
+    const tick = () => {
+      const remaining = lockedUntil - Date.now();
+      if (remaining <= 0) {
+        setLockedUntil(null);
+        setCountdown("");
+        setErrors({});
+        return;
+      }
+      setCountdown(formatCountdown(remaining));
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [lockedUntil, formatCountdown]);
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -43,6 +69,9 @@ export default function LoginPage() {
         router.push("/account");
         router.refresh();
       } else {
+        if (json.lockedUntil) {
+          setLockedUntil(json.lockedUntil);
+        }
         const msg = json.message || "Invalid email or password";
         setErrors({ form: msg });
       }
@@ -70,7 +99,7 @@ export default function LoginPage() {
 
         {errors.form && (
           <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm rounded-lg p-3 mb-4">
-            {errors.form}
+            {errors.form}{countdown && ` (${countdown})`}
           </div>
         )}
 
@@ -114,7 +143,7 @@ export default function LoginPage() {
             type="submit"
             className="w-full"
             loading={submitting}
-            disabled={submitting}
+            disabled={submitting || !!lockedUntil}
           >
             Log In
           </Button>

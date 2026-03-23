@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Leaf, FlaskConical, Shield } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -22,6 +22,32 @@ export default function ManagementLoginPage() {
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
+  const [lockedUntil, setLockedUntil] = useState<number | null>(null);
+  const [countdown, setCountdown] = useState("");
+
+  const formatCountdown = useCallback((ms: number) => {
+    const totalSeconds = Math.ceil(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  }, []);
+
+  useEffect(() => {
+    if (!lockedUntil) { setCountdown(""); return; }
+    const tick = () => {
+      const remaining = lockedUntil - Date.now();
+      if (remaining <= 0) {
+        setLockedUntil(null);
+        setCountdown("");
+        setError("");
+        return;
+      }
+      setCountdown(formatCountdown(remaining));
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [lockedUntil, formatCountdown]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,6 +74,9 @@ export default function ManagementLoginPage() {
           router.push("/management");
         }
       } else {
+        if (json.lockedUntil) {
+          setLockedUntil(json.lockedUntil);
+        }
         setError(json.message || "Invalid email or password");
       }
     } catch {
@@ -99,6 +128,9 @@ export default function ManagementLoginPage() {
         setForgotSent(true);
         toast.success("If the account exists, a reset email has been sent.");
       } else {
+        if (json.lockedUntil) {
+          setLockedUntil(json.lockedUntil);
+        }
         setError(json.message || "Something went wrong");
       }
     } catch {
@@ -155,8 +187,8 @@ export default function ManagementLoginPage() {
           <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 space-y-4">
             <Input label="Email" id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="your@email.com" />
             <Input label="Password" id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
-            {error && <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">{error}</p>}
-            <Button type="submit" className="w-full" loading={loading}>Sign In</Button>
+            {error && <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">{error}{countdown && ` (${countdown})`}</p>}
+            <Button type="submit" className="w-full" loading={loading} disabled={loading || !!lockedUntil}>Sign In</Button>
             <div className="text-center">
               <button
                 type="button"
@@ -192,8 +224,8 @@ export default function ManagementLoginPage() {
                   Enter your email address and we&apos;ll send you a temporary password.
                 </p>
                 <Input label="Email" id="forgotEmail" type="email" value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)} placeholder="your@email.com" />
-                {error && <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">{error}</p>}
-                <Button type="submit" className="w-full" loading={forgotLoading}>Send Reset Email</Button>
+                {error && <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">{error}{countdown && ` (${countdown})`}</p>}
+                <Button type="submit" className="w-full" loading={forgotLoading} disabled={forgotLoading || !!lockedUntil}>Send Reset Email</Button>
                 <div className="text-center">
                   <button
                     type="button"
@@ -243,7 +275,7 @@ export default function ManagementLoginPage() {
                 </div>
                 <Input label="Email" id="testerEmail" type="email" value={email} disabled />
                 <Input label="Password" id="testerPassword" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                {error && <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">{error}</p>}
+                {error && <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">{error}{countdown && ` (${countdown})`}</p>}
                 <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700" loading={loading}>Sign In as Tester</Button>
               </form>
             )}

@@ -29,14 +29,10 @@ export default function ChangePasswordPage() {
 
     setLoading(true);
     try {
-      const meRes = await fetch("/api/auth/me");
-      const meJson = await meRes.json();
-      if (!meJson.data?.user) { router.push("/management/login"); return; }
-
-      const res = await fetch(`/api/admin/users/${meJson.data.user.sub}`, {
-        method: "PUT",
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: newPassword, mustChangePassword: false }),
+        body: JSON.stringify({ password: newPassword }),
       });
 
       const json = await res.json();

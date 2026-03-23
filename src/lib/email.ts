@@ -339,6 +339,59 @@ export async function sendWelcomeEmail(
   }
 }
 
+export async function sendCreditNoteEmail(
+  customerEmail: string,
+  customerName: string,
+  orderNumber: string,
+  creditNoteNumber: string,
+  originalInvoiceNumber: string,
+  totalAmount: number,
+  orderId: number,
+) {
+  if (!resend) {
+    console.log("[EMAIL] Resend not configured — skipping credit note email to", customerEmail);
+    return;
+  }
+
+  const cfg = await getSettings();
+  const invoicesFrom = cfg["email.invoices_from"] || "invoices@leafyshop.eu";
+  const storeName = cfg["store.name"] || "Leafy Tea & Coffee Ltd.";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://leafyshop.eu";
+
+  const html = emailWrapper(`
+    <h2 style="color:#1a4d1a;margin-top:0">Hi ${escapeHtml(customerName)},</h2>
+    <p>A credit note has been issued for your order <strong>${escapeHtml(orderNumber)}</strong>.</p>
+
+    <div style="background:#fef2f2;border:1px solid #fecaca;padding:16px;border-radius:8px;margin:16px 0">
+      <p style="margin:0 0 8px;font-weight:600;color:#dc2626">Credit Note: ${escapeHtml(creditNoteNumber)}</p>
+      <p style="margin:0;font-size:14px;color:#666">Original Invoice: ${escapeHtml(originalInvoiceNumber)}</p>
+      <p style="margin:8px 0 0;font-size:14px;color:#666">Amount: <strong>-$${(totalAmount / 100).toFixed(2)}</strong></p>
+    </div>
+
+    <p style="font-size:14px;color:#666">
+      This credit note fully reverses the original invoice. If you have already paid, a refund will be processed.
+    </p>
+
+    <div style="background:#f0fdf4;padding:12px 16px;border-radius:8px;margin:16px 0;font-size:13px">
+      <a href="${appUrl}/api/credit-notes/${orderId}" style="color:#15803d">View Credit Note</a>
+    </div>
+
+    <p style="color:#666;font-size:13px">If you have any questions, please contact us.</p>
+  `, storeName, cfg["email.tpl.footer"]);
+
+  try {
+    await resend.emails.send({
+      from: `Leafy <${invoicesFrom}>`,
+      to: customerEmail,
+      subject: `Credit Note ${creditNoteNumber} — Order ${orderNumber}`,
+      html,
+    });
+    console.log("[EMAIL] Credit note email sent to", customerEmail);
+  } catch (error) {
+    console.error("[EMAIL] Failed to send credit note email:", error instanceof Error ? error.message : "Unknown error");
+  }
+}
+
 export async function sendPasswordResetEmail(
   email: string,
   name: string,

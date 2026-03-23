@@ -80,8 +80,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           setAdminName(json.data.user.name);
           setUserRole(json.data.user.role || "manager");
           setUserPermissions(json.data.user.permissions || []);
-          // Force password change
-          if (json.data.user.mustChangePassword && !isChangePasswordPage) {
+          // Force password change for admin and manager roles only (not tester)
+          const role = json.data.user.role || "manager";
+          if (
+            json.data.user.mustChangePassword &&
+            role !== "tester" &&
+            !isChangePasswordPage
+          ) {
             router.push("/management/change-password");
           }
         } else {

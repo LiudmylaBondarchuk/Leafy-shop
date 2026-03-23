@@ -5,13 +5,24 @@ import { compareSync } from "bcryptjs";
 import { signCustomerToken, createCustomerCookie } from "@/lib/customer-auth";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { cookies } from "next/headers";
-import { rateLimit } from "@/lib/rate-limit";
+import { loginRateLimit, resetLoginRateLimit } from "@/lib/rate-limit";
+import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
     const ip = request.headers.get("x-forwarded-for") || "unknown";
-    const { success } = rateLimit(`customer-login:${ip}`, 5, 60000);
-    if (!success) return apiError("Too many requests. Please try again later.", 429);
+    const rateLimitKey = `customer-login:${ip}`;
+    const { success, lockedUntil } = loginRateLimit(rateLimitKey);
+    if (!success) {
+      return NextResponse.json(
+        {
+          error: "RATE_LIMITED",
+          message: "Too many attempts. Account locked for 5 minutes.",
+          lockedUntil,
+        },
+        { status: 429 }
+      );
+    }
 
     const body = await request.json();
     const { email, password } = body;
@@ -32,6 +43,9 @@ export async function POST(request: Request) {
     if (!passwordValid) {
       return apiError("Invalid email or password", 401, "INVALID_CREDENTIALS");
     }
+
+    // Successful login — clear rate limit counter
+    resetLoginRateLimit(rateLimitKey);
 
     const token = await signCustomerToken({
       sub: customer.id,

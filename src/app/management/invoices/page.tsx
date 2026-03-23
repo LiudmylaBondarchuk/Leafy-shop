@@ -4,12 +4,13 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { formatPrice, formatDate } from "@/lib/utils";
-import { FileText, ExternalLink, Search } from "lucide-react";
+import { FileText, ExternalLink, Search, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { TableSkeleton } from "@/components/ui/Skeleton";
 
 export default function AdminInvoicesPage() {
   const [orders, setOrders] = useState<any[]>([]);
+  const [creditNotesMap, setCreditNotesMap] = useState<Record<number, any>>({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -17,14 +18,22 @@ export default function AdminInvoicesPage() {
   const [dateTo, setDateTo] = useState("");
 
   useEffect(() => {
-    fetch("/api/orders?limit=1000")
-      .then((r) => r.json())
-      .then((json) => {
-        const allOrders = json.data?.orders || [];
-        const invoiceOrders = allOrders.filter((o: any) => o.wantsInvoice);
-        setOrders(invoiceOrders);
-        setLoading(false);
-      });
+    Promise.all([
+      fetch("/api/orders?limit=1000").then((r) => r.json()),
+      fetch("/api/credit-notes").then((r) => r.json()),
+    ]).then(([ordersJson, cnJson]) => {
+      const allOrders = ordersJson.data?.orders || [];
+      const invoiceOrders = allOrders.filter((o: any) => o.wantsInvoice);
+      setOrders(invoiceOrders);
+
+      const cnList = cnJson.data?.creditNotes || [];
+      const map: Record<number, any> = {};
+      for (const cn of cnList) {
+        map[cn.orderId] = cn;
+      }
+      setCreditNotesMap(map);
+      setLoading(false);
+    });
   }, []);
 
   const isPaid = (order: any) => {
@@ -66,7 +75,7 @@ export default function AdminInvoicesPage() {
       <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Invoices</h1>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
         <Card className="p-4">
           <p className="text-xs text-gray-500 dark:text-gray-400">Total Invoices</p>
           <p className="text-xl font-bold text-gray-900 dark:text-gray-100">{orders.length}</p>
@@ -78,6 +87,10 @@ export default function AdminInvoicesPage() {
         <Card className="p-4">
           <p className="text-xs text-gray-500 dark:text-gray-400">Pending (Awaiting Payment)</p>
           <p className="text-xl font-bold text-yellow-600">{orders.filter((o) => !isPaid(o) && o.status !== "cancelled").length}</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-xs text-gray-500 dark:text-gray-400">Credit Notes</p>
+          <p className="text-xl font-bold text-red-600">{Object.keys(creditNotesMap).length}</p>
         </Card>
       </div>
 
@@ -139,6 +152,7 @@ export default function AdminInvoicesPage() {
                   const paid = isPaid(order);
                   const d = new Date(order.createdAt);
                   const invoiceNum = `INV/${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(order.id).padStart(4, "0")}`;
+                  const creditNote = creditNotesMap[order.id];
 
                   return (
                     <tr key={order.id} className="border-t border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
@@ -146,6 +160,14 @@ export default function AdminInvoicesPage() {
                         <div className="flex items-center gap-2">
                           <FileText className="h-4 w-4 text-gray-400" />
                           <span className="font-mono text-sm text-gray-900 dark:text-gray-100">{invoiceNum}</span>
+                          {creditNote && (
+                            <span className="relative group">
+                              <AlertTriangle className="h-4 w-4 text-amber-500" />
+                              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
+                                Credit note issued: {creditNote.creditNoteNumber}
+                              </span>
+                            </span>
+                          )}
                         </div>
                       </td>
                       <td className="px-4 py-3">
@@ -173,11 +195,18 @@ export default function AdminInvoicesPage() {
                         )}
                       </td>
                       <td className="px-4 py-3 text-right">
-                        {paid && (
-                          <a href={`/api/invoices/${order.id}`} target="_blank" className="text-green-700 hover:text-green-800">
-                            <ExternalLink className="h-4 w-4" />
-                          </a>
-                        )}
+                        <div className="flex items-center justify-end gap-2">
+                          {paid && (
+                            <a href={`/api/invoices/${order.id}`} target="_blank" className="text-green-700 hover:text-green-800" title="View invoice">
+                              <ExternalLink className="h-4 w-4" />
+                            </a>
+                          )}
+                          {creditNote && (
+                            <a href={`/api/credit-notes/${order.id}`} target="_blank" className="text-red-600 hover:text-red-700" title="View credit note">
+                              <FileText className="h-4 w-4" />
+                            </a>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -192,12 +221,18 @@ export default function AdminInvoicesPage() {
               const paid = isPaid(order);
               const d = new Date(order.createdAt);
               const invoiceNum = `INV/${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(order.id).padStart(4, "0")}`;
+              const creditNote = creditNotesMap[order.id];
 
               return (
                 <div key={order.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
                   <div className="flex items-center gap-2 text-sm">
                     <FileText className="h-4 w-4 text-gray-400 shrink-0" />
                     <span className="font-mono text-gray-900 dark:text-gray-100 truncate">{invoiceNum}</span>
+                    {creditNote && (
+                      <span title={`Credit note: ${creditNote.creditNoteNumber}`}>
+                        <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
+                      </span>
+                    )}
                   </div>
                   <div className="mt-2 text-sm">
                     <p className="font-medium text-gray-900 dark:text-gray-100">{order.invoiceCompany || `${order.customerFirstName} ${order.customerLastName}`}</p>
@@ -217,11 +252,18 @@ export default function AdminInvoicesPage() {
                     ) : (
                       <Badge variant="warning">Pending</Badge>
                     )}
-                    {paid && (
-                      <a href={`/api/invoices/${order.id}`} target="_blank" className="text-green-700 hover:text-green-800">
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {paid && (
+                        <a href={`/api/invoices/${order.id}`} target="_blank" className="text-green-700 hover:text-green-800" title="View invoice">
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      )}
+                      {creditNote && (
+                        <a href={`/api/credit-notes/${order.id}`} target="_blank" className="text-red-600 hover:text-red-700" title="View credit note">
+                          <FileText className="h-4 w-4" />
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
               );

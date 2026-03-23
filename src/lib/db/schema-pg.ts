@@ -203,6 +203,30 @@ export const adminUsers = pgTable("admin_users", {
 });
 
 // ============================================
+// CREDIT NOTES (faktury korygujące)
+// ============================================
+export const creditNotes = pgTable("credit_notes", {
+  id: serial("id").primaryKey(),
+  creditNoteNumber: text("credit_note_number").notNull().unique(),
+  orderId: integer("order_id").notNull().references(() => orders.id),
+  originalInvoiceNumber: text("original_invoice_number").notNull(),
+  reason: text("reason").notNull().default("Order cancelled"),
+  subtotal: integer("subtotal").notNull(),
+  discountAmount: integer("discount_amount").notNull().default(0),
+  shippingCost: integer("shipping_cost").notNull().default(0),
+  vatRate: integer("vat_rate").notNull().default(0),
+  vatAmount: integer("vat_amount").notNull().default(0),
+  total: integer("total").notNull(),
+  customerEmail: text("customer_email").notNull(),
+  emailSent: boolean("email_sent").notNull().default(false),
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+});
+
+export const creditNotesRelations = relations(creditNotes, ({ one }) => ({
+  order: one(orders, { fields: [creditNotes.orderId], references: [orders.id] }),
+}));
+
+// ============================================
 // AUDIT LOGS
 // ============================================
 export const auditLogs = pgTable("audit_logs", {

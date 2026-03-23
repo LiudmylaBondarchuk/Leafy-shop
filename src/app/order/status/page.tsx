@@ -230,10 +230,15 @@ function OrderStatusContent() {
               <div className="flex justify-between font-bold text-base pt-1"><span>Total</span><span>{formatPrice(order.total)}</span></div>
             </div>
             {order.wantsInvoice && order.isPaid && (
-              <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                <a href={`/api/invoices/${order.orderId}`} target="_blank" className="text-sm text-green-700 dark:text-green-300 hover:text-green-800 dark:hover:text-green-200 font-medium">
-                  📄 Download Invoice
+              <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 space-y-2">
+                <a href={`/api/invoices/${order.orderId}`} target="_blank" className="text-sm text-green-700 dark:text-green-300 hover:text-green-800 dark:hover:text-green-200 font-medium block">
+                  Download Invoice
                 </a>
+                {order.status === "cancelled" && (
+                  <a href={`/api/credit-notes/${order.orderId}`} target="_blank" className="text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium block">
+                    Download Credit Note
+                  </a>
+                )}
               </div>
             )}
           </div>

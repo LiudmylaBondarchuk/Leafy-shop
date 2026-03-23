@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Leaf, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
@@ -13,6 +13,32 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
+  const [lockedUntil, setLockedUntil] = useState<number | null>(null);
+  const [countdown, setCountdown] = useState("");
+
+  const formatCountdown = useCallback((ms: number) => {
+    const totalSeconds = Math.ceil(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  }, []);
+
+  useEffect(() => {
+    if (!lockedUntil) { setCountdown(""); return; }
+    const tick = () => {
+      const remaining = lockedUntil - Date.now();
+      if (remaining <= 0) {
+        setLockedUntil(null);
+        setCountdown("");
+        setError("");
+        return;
+      }
+      setCountdown(formatCountdown(remaining));
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [lockedUntil, formatCountdown]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,8 +56,12 @@ export default function ForgotPasswordPage() {
         body: JSON.stringify({ email: email.trim() }),
       });
 
+      const json = await res.json();
       if (res.ok) {
         setSent(true);
+      } else if (json.lockedUntil) {
+        setLockedUntil(json.lockedUntil);
+        setError(json.message || "Too many attempts. Account locked for 5 minutes.");
       } else {
         // Still show success to prevent email enumeration
         setSent(true);
@@ -89,17 +119,23 @@ export default function ForgotPasswordPage() {
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
-                  setError("");
+                  if (!lockedUntil) setError("");
                 }}
-                error={error}
+                error={!lockedUntil ? error : undefined}
                 placeholder="john@example.com"
               />
+
+              {lockedUntil && error && (
+                <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm rounded-lg p-3">
+                  {error}{countdown && ` (${countdown})`}
+                </div>
+              )}
 
               <Button
                 type="submit"
                 className="w-full"
                 loading={submitting}
-                disabled={submitting}
+                disabled={submitting || !!lockedUntil}
               >
                 Send Reset Link
               </Button>

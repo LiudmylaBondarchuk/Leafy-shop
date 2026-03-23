@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { apiError } from "@/lib/utils";
 import { getSettings } from "@/lib/settings";
 import { NextResponse } from "next/server";
+import { getVatScenario, calculateInvoiceVat } from "@/constants/countries";
 
 function escapeHtml(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -39,20 +40,31 @@ export async function GET(
     const storeName = cfg["store.name"] || "Leafy Tea & Coffee Ltd.";
     const storeAddress = cfg["store.address"] || "5 Leafy Lane, Warsaw, Poland";
     const invoicesEmail = cfg["email.invoices_from"] || "invoices@leafyshop.eu";
-    const vatRate = (order as any).vatRate ?? parseInt(cfg["store.vat_rate"] || "23", 10);
-    const vatAmount = (order as any).vatAmount ?? 0;
+
+    // Determine VAT scenario based on customer country and VAT ID
+    const customerCountry = order.shippingCountry || "PL";
+    const hasVatId = !!(order.invoiceNip && order.invoiceNip.trim());
+    const vatScenario = getVatScenario(customerCountry, hasVatId);
+    const grossForVat = Math.max(0, order.subtotal - order.discountAmount);
+    const vatBreakdown = calculateInvoiceVat(grossForVat, vatScenario);
 
     const invoiceNumber = generateInvoiceNumber(order.id, order.createdAt);
     const invoiceDate = new Date(order.createdAt).toLocaleDateString("en-US", { dateStyle: "long" });
 
-    const itemsHtml = (order.items as any[]).map((item: any) => `
+    // For 0% VAT scenarios (reverse charge / export), show net prices on line items
+    const showNetPrices = vatBreakdown.vatRate === 0;
+    const itemsHtml = (order.items as any[]).map((item: any) => {
+      const unitPrice = showNetPrices ? Math.round(item.unitPrice / 1.23) : item.unitPrice;
+      const totalPrice = showNetPrices ? Math.round(item.totalPrice / 1.23) : item.totalPrice;
+      return `
       <tr>
         <td style="padding:10px 12px;border-bottom:1px solid #e5e7eb">${escapeHtml(item.productName)}<br><small style="color:#666">${escapeHtml(item.variantDesc)}</small></td>
         <td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;text-align:center">${item.quantity}</td>
-        <td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;text-align:right">${formatPrice(item.unitPrice)}</td>
-        <td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;text-align:right">${formatPrice(item.totalPrice)}</td>
+        <td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;text-align:right">${formatPrice(unitPrice)}</td>
+        <td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;text-align:right">${formatPrice(totalPrice)}</td>
       </tr>
-    `).join("");
+    `;
+    }).join("");
 
     const html = `
 <!DOCTYPE html>
@@ -128,8 +140,8 @@ export async function GET(
         <tr style="background:#f9fafb">
           <th style="padding:10px 12px;text-align:left;font-size:12px;color:#666;border-bottom:2px solid #e5e7eb">Product</th>
           <th style="padding:10px 12px;text-align:center;font-size:12px;color:#666;border-bottom:2px solid #e5e7eb">Qty</th>
-          <th style="padding:10px 12px;text-align:right;font-size:12px;color:#666;border-bottom:2px solid #e5e7eb">Unit Price</th>
-          <th style="padding:10px 12px;text-align:right;font-size:12px;color:#666;border-bottom:2px solid #e5e7eb">Total</th>
+          <th style="padding:10px 12px;text-align:right;font-size:12px;color:#666;border-bottom:2px solid #e5e7eb">Unit Price${showNetPrices ? " (net)" : ""}</th>
+          <th style="padding:10px 12px;text-align:right;font-size:12px;color:#666;border-bottom:2px solid #e5e7eb">Total${showNetPrices ? " (net)" : ""}</th>
         </tr>
       </thead>
       <tbody>
@@ -139,7 +151,8 @@ export async function GET(
 
     <!-- Totals -->
     <div style="display:flex;justify-content:flex-end">
-      <table style="width:280px">
+      <table style="width:300px">
+        ${vatBreakdown.vatRate > 0 ? `
         <tr>
           <td style="padding:6px 0;color:#666">Subtotal (gross)</td>
           <td style="padding:6px 0;text-align:right">${formatPrice(order.subtotal)}</td>
@@ -150,16 +163,30 @@ export async function GET(
           <td style="padding:6px 0;text-align:right;color:#15803d">-${formatPrice(order.discountAmount)}</td>
         </tr>
         ` : ""}
-        ${vatAmount > 0 ? `
         <tr>
           <td style="padding:6px 0;color:#666">Net amount</td>
-          <td style="padding:6px 0;text-align:right">${formatPrice(Math.max(0, order.subtotal - order.discountAmount) - vatAmount)}</td>
+          <td style="padding:6px 0;text-align:right">${formatPrice(vatBreakdown.netAmount)}</td>
         </tr>
         <tr>
-          <td style="padding:6px 0;color:#666">VAT (${vatRate}%)</td>
-          <td style="padding:6px 0;text-align:right">${formatPrice(vatAmount)}</td>
+          <td style="padding:6px 0;color:#666">${vatBreakdown.vatLabel}</td>
+          <td style="padding:6px 0;text-align:right">${formatPrice(vatBreakdown.vatAmount)}</td>
+        </tr>
+        ` : `
+        <tr>
+          <td style="padding:6px 0;color:#666">Subtotal (net)</td>
+          <td style="padding:6px 0;text-align:right">${formatPrice(vatBreakdown.netAmount)}</td>
+        </tr>
+        ${order.discountAmount > 0 ? `
+        <tr>
+          <td style="padding:6px 0;color:#15803d">Discount</td>
+          <td style="padding:6px 0;text-align:right;color:#15803d">-${formatPrice(Math.round(order.discountAmount / 1.23))}</td>
         </tr>
         ` : ""}
+        <tr>
+          <td style="padding:6px 0;color:#666">${vatBreakdown.vatLabel}</td>
+          <td style="padding:6px 0;text-align:right">${formatPrice(0)}</td>
+        </tr>
+        `}
         <tr>
           <td style="padding:6px 0;color:#666">Shipping</td>
           <td style="padding:6px 0;text-align:right">${order.shippingCost === 0 ? "Free" : formatPrice(order.shippingCost)}</td>
@@ -170,6 +197,13 @@ export async function GET(
         </tr>
       </table>
     </div>
+
+    ${vatBreakdown.vatNote ? `
+    <!-- VAT Note -->
+    <div style="margin-top:16px;padding:12px 16px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;font-size:12px;color:#92400e">
+      <strong>Note:</strong> ${vatBreakdown.vatNote}
+    </div>
+    ` : ""}
 
     <!-- Payment info -->
     <div style="margin-top:32px;padding:16px;background:#f9fafb;border-radius:8px;font-size:13px;color:#666">

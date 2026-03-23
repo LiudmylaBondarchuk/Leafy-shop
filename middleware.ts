@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
+import { neon } from "@neondatabase/serverless";
 
 const JWT_SECRET_RAW = process.env.JWT_SECRET;
 if (!JWT_SECRET_RAW && process.env.NODE_ENV === "production") {
@@ -9,6 +10,31 @@ if (!JWT_SECRET_RAW && process.env.NODE_ENV === "production") {
 const SECRET = new TextEncoder().encode(
   JWT_SECRET_RAW || "leafy-shop-dev-secret-key-32chars!!" // dev only fallback
 );
+
+/**
+ * Check if an admin/manager user must change their password.
+ * Returns true if the user must be redirected to the change-password page.
+ * Testers are excluded from this requirement.
+ */
+async function mustForcePasswordChange(userId: string): Promise<boolean> {
+  const dbUrl = process.env.DATABASE_URL;
+  if (!dbUrl) return false; // SQLite fallback — let client-side guard handle it
+
+  try {
+    const sql = neon(dbUrl);
+    const id = Number(userId);
+    const rows = await sql`SELECT role, must_change_password FROM admin_users WHERE id = ${id} LIMIT 1`;
+    if (rows.length === 0) return false;
+
+    const { role, must_change_password } = rows[0];
+    // Only enforce for admin and manager roles, NOT tester
+    if (role === "tester") return false;
+    return must_change_password === true;
+  } catch (err) {
+    console.error("middleware: failed to check mustChangePassword", err);
+    return false; // fail open — client-side guard is the fallback
+  }
+}
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -41,7 +67,18 @@ export async function middleware(request: NextRequest) {
     }
 
     try {
-      await jwtVerify(token, SECRET);
+      const { payload } = await jwtVerify(token, SECRET);
+
+      // For management pages (not API), check if admin/manager must change password
+      if (pathname.startsWith("/management") && payload.sub) {
+        const forceChange = await mustForcePasswordChange(payload.sub as string);
+        if (forceChange) {
+          return NextResponse.redirect(
+            new URL("/management/change-password", request.url)
+          );
+        }
+      }
+
       return NextResponse.next();
     } catch {
       if (pathname.startsWith("/api/")) {

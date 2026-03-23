@@ -187,8 +187,6 @@ The admin panel provides a tester account with limited permissions:
 3. Click **Generate Test Password**
 4. Log in — test data is automatically cleaned up after the session
 
-> Test mode allows browsing the admin panel and testing product/discount creation — it does not cover PayPal payment testing.
-
 ---
 
 ## License

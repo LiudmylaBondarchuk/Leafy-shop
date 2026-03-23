@@ -22,6 +22,10 @@ export default function ChangePasswordPage() {
       setError("Password must be at least 8 characters");
       return;
     }
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(newPassword)) {
+      setError("Password must contain at least one uppercase letter, one lowercase letter, and one number");
+      return;
+    }
     if (newPassword !== confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -38,7 +42,9 @@ export default function ChangePasswordPage() {
       const json = await res.json();
       if (json.data) {
         toast.success("Password changed successfully");
-        router.push("/management");
+        // Force a full page reload to reset layout state (mustChangePassword)
+        window.location.href = "/management";
+        return;
       } else {
         setError(json.message || "Failed to change password");
       }
@@ -63,6 +69,16 @@ export default function ChangePasswordPage() {
         <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-4">
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
             You must change your password before continuing.
+          </div>
+
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs text-gray-600 space-y-1">
+            <p className="font-medium text-gray-700">Password requirements:</p>
+            <ul className="list-disc pl-4 space-y-0.5">
+              <li>At least 8 characters</li>
+              <li>At least one uppercase letter (A-Z)</li>
+              <li>At least one lowercase letter (a-z)</li>
+              <li>At least one number (0-9)</li>
+            </ul>
           </div>
 
           <Input

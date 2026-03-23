@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Leaf, ShoppingCart, Menu, X, User, LogOut, Package, Settings } from "lucide-react";
+import { Leaf, ShoppingCart, Menu, X, User, LogOut, Package, UserPlus } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store/cart-store";
@@ -180,7 +180,7 @@ export function Navbar() {
                         onClick={() => setUserMenuOpen(false)}
                         className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                       >
-                        <Settings className="h-4 w-4" />
+                        <UserPlus className="h-4 w-4" />
                         Register
                       </Link>
                     </>

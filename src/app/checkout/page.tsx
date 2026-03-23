@@ -187,9 +187,10 @@ export default function CheckoutPage() {
   let shippingCost = SHIPPING_METHODS[form.shippingMethod]?.cost ?? SHIPPING_METHODS.courier.cost;
   if (subtotal >= FREE_SHIPPING_THRESHOLD) shippingCost = 0;
   if (form.paymentMethod === "cod") shippingCost += COD_SURCHARGE;
-  // Prices are gross (VAT included). Extract VAT for display.
-  const vatRate = selectedCountry.vatRate;
-  const vatAmount = vatRate > 0 ? Math.round(subtotal - subtotal / (1 + vatRate / 100)) : 0;
+  // All prices are gross (include 23% Polish VAT). Always show 23% VAT in cart since customer pays gross.
+  // The invoice will show the correct VAT breakdown based on country/VAT ID.
+  const vatRate = 23;
+  const vatAmount = Math.round(subtotal - subtotal / (1 + vatRate / 100));
   const total = subtotal + shippingCost; // VAT already in prices, discount handled server-side
 
   const handleSubmit = async () => {
@@ -429,7 +430,14 @@ export default function CheckoutPage() {
           {form.wantsInvoice && (
             <div className="space-y-4 pl-6 border-l-2 border-green-200">
               <Input label="Company name *" id="company" value={form.company} onChange={(e) => updateField("company", e.target.value)} error={errors.company} placeholder="Acme Ltd." />
-              <Input label={`${selectedCountry.vatLabel} *`} id="nip" value={form.nip} onChange={(e) => updateField("nip", e.target.value)} error={errors.nip} placeholder={selectedCountry.vatPlaceholder} />
+              <div>
+                <Input label={`${selectedCountry.vatLabel} *`} id="nip" value={form.nip} onChange={(e) => updateField("nip", e.target.value)} error={errors.nip} placeholder={selectedCountry.vatPlaceholder} />
+                {selectedCountry.eu && selectedCountry.code !== "PL" && (
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Enter your EU VAT ID in format {selectedCountry.code}123456789 for reverse charge (0% VAT). Without a valid VAT ID, 23% Polish VAT will apply.
+                  </p>
+                )}
+              </div>
               <Input label="Company address *" id="invoiceAddress" value={form.invoiceAddress} onChange={(e) => updateField("invoiceAddress", e.target.value)} error={errors.invoiceAddress} placeholder="456 Business Ave, 00-002 Warsaw" />
             </div>
           )}
@@ -522,7 +530,7 @@ export default function CheckoutPage() {
             {form.wantsInvoice && (
               <div className="pt-2 border-t border-gray-100 mt-2">
                 <p className="font-medium">Invoice: {form.company}</p>
-                <p>NIP: {form.nip}</p>
+                <p>{selectedCountry.vatLabel}: {form.nip}</p>
               </div>
             )}
           </div>
@@ -535,7 +543,7 @@ export default function CheckoutPage() {
           {/* Totals */}
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-sm space-y-2">
             <div className="flex justify-between"><span>Subtotal</span><span>{formatPrice(subtotal)}</span></div>
-            {vatRate > 0 && <div className="flex justify-between text-gray-500 text-xs"><span>incl. VAT ({vatRate}%)</span><span>{formatPrice(vatAmount)}</span></div>}
+            <div className="flex justify-between text-gray-500 text-xs"><span>incl. VAT ({vatRate}%)</span><span>{formatPrice(vatAmount)}</span></div>
             <div className="flex justify-between"><span>Shipping</span><span>{shippingCost === 0 ? "Free" : formatPrice(shippingCost)}</span></div>
             {discountCode && <div className="flex justify-between text-green-700"><span>Discount ({discountCode})</span><span>Applied at checkout</span></div>}
             <div className="flex justify-between font-bold text-base border-t border-gray-200 dark:border-gray-700 pt-2">

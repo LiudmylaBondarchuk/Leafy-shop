@@ -174,10 +174,15 @@ export default function AdminOrderDetailPage() {
               <div className="flex justify-between font-bold text-base pt-1"><span>Total</span><span>{formatPrice(order.total)}</span></div>
             </div>
             {order.wantsInvoice && (
-              <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                <a href={`/api/invoices/${order.id}`} target="_blank" className="text-sm text-green-700 hover:text-green-800 font-medium">
-                  📄 View Invoice
+              <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 space-y-2">
+                <a href={`/api/invoices/${order.id}`} target="_blank" className="text-sm text-green-700 hover:text-green-800 font-medium block">
+                  View Invoice
                 </a>
+                {order.status === "cancelled" && (
+                  <a href={`/api/credit-notes/${order.id}`} target="_blank" className="text-sm text-red-600 hover:text-red-700 font-medium block">
+                    View Credit Note
+                  </a>
+                )}
               </div>
             )}
           </Card>

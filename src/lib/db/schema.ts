@@ -206,6 +206,30 @@ export const discountCodesRelations = relations(discountCodes, ({ one }) => ({
 }));
 
 // ============================================
+// CREDIT NOTES (faktury korygujące)
+// ============================================
+export const creditNotes = sqliteTable("credit_notes", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  creditNoteNumber: text("credit_note_number").notNull().unique(),
+  orderId: integer("order_id").notNull().references(() => orders.id),
+  originalInvoiceNumber: text("original_invoice_number").notNull(),
+  reason: text("reason").notNull().default("Order cancelled"),
+  subtotal: integer("subtotal").notNull(),
+  discountAmount: integer("discount_amount").notNull().default(0),
+  shippingCost: integer("shipping_cost").notNull().default(0),
+  vatRate: integer("vat_rate").notNull().default(0),
+  vatAmount: integer("vat_amount").notNull().default(0),
+  total: integer("total").notNull(),
+  customerEmail: text("customer_email").notNull(),
+  emailSent: integer("email_sent", { mode: "boolean" }).notNull().default(false),
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+});
+
+export const creditNotesRelations = relations(creditNotes, ({ one }) => ({
+  order: one(orders, { fields: [creditNotes.orderId], references: [orders.id] }),
+}));
+
+// ============================================
 // ADMIN USERS
 // ============================================
 export const adminUsers = sqliteTable("admin_users", {

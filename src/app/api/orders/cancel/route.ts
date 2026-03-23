@@ -4,7 +4,8 @@ import { eq, and, sql } from "drizzle-orm";
 import { canTransition } from "@/lib/order-state-machine";
 import type { OrderStatus } from "@/constants/order-statuses";
 import { apiSuccess, apiError } from "@/lib/utils";
-import { sendOrderStatusEmail } from "@/lib/email";
+import { sendOrderStatusEmail, sendCreditNoteEmail } from "@/lib/email";
+import { generateCreditNote, markCreditNoteEmailSent } from "@/lib/credit-notes";
 
 export async function POST(request: Request) {
   try {
@@ -71,6 +72,26 @@ export async function POST(request: Request) {
       "Cancelled by customer",
       "customer",
     ).catch(() => {});
+
+    // Generate credit note for orders with invoices
+    if (order.wantsInvoice) {
+      try {
+        const creditNote = await generateCreditNote(order.id, "Cancelled by customer");
+        if (creditNote) {
+          sendCreditNoteEmail(
+            order.customerEmail,
+            order.customerFirstName,
+            order.orderNumber,
+            creditNote.creditNoteNumber,
+            creditNote.originalInvoiceNumber,
+            creditNote.total,
+            order.id,
+          ).then(() => markCreditNoteEmailSent(creditNote.id)).catch(() => {});
+        }
+      } catch (err) {
+        console.error("Failed to generate credit note:", err instanceof Error ? err.message : "Unknown error");
+      }
+    }
 
     return apiSuccess({ orderNumber: order.orderNumber, status: "cancelled" });
   } catch (error) {

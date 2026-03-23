@@ -5,7 +5,8 @@ import { hashSync } from "bcryptjs";
 import crypto from "crypto";
 import { Resend } from "resend";
 import { apiSuccess, apiError } from "@/lib/utils";
-import { rateLimit } from "@/lib/rate-limit";
+import { loginRateLimit } from "@/lib/rate-limit";
+import { NextResponse } from "next/server";
 
 function escapeHtml(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -18,8 +19,17 @@ const resend = process.env.RESEND_API_KEY
 export async function POST(request: Request) {
   try {
     const ip = request.headers.get("x-forwarded-for") || "unknown";
-    const { success } = rateLimit(`admin-forgot:${ip}`, 3, 60000);
-    if (!success) return apiError("Too many requests. Please try again later.", 429);
+    const { success, lockedUntil } = loginRateLimit(`admin-forgot:${ip}`);
+    if (!success) {
+      return NextResponse.json(
+        {
+          error: "RATE_LIMITED",
+          message: "Too many attempts. Account locked for 5 minutes.",
+          lockedUntil,
+        },
+        { status: 429 }
+      );
+    }
 
     const { email } = await request.json();
     if (!email || !email.trim()) {

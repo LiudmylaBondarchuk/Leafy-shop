@@ -38,8 +38,8 @@ export async function GET() {
         where: eq(adminUsers.id, Number(admin.sub)),
       });
       if (user?.role === "tester") {
-        // Tester sees only their own codes
-        return apiSuccess(codes.filter((c: any) => c.createdBy === Number(admin.sub)));
+        // Tester sees all codes (but can only edit/delete their own)
+        return apiSuccess(codes.filter((c: any) => !c.deletedAt));
       }
       // Admin and manager see ALL codes (including inactive/expired)
       return apiSuccess(codes.filter((c: any) => !c.deletedAt));

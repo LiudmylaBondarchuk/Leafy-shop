@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { products, productVariants, categories, adminUsers } from "@/lib/db/schema-pg";
+import { products, productVariants, categories } from "@/lib/db/schema-pg";
 import { eq, and, sql } from "drizzle-orm";
 import { getAdminFromCookie } from "@/lib/auth";
 import { apiSuccess, apiError } from "@/lib/utils";
@@ -9,12 +9,6 @@ export async function GET() {
   if (!admin) return apiError("Unauthorized", 401, "UNAUTHORIZED");
 
   try {
-    // Get requesting user role
-    const requestingUser = await db.query.adminUsers.findFirst({
-      where: eq(adminUsers.id, Number(admin.sub)),
-    });
-    const isTester = requestingUser?.role === "tester";
-
     const allProducts = await db
       .select({
         id: products.id,
@@ -43,12 +37,7 @@ export async function GET() {
       )
       .orderBy(products.name);
 
-    // Tester sees only their own products
-    const filtered = isTester
-      ? allProducts.filter((p: any) => p.createdBy === Number(admin.sub))
-      : allProducts;
-
-    const data = filtered.map((p: any) => ({
+    const data = allProducts.map((p: any) => ({
       id: p.id,
       name: p.name,
       slug: p.slug,

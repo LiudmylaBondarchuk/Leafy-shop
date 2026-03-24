@@ -126,7 +126,7 @@ export function DiscountForm({ discountId }: DiscountFormProps) {
   if (loading) return <div className="text-gray-400 py-8">Loading...</div>;
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-3xl space-y-6">
       <Card className="p-5 space-y-4">
         <h2 className="font-semibold text-gray-900">Discount Code</h2>
         <div>

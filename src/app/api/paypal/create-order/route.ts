@@ -12,17 +12,20 @@ export async function POST(request: Request) {
       return apiError("Total and order number are required", 400);
     }
 
-    // Server-side validation: look up the order and verify the total
-    const order = await db.query.orders.findFirst({
-      where: eq(orders.orderNumber, orderNumber),
-    });
+    // For pending orders (PayPal flow: create PayPal order before shop order),
+    // skip DB validation - it will be validated during capture
+    if (orderNumber !== "PENDING") {
+      const order = await db.query.orders.findFirst({
+        where: eq(orders.orderNumber, orderNumber),
+      });
 
-    if (!order) {
-      return apiError("Order not found", 404);
-    }
+      if (!order) {
+        return apiError("Order not found", 404);
+      }
 
-    if (order.total !== totalInCents) {
-      return apiError("Total mismatch. Payment rejected.", 400);
+      if (order.total !== totalInCents) {
+        return apiError("Total mismatch. Payment rejected.", 400);
+      }
     }
 
     const paypalOrder = await createPayPalOrder(totalInCents, orderNumber);

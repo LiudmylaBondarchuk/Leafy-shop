@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { products, productVariants, orders, orderItems, orderStatusHistory, discountCodes, auditLogs } from "@/lib/db/schema-pg";
+import { products, productVariants, orders, orderItems, orderStatusHistory, discountCodes, auditLogs, adminUsers } from "@/lib/db/schema-pg";
 import { eq, and, sql, isNull } from "drizzle-orm";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { NextRequest } from "next/server";

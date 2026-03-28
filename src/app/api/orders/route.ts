@@ -320,7 +320,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Send confirmation email (async, don't block response)
-    sendOrderConfirmationEmail({
+    const emailCfg = await getSettings();
+    const confirmationEnabled = emailCfg["email.enabled.order_confirmation"] !== "false";
+    if (confirmationEnabled) sendOrderConfirmationEmail({
       orderNumber,
       customerName: data.customer.first_name,
       customerEmail: data.customer.email.trim().toLowerCase(),

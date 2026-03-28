@@ -8,6 +8,7 @@ import { apiSuccess, apiError } from "@/lib/utils";
 import { sendOrderStatusEmail, sendCreditNoteEmail } from "@/lib/email";
 import { getAdminFromCookie } from "@/lib/auth";
 import { generateCreditNote, markCreditNoteEmailSent } from "@/lib/credit-notes";
+import { getSettings } from "@/lib/settings";
 import { NextRequest } from "next/server";
 
 export async function PATCH(
@@ -98,26 +99,36 @@ export async function PATCH(
       productTypes = [...new Set(prods.map((p: any) => p.productType))] as string[];
     }
 
+    // Check if emails should be sent
+    const cfg = await getSettings();
+    const isTester = requestingUser?.role === "tester";
+    const testerEmailsAllowed = cfg["tester.emails_enabled"] === "true";
+    const statusEmailEnabled = cfg[`email.enabled.status_${newStatus}`] !== "false"; // default: enabled
+
+    const shouldSendEmail = statusEmailEnabled && (!isTester || testerEmailsAllowed);
+
     // Send status update email (async)
-    sendOrderStatusEmail(
-      order.customerEmail,
-      order.customerFirstName,
-      order.orderNumber,
-      newStatus,
-      order.shippingMethod,
-      order.paymentMethod,
-      note,
-      "admin",
-      productTypes,
-      newStatus === "shipped" ? trackingNumber : undefined,
-    ).catch(() => {});
+    if (shouldSendEmail) {
+      sendOrderStatusEmail(
+        order.customerEmail,
+        order.customerFirstName,
+        order.orderNumber,
+        newStatus,
+        order.shippingMethod,
+        order.paymentMethod,
+        note,
+        "admin",
+        productTypes,
+        newStatus === "shipped" ? trackingNumber : undefined,
+      ).catch(() => {});
+    }
 
     // Generate credit note for cancelled/returned orders with invoices
     if ((newStatus === "cancelled" || newStatus === "returned") && order.wantsInvoice) {
       try {
         const reason = newStatus === "returned" ? (note || "Order returned") : (note || "Order cancelled");
         const creditNote = await generateCreditNote(order.id, reason);
-        if (creditNote) {
+        if (creditNote && shouldSendEmail) {
           sendCreditNoteEmail(
             order.customerEmail,
             order.customerFirstName,

@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatPrice(priceInCents: number, currency = "$"): string {
+export function formatPrice(priceInCents: number, currency = "€"): string {
   return `${currency}${(priceInCents / 100).toFixed(2)}`;
 }
 

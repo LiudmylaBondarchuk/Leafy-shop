@@ -121,7 +121,7 @@ async function seed() {
   await db.insert(schema.discountCodes).values([
     { code: "WELCOME10", description: "10% off for new customers", type: "percentage", value: 1000, minOrderValue: 5000, startsAt: pastDate, expiresAt: futureDate },
     { code: "GREENTEA20", description: "20% off green tea", type: "percentage", value: 2000, maxDiscount: 3000, categoryId: catMap["green-tea"], startsAt: pastDate, expiresAt: futureDate },
-    { code: "COFFEE15", description: "$15 off coffee orders", type: "fixed_amount", value: 1500, minOrderValue: 8000, usageLimit: 1, startsAt: pastDate, expiresAt: futureDate },
+    { code: "COFFEE15", description: "€15 off coffee orders", type: "fixed_amount", value: 1500, minOrderValue: 8000, usageLimit: 1, startsAt: pastDate, expiresAt: futureDate },
     { code: "FREESHIP", description: "Free shipping", type: "free_shipping", value: 0, minOrderValue: 5000, startsAt: pastDate, expiresAt: futureDate },
     { code: "EXPIRED", description: "Expired test code", type: "percentage", value: 1000, startsAt: new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000).toISOString(), expiresAt: pastDate },
     { code: "USED", description: "Already used single-use code", type: "percentage", value: 500, usageLimit: 1, usageCount: 1, startsAt: pastDate, expiresAt: futureDate },

@@ -16,7 +16,7 @@ export default function TermsPage() {
         <section>
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">2. Products & Pricing</h2>
           <p>
-            All prices are displayed in US Dollars (USD) and include applicable taxes. Prices are subject
+            All prices are displayed in Euros (EUR) and include applicable taxes. Prices are subject
             to change without notice, but changes will not affect orders that have already been confirmed.
           </p>
           <p>
@@ -41,12 +41,12 @@ export default function TermsPage() {
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">4. Shipping</h2>
           <p>We offer the following shipping methods:</p>
           <ul className="list-disc pl-5 space-y-1">
-            <li><strong>Courier (DPD):</strong> $14.99 — estimated delivery 2–4 business days</li>
-            <li><strong>InPost Parcel Locker:</strong> $9.99 — estimated delivery 1–3 business days</li>
+            <li><strong>Courier (DPD):</strong> €14.99 — estimated delivery 2–4 business days</li>
+            <li><strong>InPost Parcel Locker:</strong> €9.99 — estimated delivery 1–3 business days</li>
             <li><strong>In-store Pickup:</strong> Free — available Mon–Fri 10am–6pm</li>
           </ul>
           <p>
-            Orders over $100 qualify for free courier shipping. Cash on delivery incurs an additional $5.00 surcharge.
+            Orders over €100 qualify for free courier shipping. Cash on delivery incurs an additional €5.00 surcharge.
           </p>
         </section>
 
@@ -95,7 +95,7 @@ export default function TermsPage() {
 
         <div className="border-t border-gray-200 dark:border-gray-700 pt-6 mt-6">
           <p className="text-xs text-gray-400 dark:text-gray-500 italic">
-            This is a portfolio project. Leafy is a fictional store created for demonstration purposes.
+            This is a demo project. Leafy is a fictional store created for demonstration purposes.
             No real transactions are processed.
           </p>
         </div>

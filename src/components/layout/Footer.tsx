@@ -18,7 +18,7 @@ export function Footer() {
             </p>
             <div className="flex items-center gap-2 mt-4 text-sm text-green-300">
               <Truck className="h-4 w-4" />
-              <span>Free shipping on orders over $100</span>
+              <span>Free shipping on orders over €100</span>
             </div>
           </div>
 
@@ -49,7 +49,7 @@ export function Footer() {
 
         <div className="border-t border-green-800 mt-8 pt-6 text-center">
           <p className="text-xs text-green-400">
-            &copy; {new Date().getFullYear()} Leafy. All rights reserved. This is a portfolio project.
+            &copy; {new Date().getFullYear()} Leafy. All rights reserved. This is a demo project.
           </p>
         </div>
       </div>

@@ -332,8 +332,8 @@ export function ProductForm({ productId }: ProductFormProps) {
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Price (cents) *</label>
                 <input value={v.price || ""} onChange={(e) => updateVariant(i, "price", Number(positiveNumber(e.target.value, 9999999)))} className="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-600" placeholder="2990" />
-                {v.price > 0 && <p className="text-xs text-gray-400 mt-0.5">${(v.price / 100).toFixed(2)}</p>}
-                {!v.price && <p className="text-xs text-gray-400 mt-0.5">e.g. 2990 = $29.90</p>}
+                {v.price > 0 && <p className="text-xs text-gray-400 mt-0.5">€{(v.price / 100).toFixed(2)}</p>}
+                {!v.price && <p className="text-xs text-gray-400 mt-0.5">e.g. 2990 = €29.90</p>}
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Cost (cents)</label>

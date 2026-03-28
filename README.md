@@ -7,7 +7,7 @@
 [![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
-A production-ready e-commerce application demonstrating full-stack development with Next.js — complete order flow, PayPal integration, VAT invoices, role-based admin panel, and customer accounts. Built as a portfolio project.
+A production-ready e-commerce application demonstrating full-stack development with Next.js — complete order flow, PayPal integration, VAT invoices, role-based admin panel, and customer accounts. Built as a demo project.
 
 🔗 **Live demo:** [leafyshop.eu](https://leafyshop.eu) · **Admin panel:** [leafyshop.eu/management](https://leafyshop.eu/management)
 

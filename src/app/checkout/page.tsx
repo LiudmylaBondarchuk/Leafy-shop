@@ -538,7 +538,7 @@ export default function CheckoutPage() {
       {step === 2 && (
         <div className="space-y-4">
           {(["paypal", "cod"] as const).map((method) => {
-            const labels = { paypal: "PayPal", cod: "Cash on Delivery (+$5.00)" };
+            const labels = { paypal: "PayPal", cod: "Cash on Delivery (+€5.00)" };
             const descriptions = { paypal: "Pay securely with PayPal, credit or debit card", cod: "Pay when your order arrives" };
             return (
               <label key={method} className={cn("flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-colors", form.paymentMethod === method ? "border-green-700 bg-green-50 dark:bg-green-900/20 dark:border-green-600" : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600")}>
@@ -628,7 +628,7 @@ export default function CheckoutPage() {
             </div>
 
             {form.paymentMethod === "paypal" && form.acceptTerms && (
-              <PayPalScriptProvider options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!, currency: "USD", locale: "en_US", disableFunding: "paylater,venmo,card,p24,blik,sofort,giropay,sepa,ideal,bancontact,eps,mybank" }}>
+              <PayPalScriptProvider options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!, currency: "EUR", locale: "en_US", disableFunding: "paylater,venmo,card,p24,blik,sofort,giropay,sepa,ideal,bancontact,eps,mybank" }}>
                 <PayPalButtons
                   style={{ layout: "vertical", shape: "rect", label: "pay", tagline: false }}
                   fundingSource="paypal"

@@ -53,7 +53,7 @@ export default function HomePage() {
             </div>
             <div>
               <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm">Free Shipping</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">On orders over $100</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">On orders over €100</p>
             </div>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-4">

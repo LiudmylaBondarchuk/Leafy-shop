@@ -42,7 +42,7 @@ export async function createPayPalOrder(totalInCents: number, orderNumber: strin
           reference_id: orderNumber,
           description: `Leafy Order ${orderNumber}`,
           amount: {
-            currency_code: "USD",
+            currency_code: "EUR",
             value: totalUsd,
           },
         },

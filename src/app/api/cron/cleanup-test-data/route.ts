@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
 
     // 3. Revert order status changes made by testers (before deleting test orders)
     const testerUsers = await db.select({ id: adminUsers.id }).from(adminUsers).where(eq(adminUsers.role, "tester"));
-    const testerIds = testerUsers.map((u) => u.id);
+    const testerIds = testerUsers.map((u: { id: number }) => u.id);
     let revertedStatuses = 0;
 
     if (testerIds.length > 0) {

@@ -43,7 +43,51 @@ export async function GET(request: NextRequest) {
       cleanedDiscounts++;
     }
 
-    // 3. Delete test orders and related data
+    // 3. Revert order status changes made by testers (before deleting test orders)
+    const testerUsers = await db.select({ id: adminUsers.id }).from(adminUsers).where(eq(adminUsers.role, "tester"));
+    const testerIds = testerUsers.map((u) => u.id);
+    let revertedStatuses = 0;
+
+    if (testerIds.length > 0) {
+      // Find all status history entries made by testers on non-test orders
+      const allStatusHistory = await db
+        .select({
+          id: orderStatusHistory.id,
+          orderId: orderStatusHistory.orderId,
+          fromStatus: orderStatusHistory.fromStatus,
+          toStatus: orderStatusHistory.toStatus,
+          changedBy: orderStatusHistory.changedBy,
+        })
+        .from(orderStatusHistory)
+        .innerJoin(orders, eq(orders.id, orderStatusHistory.orderId))
+        .where(eq(orders.isTestData, false))
+        .orderBy(orderStatusHistory.id);
+
+      // Group by orderId, keep only tester changes
+      const testerChanges = new Map<number, { historyIds: number[]; originalStatus: string | null }>();
+      for (const h of allStatusHistory) {
+        const match = h.changedBy?.match(/^admin:(\d+):/);
+        if (match && testerIds.includes(parseInt(match[1]))) {
+          if (!testerChanges.has(h.orderId)) {
+            testerChanges.set(h.orderId, { historyIds: [], originalStatus: h.fromStatus });
+          }
+          testerChanges.get(h.orderId)!.historyIds.push(h.id);
+        }
+      }
+
+      // Revert each order to its original status and remove tester history entries
+      for (const [orderId, { historyIds, originalStatus }] of testerChanges) {
+        if (originalStatus) {
+          await db.update(orders).set({ status: originalStatus, updatedAt: new Date().toISOString() }).where(eq(orders.id, orderId));
+        }
+        for (const hId of historyIds) {
+          await db.delete(orderStatusHistory).where(eq(orderStatusHistory.id, hId));
+        }
+        revertedStatuses++;
+      }
+    }
+
+    // 4. Delete test orders (created by testers, isTestData: true)
     const testOrders = await db.select({ id: orders.id }).from(orders).where(eq(orders.isTestData, true));
     for (const o of testOrders) {
       await db.delete(orderStatusHistory).where(eq(orderStatusHistory.orderId, o.id));
@@ -51,11 +95,6 @@ export async function GET(request: NextRequest) {
       await db.delete(orders).where(eq(orders.id, o.id));
       cleanedOrders++;
     }
-
-    // 4. Restore soft-deleted products/discounts that were deleted by testers
-    // (deleted_at set, is_test_data false but modified by tester via audit log)
-    // For now, we only clean test data. Restoring tester modifications would require
-    // reading audit_logs and reverting changes — this is a future enhancement.
 
     // 5. Clean old audit logs (older than 7 days)
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -71,6 +110,7 @@ export async function GET(request: NextRequest) {
       products: cleanedProducts,
       discounts: cleanedDiscounts,
       orders: cleanedOrders,
+      revertedStatuses,
       auditLogs: cleanedLogs,
     };
 

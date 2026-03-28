@@ -331,26 +331,37 @@ export default function SettingsPage() {
           <p className="text-xs text-gray-400 dark:text-gray-500">Left column describes when the email is sent. Right column is the editable message text.</p>
 
           {[
-            { key: "email.tpl.order_greeting", label: "Order Confirmation", desc: "Greeting shown at the top of the order confirmation email", placeholder: "Hi {name}, thank you for your order!" },
-            { key: "email.tpl.status_paid", label: "Payment Confirmed", desc: "Sent when payment is received (PayPal)", placeholder: "Your payment has been received. We'll start preparing your order shortly." },
-            { key: "email.tpl.status_processing", label: "Order Processing", desc: "Sent when admin starts preparing the order", placeholder: "Our team is carefully packing your teas and coffees. We'll notify you once it's shipped." },
-            { key: "email.tpl.status_shipped", label: "Order Shipped", desc: "Sent when order is dispatched to courier/locker", placeholder: "Your package is on its way! It should arrive within 2–4 business days." },
-            { key: "email.tpl.status_delivered", label: "Order Delivered", desc: "Sent when order is marked as delivered", placeholder: "We hope you enjoy your products! If you have any questions, don't hesitate to contact us." },
-            { key: "email.tpl.status_cancelled", label: "Order Cancelled", desc: "Sent when order is cancelled (by admin or customer)", placeholder: "Your order has been cancelled. All reserved items have been returned to stock." },
-            { key: "email.tpl.status_returned", label: "Return Processed", desc: "Sent when a return is confirmed", placeholder: "We've received your return. Your refund will be processed within 5–10 business days." },
+            { key: "email.tpl.order_greeting", enableKey: "email.enabled.order_confirmation", label: "Order Confirmation", desc: "Greeting shown at the top of the order confirmation email", placeholder: "Hi {name}, thank you for your order!" },
+            { key: "email.tpl.status_paid", enableKey: "email.enabled.status_paid", label: "Payment Confirmed", desc: "Sent when payment is received (PayPal)", placeholder: "Your payment has been received. We'll start preparing your order shortly." },
+            { key: "email.tpl.status_processing", enableKey: "email.enabled.status_processing", label: "Order Processing", desc: "Sent when admin starts preparing the order", placeholder: "Our team is carefully packing your teas and coffees. We'll notify you once it's shipped." },
+            { key: "email.tpl.status_shipped", enableKey: "email.enabled.status_shipped", label: "Order Shipped", desc: "Sent when order is dispatched to courier/locker", placeholder: "Your package is on its way! It should arrive within 2–4 business days." },
+            { key: "email.tpl.status_delivered", enableKey: "email.enabled.status_delivered", label: "Order Delivered", desc: "Sent when order is marked as delivered", placeholder: "We hope you enjoy your products! If you have any questions, don't hesitate to contact us." },
+            { key: "email.tpl.status_cancelled", enableKey: "email.enabled.status_cancelled", label: "Order Cancelled", desc: "Sent when order is cancelled (by admin or customer)", placeholder: "Your order has been cancelled. All reserved items have been returned to stock." },
+            { key: "email.tpl.status_returned", enableKey: "email.enabled.status_returned", label: "Return Processed", desc: "Sent when a return is confirmed", placeholder: "We've received your return. Your refund will be processed within 5–10 business days." },
           ].map((tpl) => (
             <div key={tpl.key} className="grid grid-cols-1 md:grid-cols-3 gap-3 py-2 border-t border-gray-100 dark:border-gray-700 first:border-t-0">
               <div className="md:col-span-1">
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{tpl.label}</p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{tpl.desc}</p>
+                <div className="flex items-center gap-2">
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settings[tpl.enableKey] !== "false"}
+                      onChange={(e) => updateSetting(tpl.enableKey, e.target.checked ? "true" : "false")}
+                      className="rounded border-gray-300 text-green-700 focus:ring-green-600 h-3.5 w-3.5"
+                    />
+                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{tpl.label}</span>
+                  </label>
+                </div>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 ml-5">{tpl.desc}</p>
               </div>
               <div className="md:col-span-2">
                 <textarea
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm disabled:opacity-50"
                   rows={2}
                   value={settings[tpl.key] || tpl.placeholder}
                   onChange={(e) => updateSetting(tpl.key, e.target.value)}
                   placeholder={tpl.placeholder}
+                  disabled={settings[tpl.enableKey] === "false"}
                 />
               </div>
             </div>
@@ -420,6 +431,18 @@ export default function SettingsPage() {
             <Input label="Max test orders" id="testerOrders" type="number" value={settings["tester.max_orders"] || "50"} onChange={(e) => updateSetting("tester.max_orders", e.target.value)} />
             <p className="text-xs text-gray-400 dark:text-gray-500">Maximum number of test orders a tester can place.</p>
           </div>
+        </div>
+        <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={settings["tester.emails_enabled"] === "true"}
+              onChange={(e) => updateSetting("tester.emails_enabled", e.target.checked ? "true" : "false")}
+              className="rounded border-gray-300 text-green-700 focus:ring-green-600"
+            />
+            <span className="text-sm text-gray-700 dark:text-gray-300">Allow tester actions to send emails to customers</span>
+          </label>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 ml-6">When disabled, status changes and other actions by testers will not trigger any customer emails. Enabled by default: off.</p>
         </div>
         <p className="text-xs text-gray-400 dark:text-gray-500">Test data created by testers is automatically cleaned up daily at 3:00 AM.</p>
         <Button

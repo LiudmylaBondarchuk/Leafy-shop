@@ -6,6 +6,7 @@ import { apiSuccess, apiError } from "@/lib/utils";
 import { sendOrderStatusEmail, sendCreditNoteEmail } from "@/lib/email";
 import { generateCreditNote, markCreditNoteEmailSent } from "@/lib/credit-notes";
 import { rateLimit } from "@/lib/rate-limit";
+import { getSettings } from "@/lib/settings";
 
 export async function POST(request: Request) {
   try {
@@ -65,23 +66,28 @@ export async function POST(request: Request) {
       note: "Cancelled by customer",
     });
 
-    // Send email
-    sendOrderStatusEmail(
-      order.customerEmail,
-      order.customerFirstName,
-      order.orderNumber,
-      "cancelled",
-      order.shippingMethod,
-      order.paymentMethod,
-      "Cancelled by customer",
-      "customer",
-    ).catch(() => {});
+    // Send email (if enabled in settings)
+    const cfg = await getSettings();
+    const cancelEmailEnabled = cfg["email.enabled.status_cancelled"] !== "false";
+
+    if (cancelEmailEnabled) {
+      sendOrderStatusEmail(
+        order.customerEmail,
+        order.customerFirstName,
+        order.orderNumber,
+        "cancelled",
+        order.shippingMethod,
+        order.paymentMethod,
+        "Cancelled by customer",
+        "customer",
+      ).catch(() => {});
+    }
 
     // Generate credit note for orders with invoices
     if (order.wantsInvoice) {
       try {
         const creditNote = await generateCreditNote(order.id, "Cancelled by customer");
-        if (creditNote) {
+        if (creditNote && cancelEmailEnabled) {
           sendCreditNoteEmail(
             order.customerEmail,
             order.customerFirstName,

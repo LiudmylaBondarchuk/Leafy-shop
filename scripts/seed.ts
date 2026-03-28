@@ -309,7 +309,7 @@ async function seed() {
       startsAt: pastDate, expiresAt: futureDate,
     },
     {
-      code: "COFFEE15", description: "$15 off coffee orders", type: "fixed_amount",
+      code: "COFFEE15", description: "€15 off coffee orders", type: "fixed_amount",
       value: 1500, minOrderValue: 8000, usageLimit: 1,
       startsAt: pastDate, expiresAt: futureDate,
     },

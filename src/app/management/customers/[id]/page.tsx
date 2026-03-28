@@ -80,7 +80,7 @@ export default function CustomerDetailPage() {
                   <DollarSign className="h-4 w-4" /> Avg Order
                 </span>
                 <span className="font-medium text-gray-900">
-                  {customer.orderCount > 0 ? formatPrice(Math.round(customer.totalSpent / customer.orderCount)) : "$0.00"}
+                  {customer.orderCount > 0 ? formatPrice(Math.round(customer.totalSpent / customer.orderCount)) : "€0.00"}
                 </span>
               </div>
               <div className="flex items-center justify-between text-sm">

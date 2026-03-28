@@ -12,7 +12,7 @@ function escapeHtml(str: string): string {
 }
 
 function formatPrice(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`;
+  return `€${(cents / 100).toFixed(2)}`;
 }
 
 export async function GET(
@@ -190,7 +190,7 @@ export async function GET(
     <!-- Footer -->
     <div style="margin-top:40px;padding-top:20px;border-top:1px solid #e5e7eb;text-align:center;font-size:11px;color:#999">
       <p>${escapeHtml(storeName)} · ${escapeHtml(storeAddress)} · ${escapeHtml(invoicesEmail)}</p>
-      <p style="margin-top:4px">This is a portfolio project. This credit note is for demonstration purposes only.</p>
+      <p style="margin-top:4px">This is a demo project. This credit note is for demonstration purposes only.</p>
     </div>
 
     <!-- Print button -->

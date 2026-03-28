@@ -86,7 +86,7 @@ export default function PrivacyPolicyPage() {
 
         <div className="border-t border-gray-200 dark:border-gray-700 mt-10 pt-6">
           <p className="text-sm text-gray-400 dark:text-gray-500 italic">
-            This is a portfolio project. Leafy is a fictional e-commerce store built for demonstration
+            This is a demo project. Leafy is a fictional e-commerce store built for demonstration
             purposes. No real transactions are processed and no real personal data is collected or stored.
           </p>
         </div>

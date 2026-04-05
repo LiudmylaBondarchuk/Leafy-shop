@@ -13,10 +13,10 @@ export function Footer() {
               <Leaf className="h-6 w-6 text-green-400" />
               <span className="text-lg font-bold text-white">Leafy</span>
             </div>
-            <p className="text-sm text-green-300">
+            <p className="text-sm text-green-200">
               Premium teas and coffees from the best corners of the world.
             </p>
-            <div className="flex items-center gap-2 mt-4 text-sm text-green-300">
+            <div className="flex items-center gap-2 mt-4 text-sm text-green-200">
               <Truck className="h-4 w-4" />
               <span>Free shipping on orders over €100</span>
             </div>
@@ -28,7 +28,7 @@ export function Footer() {
             <ul className="space-y-2">
               {[SITE_LINKS.teas, SITE_LINKS.coffees, SITE_LINKS.products].map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-sm text-green-300 hover:text-white transition-colors">{link.label}</Link>
+                  <Link href={link.href} className="text-sm text-green-200 hover:text-white transition-colors">{link.label}</Link>
                 </li>
               ))}
             </ul>
@@ -40,7 +40,7 @@ export function Footer() {
             <ul className="space-y-2">
               {[SITE_LINKS.trackOrder, SITE_LINKS.about, SITE_LINKS.contact, SITE_LINKS.terms, SITE_LINKS.privacy].map((link) => (
                 <li key={link.href + link.label}>
-                  <Link href={link.href} className="text-sm text-green-300 hover:text-white transition-colors">{link.label}</Link>
+                  <Link href={link.href} className="text-sm text-green-200 hover:text-white transition-colors">{link.label}</Link>
                 </li>
               ))}
             </ul>

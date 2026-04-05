@@ -14,6 +14,14 @@ export const metadata: Metadata = {
     url: "https://leafyshop.eu",
     siteName: "Leafy",
     type: "website",
+    images: [
+      {
+        url: "https://leafyshop.eu/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Leafy — Premium Teas & Coffees",
+      },
+    ],
   },
 };
 

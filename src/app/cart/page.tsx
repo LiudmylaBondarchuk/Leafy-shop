@@ -10,8 +10,15 @@ import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 
+interface CartLineItem {
+  variant_id: number;
+  quantity: number;
+  unit_price: number;
+  line_total: number;
+}
+
 interface CartCalculation {
-  items: any[];
+  items: CartLineItem[];
   subtotal: number;
   discount: { code: string; type: string; description: string; amount: number } | null;
   discountError?: string;

@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { TableSkeleton } from "@/components/ui/Skeleton";
 
 export default function AdminProductsPage() {
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<{ id: number; name: string; slug: string; sku?: string; imageUrl: string | null; productType: string; isActive: boolean; isFeatured: boolean; priceFrom: number; totalStock: number; inStock: boolean; categoryId?: number; category: { id: number; name: string }; variants: { price: number; stock: number; isActive: boolean }[] }[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");

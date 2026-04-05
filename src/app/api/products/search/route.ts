@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { products, productVariants } from "@/lib/db/schema-pg";
-import { eq, and, like, or, sql } from "drizzle-orm";
+import { eq, and, ilike, or, sql } from "drizzle-orm";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { NextRequest } from "next/server";
 
@@ -30,8 +30,8 @@ export async function GET(request: NextRequest) {
           eq(products.isActive, true),
           eq(products.isTestData, false),
           or(
-            sql`LOWER(${products.name}) LIKE ${'%' + searchTerm + '%'}`,
-            sql`LOWER(${products.description}) LIKE ${'%' + searchTerm + '%'}`
+            ilike(products.name, `%${searchTerm}%`),
+            ilike(products.description, `%${searchTerm}%`)
           )
         )
       )

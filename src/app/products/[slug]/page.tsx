@@ -43,7 +43,15 @@ interface Product {
   isFeatured: boolean;
   category: { id: number; name: string; slug: string };
   variants: Variant[];
-  relatedProducts: any[];
+  relatedProducts: {
+    id: number;
+    name: string;
+    slug: string;
+    imageUrl: string | null;
+    productType: string;
+    priceFrom: number;
+    isFeatured: boolean;
+  }[];
 }
 
 export default function ProductDetailPage() {

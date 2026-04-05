@@ -1,3 +1,10 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy — Leafy",
+  description: "How Leafy collects, uses, and protects your personal data. Read our full privacy policy.",
+};
+
 export default function PrivacyPolicyPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

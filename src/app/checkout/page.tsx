@@ -369,11 +369,11 @@ export default function CheckoutPage() {
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label="First name *" id="firstName" value={form.firstName} onChange={(e) => updateField("firstName", e.target.value)} error={errors.firstName} placeholder="John" />
-            <Input label="Last name *" id="lastName" value={form.lastName} onChange={(e) => updateField("lastName", e.target.value)} error={errors.lastName} placeholder="Smith" />
+            <Input label="First name *" id="firstName" value={form.firstName} onChange={(e) => updateField("firstName", e.target.value)} error={errors.firstName} placeholder="John" maxLength={100} />
+            <Input label="Last name *" id="lastName" value={form.lastName} onChange={(e) => updateField("lastName", e.target.value)} error={errors.lastName} placeholder="Smith" maxLength={100} />
           </div>
 
-          <Input label="Email *" id="email" type="email" value={form.email} onChange={(e) => { updateField("email", e.target.value); setEmailAccountExists(false); }} onBlur={(e) => checkEmailAccount(e.target.value)} error={errors.email} placeholder="john@example.com" />
+          <Input label="Email *" id="email" type="email" value={form.email} onChange={(e) => { updateField("email", e.target.value); setEmailAccountExists(false); }} onBlur={(e) => checkEmailAccount(e.target.value)} error={errors.email} placeholder="john@example.com" maxLength={255} />
 
           {/* Existing account banner */}
           {emailAccountExists && !customerLoggedIn && (
@@ -441,7 +441,7 @@ export default function CheckoutPage() {
             {errors.phone && <p className="mt-1 text-xs text-red-600">{errors.phone}</p>}
           </div>
 
-          <Input label="Street & number *" id="street" value={form.street} onChange={(e) => updateField("street", e.target.value)} error={errors.street} placeholder="123 Tea Street, Apt 4" />
+          <Input label="Street & number *" id="street" value={form.street} onChange={(e) => updateField("street", e.target.value)} error={errors.street} placeholder="123 Tea Street, Apt 4" maxLength={200} />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -472,7 +472,7 @@ export default function CheckoutPage() {
               />
               {errors.zip && <p className="mt-1 text-xs text-red-600">{errors.zip}</p>}
             </div>
-            <Input label="City *" id="city" value={form.city} onChange={(e) => updateField("city", e.target.value)} error={errors.city} placeholder="Warsaw" />
+            <Input label="City *" id="city" value={form.city} onChange={(e) => updateField("city", e.target.value)} error={errors.city} placeholder="Warsaw" maxLength={100} />
           </div>
 
           {/* Invoice */}
@@ -482,7 +482,7 @@ export default function CheckoutPage() {
           </label>
           {form.wantsInvoice && (
             <div className="space-y-4 pl-6 border-l-2 border-green-200">
-              <Input label="Company name *" id="company" value={form.company} onChange={(e) => updateField("company", e.target.value)} error={errors.company} placeholder="Acme Ltd." />
+              <Input label="Company name *" id="company" value={form.company} onChange={(e) => updateField("company", e.target.value)} error={errors.company} placeholder="Acme Ltd." maxLength={200} />
               <div>
                 <Input label={`${selectedCountry.vatLabel} *`} id="nip" value={form.nip} onChange={(e) => updateField("nip", e.target.value)} error={errors.nip} placeholder={selectedCountry.vatPlaceholder} />
                 {selectedCountry.eu && selectedCountry.code !== "PL" && (
@@ -613,7 +613,7 @@ export default function CheckoutPage() {
           {form.notes !== undefined && (
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Order notes (optional)</label>
-              <textarea value={form.notes} onChange={(e) => updateField("notes", e.target.value)} rows={2} className="w-full rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600" placeholder="Any special requests..." />
+              <textarea value={form.notes} onChange={(e) => updateField("notes", e.target.value)} rows={2} maxLength={500} className="w-full rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600" placeholder="Any special requests..." />
             </div>
           )}
 

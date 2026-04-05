@@ -3,9 +3,16 @@ import { apiSuccess, apiError } from "@/lib/utils";
 import { db } from "@/lib/db";
 import { orders } from "@/lib/db/schema-pg";
 import { eq } from "drizzle-orm";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   try {
+    const ip = request.headers.get("x-forwarded-for") || "unknown";
+    const { success } = rateLimit(`paypal-create:${ip}`, 5, 60000);
+    if (!success) {
+      return apiError("Too many requests", 429);
+    }
+
     const { totalInCents, orderNumber } = await request.json();
 
     if (!totalInCents || !orderNumber) {

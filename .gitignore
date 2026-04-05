@@ -10,3 +10,4 @@ dist/
 test-results/
 playwright-report/
 TEST-SCENARIOS.md
+vercel-env-vars.txt

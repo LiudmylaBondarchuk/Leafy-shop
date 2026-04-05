@@ -4,6 +4,21 @@ import { ProductSort } from "@/components/products/ProductSort";
 import { Suspense } from "react";
 import { headers } from "next/headers";
 import { getSettings } from "@/lib/settings";
+import type { Metadata } from "next";
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string>>;
+}): Promise<Metadata> {
+  const params = await searchParams;
+  const type = params.type === "tea" ? "Teas" : params.type === "coffee" ? "Coffees" : "Products";
+  const category = params.category ? `${params.category.charAt(0).toUpperCase() + params.category.slice(1)} ` : "";
+  return {
+    title: `${category}${type} — Leafy Premium Selection`,
+    description: `Browse our curated collection of premium ${type.toLowerCase()}. Farm-direct sourcing, freshly packed, free shipping over €100.`,
+  };
+}
 
 async function getBaseUrl() {
   const h = await headers();
@@ -58,7 +73,7 @@ export default async function ProductsPage({
           </div>
           {productList.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-              {productList.map((product: any) => (
+              {productList.map((product: { id: number; name: string; slug: string; shortDescription?: string | null; imageUrl: string | null; productType: string; priceFrom: number; isFeatured: boolean; inStock: boolean; category: { name: string; slug: string } }) => (
                 <ProductCard key={product.id} {...product} badgeLabel={cfg["badge.featured.label"]} badgeColor={cfg["badge.featured.color"]} />
               ))}
             </div>

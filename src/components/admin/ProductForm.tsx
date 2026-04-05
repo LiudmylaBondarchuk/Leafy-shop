@@ -29,7 +29,7 @@ export function ProductForm({ productId }: ProductFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<{ id: number; name: string; slug: string }[]>([]);
 
   const [form, setForm] = useState({
     name: "",

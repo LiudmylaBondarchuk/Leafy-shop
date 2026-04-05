@@ -13,7 +13,7 @@ import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Suspense } from "react";
 
-const STATUS_ICONS: Record<string, any> = {
+const STATUS_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   new: Package,
   paid: Check,
   processing: Circle,

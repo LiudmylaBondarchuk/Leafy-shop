@@ -1,4 +1,10 @@
 import { Mail, Phone, MapPin, Clock } from "lucide-react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Contact Leafy — Get in Touch",
+  description: "Reach out to our team for product questions, order support, or partnership inquiries. We reply within 24 hours.",
+};
 
 export default function ContactPage() {
   return (

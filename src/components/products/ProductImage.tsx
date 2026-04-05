@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 interface ProductImageProps {
   src?: string | null;
@@ -19,10 +20,12 @@ export function ProductImage({ src, alt, productType = "tea", size = "lg", class
   if (src) {
     return (
       <div className={cn("relative overflow-hidden", sizes[size], className)}>
-        <img
+        <Image
           src={src}
           alt={alt}
-          className="w-full h-full object-cover"
+          fill
+          className="object-cover"
+          sizes={size === "sm" ? "40px" : size === "md" ? "64px" : size === "lg" ? "128px" : "192px"}
         />
       </div>
     );

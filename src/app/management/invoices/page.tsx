@@ -9,8 +9,8 @@ import Link from "next/link";
 import { TableSkeleton } from "@/components/ui/Skeleton";
 
 export default function AdminInvoicesPage() {
-  const [orders, setOrders] = useState<any[]>([]);
-  const [creditNotesMap, setCreditNotesMap] = useState<Record<number, any>>({});
+  const [orders, setOrders] = useState<{ id: number; orderNumber: string; customerFirstName: string; customerLastName: string; customerEmail: string; status: string; total: number; createdAt: string; invoiceNumber: string | null; invoiceCompany: string | null; invoiceNip: string | null; items: { name: string; quantity: number; unitPrice: number; lineTotal: number }[] }[]>([]);
+  const [creditNotesMap, setCreditNotesMap] = useState<Record<number, { id: number; creditNoteNumber: string; amount: number; createdAt: string }>>({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -40,7 +40,7 @@ export default function AdminInvoicesPage() {
     return ["paid", "processing", "shipped", "delivered"].includes(order.status);
   };
 
-  const getInvoiceStatus = (order: any) => {
+  const getInvoiceStatus = (order: (typeof orders)[number]) => {
     if (order.status === "cancelled") return "cancelled";
     if (isPaid(order)) return "issued";
     return "pending";

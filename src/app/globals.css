@@ -2,76 +2,88 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+@theme {
+  --color-dark-bg: oklch(0.15 0.02 260);
+  --color-dark-surface: oklch(0.2 0.02 260);
+  --color-dark-border: oklch(0.3 0.02 260);
+  --color-dark-border-subtle: oklch(0.22 0.02 260);
+  --color-dark-text: oklch(0.95 0.01 260);
+  --color-dark-text-muted: oklch(0.7 0.01 260);
+  --color-dark-text-subtle: oklch(0.55 0.01 260);
+  --color-dark-hover: oklch(0.2 0.02 260);
+  --color-dark-panel: oklch(0.13 0.02 270);
+}
+
 /* Global dark mode overrides for management panel and forms */
 .dark {
   color-scheme: dark;
 }
 
 .dark h1, .dark h2, .dark h3 {
-  color: #f3f4f6;
+  color: var(--color-dark-text);
 }
 
 .dark p {
-  color: #d1d5db;
+  color: oklch(0.85 0.01 260);
 }
 
 .dark select,
 .dark textarea {
-  background-color: #1f2937;
-  border-color: #4b5563;
-  color: #f3f4f6;
+  background-color: var(--color-dark-surface);
+  border-color: var(--color-dark-border);
+  color: var(--color-dark-text);
 }
 
 .dark table thead {
-  background-color: #1f2937;
+  background-color: var(--color-dark-surface);
 }
 
 .dark table thead th {
-  color: #9ca3af;
+  color: var(--color-dark-text-muted);
 }
 
 .dark table tbody tr {
-  border-color: #374151;
+  border-color: var(--color-dark-border);
 }
 
 .dark table tbody td {
-  color: #d1d5db;
+  color: oklch(0.85 0.01 260);
 }
 
 .dark table tbody tr:hover {
-  background-color: #1f2937;
+  background-color: var(--color-dark-surface);
 }
 
 .dark .bg-gray-50 {
-  background-color: #111827;
+  background-color: var(--color-dark-bg);
 }
 
 .dark .bg-white {
-  background-color: #1a1a2e;
+  background-color: var(--color-dark-panel);
 }
 
 .dark .border-gray-200 {
-  border-color: #374151;
+  border-color: var(--color-dark-border);
 }
 
 .dark .border-gray-100 {
-  border-color: #1f2937;
+  border-color: var(--color-dark-border-subtle);
 }
 
 .dark .text-gray-900 {
-  color: #f3f4f6;
+  color: var(--color-dark-text);
 }
 
 .dark .text-gray-600 {
-  color: #9ca3af;
+  color: var(--color-dark-text-muted);
 }
 
 .dark .text-gray-500 {
-  color: #9ca3af;
+  color: var(--color-dark-text-muted);
 }
 
 .dark .text-gray-400 {
-  color: #6b7280;
+  color: var(--color-dark-text-subtle);
 }
 
 @keyframes slideUp {

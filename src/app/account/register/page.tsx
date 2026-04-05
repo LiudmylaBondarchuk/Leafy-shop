@@ -108,6 +108,7 @@ export default function RegisterPage() {
               onChange={(e) => updateField("firstName", e.target.value)}
               error={errors.firstName}
               placeholder="John"
+              maxLength={100}
             />
             <Input
               label="Last name *"
@@ -116,6 +117,7 @@ export default function RegisterPage() {
               onChange={(e) => updateField("lastName", e.target.value)}
               error={errors.lastName}
               placeholder="Smith"
+              maxLength={100}
             />
           </div>
 
@@ -127,6 +129,7 @@ export default function RegisterPage() {
             onChange={(e) => updateField("email", e.target.value)}
             error={errors.email}
             placeholder="john@example.com"
+            maxLength={255}
           />
 
           <Input
@@ -138,15 +141,20 @@ export default function RegisterPage() {
             placeholder="123456789"
           />
 
-          <Input
-            label="Password *"
-            id="password"
-            type="password"
-            value={form.password}
-            onChange={(e) => updateField("password", e.target.value)}
-            error={errors.password}
-            placeholder="At least 8 characters"
-          />
+          <div>
+            <Input
+              label="Password *"
+              id="password"
+              type="password"
+              value={form.password}
+              onChange={(e) => updateField("password", e.target.value)}
+              error={errors.password}
+              placeholder="At least 8 characters"
+            />
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Min. 8 characters, at least one uppercase letter, one lowercase letter, and one number.
+            </p>
+          </div>
 
           <Input
             label="Confirm password *"

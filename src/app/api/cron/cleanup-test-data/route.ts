@@ -11,7 +11,8 @@ import { getSettings } from "@/lib/settings";
 
 export async function GET(request: NextRequest) {
   try {
-    const token = request.nextUrl.searchParams.get("token");
+    const authHeader = request.headers.get("authorization");
+    const token = authHeader?.replace("Bearer ", "") || request.nextUrl.searchParams.get("token");
     const expectedToken = process.env.CRON_SECRET;
     if (!expectedToken) {
       console.error("[CRON] CRON_SECRET env var not set");

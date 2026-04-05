@@ -1,4 +1,10 @@
 import { Leaf, Globe, Heart, Award } from "lucide-react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "About Leafy — Our Story & Mission",
+  description: "Learn about Leafy's farm-direct sourcing, quality standards, and commitment to sustainable tea and coffee from 30+ family-owned farms worldwide.",
+};
 
 export default function AboutPage() {
   return (

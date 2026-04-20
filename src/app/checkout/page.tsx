@@ -16,6 +16,7 @@ import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
+import { validateCheckoutStep, type CheckoutFormInput } from "@/lib/validators/checkout-client";
 
 interface CustomerProfile {
   firstName: string;
@@ -51,14 +52,14 @@ export default function CheckoutPage() {
   const [calculatedDiscount, setCalculatedDiscount] = useState(0);
   const [effectiveShippingCost, setEffectiveShippingCost] = useState<number | null>(null);
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<CheckoutFormInput>({
     firstName: "", lastName: "", email: "", phone: "",
     country: "PL",
     street: "", city: "", zip: "",
     wantsInvoice: false, company: "", nip: "", invoiceAddress: "",
-    shippingMethod: "courier" as "courier" | "inpost" | "pickup",
+    shippingMethod: "courier",
     inpostCode: "",
-    paymentMethod: "paypal" as "paypal" | "cod",
+    paymentMethod: "paypal",
     acceptTerms: false,
     notes: "",
   });
@@ -186,59 +187,14 @@ export default function CheckoutPage() {
     );
   }
 
-  const updateField = (field: string, value: any) => {
+  const updateField = <K extends keyof CheckoutFormInput>(field: K, value: CheckoutFormInput[K]) => {
     setForm((f) => ({ ...f, [field]: value }));
     setErrors((e) => ({ ...e, [field]: "" }));
   };
 
   const validateStep = (s: number): boolean => {
-    const errs: Record<string, string> = {};
-
-    if (s === 0) {
-      const nameRegex = /^[a-zA-ZàáâãäåæçèéêëìíîïðñòóôõöùúûüýþÿĀ-žА-яЁёІіЇїЄє' -]+$/;
-      if (!form.firstName.trim() || form.firstName.trim().length < 2) errs.firstName = "First name must be at least 2 characters";
-      else if (!nameRegex.test(form.firstName.trim())) errs.firstName = "First name contains invalid characters";
-      if (!form.lastName.trim() || form.lastName.trim().length < 2) errs.lastName = "Last name must be at least 2 characters";
-      else if (!nameRegex.test(form.lastName.trim())) errs.lastName = "Last name contains invalid characters";
-      if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = "Invalid email address";
-
-      const phoneClean = form.phone.replace(/\s/g, "");
-      if (!phoneClean || phoneClean.length !== selectedCountry.phoneDigits) {
-        errs.phone = `Phone must be ${selectedCountry.phoneDigits} digits for ${selectedCountry.name}`;
-      } else if (!/^\d+$/.test(phoneClean)) {
-        errs.phone = "Phone must contain only digits";
-      } else {
-        const startsValid = selectedCountry.phoneStartsWith.some((prefix: string) => phoneClean.startsWith(prefix));
-        if (!startsValid) {
-          errs.phone = "Invalid phone number";
-        }
-      }
-
-      if (!form.street.trim()) errs.street = "Street is required";
-      if (!form.city.trim()) errs.city = "City is required";
-
-      if (!form.zip.trim()) {
-        errs.zip = "Zip code is required";
-      } else if (!selectedCountry.zipRegex.test(form.zip.trim())) {
-        errs.zip = `Invalid format for ${selectedCountry.name} (${selectedCountry.zipFormat})`;
-      }
-
-      if (form.wantsInvoice) {
-        if (!form.company.trim()) errs.company = "Company name is required";
-        if (!form.nip.trim()) {
-          errs.nip = `${selectedCountry.vatLabel} is required`;
-        } else if (!selectedCountry.validateVat(form.nip.trim())) {
-          errs.nip = `Invalid ${selectedCountry.vatLabel} for ${selectedCountry.name}`;
-        }
-        if (!form.invoiceAddress.trim()) errs.invoiceAddress = "Company address is required";
-      }
-    }
-
-    if (s === 1 && form.shippingMethod === "inpost" && !form.inpostCode.trim()) {
-      errs.inpostCode = "Parcel locker code is required";
-    }
-
-    setErrors(errs);
+    const errs = validateCheckoutStep(s, form);
+    setErrors(errs as Record<string, string>);
     return Object.keys(errs).length === 0;
   };
 

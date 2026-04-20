@@ -13,36 +13,37 @@ export async function POST(request: Request) {
       return apiError("Too many requests", 429);
     }
 
-    const { totalInCents, orderNumber } = await request.json();
+    const { orderNumber } = await request.json();
 
-    if (!totalInCents || !orderNumber) {
-      return apiError("Total and order number are required", 400);
+    if (typeof orderNumber !== "string" || !orderNumber) {
+      return apiError("Order number is required", 400);
     }
 
-    // For pending orders (PayPal flow: create PayPal order before shop order),
-    // skip DB validation - it will be validated during capture
-    if (orderNumber !== "PENDING") {
-      const order = await db.query.orders.findFirst({
-        where: eq(orders.orderNumber, orderNumber),
-      });
+    const order = await db.query.orders.findFirst({
+      where: eq(orders.orderNumber, orderNumber),
+    });
 
-      if (!order) {
-        return apiError("Order not found", 404);
-      }
-
-      if (order.total !== totalInCents) {
-        return apiError("Total mismatch. Payment rejected.", 400);
-      }
+    if (!order) {
+      return apiError("Order not found", 404);
     }
 
-    const paypalOrder = await createPayPalOrder(totalInCents, orderNumber);
+    // Only orders created in the PayPal flow (awaiting capture) may initiate a PayPal session
+    if (order.status !== "pending_payment") {
+      return apiError("Order cannot be paid in this state", 400, "INVALID_STATE");
+    }
+
+    if (order.paymentMethod !== "paypal") {
+      return apiError("Order is not set for PayPal payment", 400, "INVALID_PAYMENT_METHOD");
+    }
+
+    const paypalOrder = await createPayPalOrder(order.total, orderNumber);
 
     if (paypalOrder.id) {
       return apiSuccess({ paypalOrderId: paypalOrder.id });
-    } else {
-      console.error("PayPal create order error:", paypalOrder?.message || "Unknown error");
-      return apiError("Failed to create PayPal order", 500);
     }
+
+    console.error("PayPal create order error:", paypalOrder?.message || "Unknown error");
+    return apiError("Failed to create PayPal order", 500);
   } catch (error) {
     console.error("PayPal create order error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to create PayPal order", 500);

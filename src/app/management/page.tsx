@@ -65,7 +65,7 @@ export default function AdminDashboardPage() {
 
   // Stats
   const totalRevenue = filteredOrders
-    .filter((o) => !["cancelled", "returned"].includes(o.status))
+    .filter((o) => !["cancelled", "returned", "pending_payment"].includes(o.status))
     .reduce((sum, o) => sum + (o.total || 0), 0);
   const pendingOrders = filteredOrders.filter((o) => o.status === "new").length;
   const processingOrders = filteredOrders.filter((o) => o.status === "processing").length;

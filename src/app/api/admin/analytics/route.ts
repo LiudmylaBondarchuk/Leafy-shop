@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     if (from) allOrders = allOrders.filter((o) => o.createdAt >= from);
     if (to) allOrders = allOrders.filter((o) => o.createdAt <= to + "T23:59:59");
 
-    const activeOrders = allOrders.filter((o) => !["cancelled", "returned"].includes(o.status));
+    const activeOrders = allOrders.filter((o) => !["cancelled", "returned", "pending_payment"].includes(o.status));
 
     // Revenue
     const totalRevenue = activeOrders.reduce((sum, o) => sum + o.total, 0);

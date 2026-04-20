@@ -11,6 +11,7 @@ import { getSettings } from "@/lib/settings";
 import { NextRequest } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { startOfDayUtcIso, endOfDayUtcIso } from "@/lib/date-range";
+import { generateCancelToken } from "@/lib/cancel-token";
 
 export async function GET(request: NextRequest) {
   try {
@@ -209,6 +210,10 @@ export async function POST(request: NextRequest) {
     let orderNumber = "";
     const maxRetries = 3;
 
+    // PayPal orders start as pending_payment (awaiting capture); COD starts as new.
+    const initialStatus = data.payment.method === "paypal" ? "pending_payment" : "new";
+    const isPaypalFlow = initialStatus === "pending_payment";
+
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       orderNumber = generateOrderNumber(today, existingOrders.length + 1 + attempt);
       try {
@@ -216,7 +221,7 @@ export async function POST(request: NextRequest) {
           .insert(orders)
           .values({
             orderNumber,
-            status: "new",
+            status: initialStatus,
             customerEmail: data.customer.email.trim().toLowerCase(),
             customerPhone: data.customer.phone,
             customerFirstName: data.customer.first_name.trim(),
@@ -284,9 +289,9 @@ export async function POST(request: NextRequest) {
       .values({
         orderId: order.id,
         fromStatus: null,
-        toStatus: "new",
+        toStatus: initialStatus,
         changedBy: "system",
-        note: "Order placed",
+        note: isPaypalFlow ? "Order created, awaiting PayPal capture" : "Order placed",
       });
 
     // Decrement stock with re-check to prevent overselling
@@ -315,14 +320,24 @@ export async function POST(request: NextRequest) {
     // Check for critical low stock and send instant alert
     checkCriticalStock(variantRows.map((v) => v.productId)).catch(() => {});
 
-    // Increment discount code usage
+    // For PayPal flow: defer discount usage + confirmation email until capture succeeds.
+    // Return cancelToken so client can release the reservation on PayPal cancel/error.
+    if (isPaypalFlow) {
+      const cancelToken = generateCancelToken(orderNumber, data.customer.email.trim().toLowerCase());
+      return apiSuccess(
+        { orderNumber, status: initialStatus, total, cancelToken },
+        201
+      );
+    }
+
+    // Increment discount code usage (COD path only; PayPal increments on capture)
     if (discountCodeId) {
       await db.update(discountCodes)
         .set({ usageCount: sql`${discountCodes.usageCount} + 1` })
         .where(eq(discountCodes.id, discountCodeId));
     }
 
-    // Send confirmation email (async, don't block response)
+    // Send confirmation email (async, don't block response) — COD path only
     const emailCfg = await getSettings();
     const confirmationEnabled = emailCfg["email.enabled.order_confirmation"] !== "false";
     if (confirmationEnabled) sendOrderConfirmationEmail({
@@ -348,7 +363,7 @@ export async function POST(request: NextRequest) {
     }).catch((err) => console.error("[EMAIL] Order confirmation failed:", err instanceof Error ? err.message : "Unknown error"));
 
     return apiSuccess(
-      { orderNumber, status: "new", total },
+      { orderNumber, status: initialStatus, total },
       201
     );
   } catch (error) {

@@ -4,6 +4,7 @@ import { getAdminFromCookie } from "@/lib/auth";
 import { apiSuccess, apiError, slugify } from "@/lib/utils";
 import { eq } from "drizzle-orm";
 import { logAudit, detectChanges } from "@/lib/audit";
+import { revalidatePath } from "next/cache";
 
 export async function GET(
   _request: Request,
@@ -152,6 +153,7 @@ export async function PUT(
       isTestData: requestingUser?.role === "tester",
     });
 
+    revalidatePath("/", "layout");
     return apiSuccess(updated);
   } catch (error) {
     console.error("PUT /api/admin/products/[id] error:", error instanceof Error ? error.message : "Unknown error");
@@ -203,6 +205,7 @@ export async function DELETE(
       isTestData: requestingUser?.role === "tester",
     });
 
+    revalidatePath("/", "layout");
     return apiSuccess({ message: "Product deactivated" });
   } catch (error) {
     console.error("DELETE /api/admin/products/[id] error:", error instanceof Error ? error.message : "Unknown error");

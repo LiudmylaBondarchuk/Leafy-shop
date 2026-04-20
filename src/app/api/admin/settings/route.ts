@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { getAdminFromCookie } from "@/lib/auth";
 import { hasPermission } from "@/constants/permissions";
 import { apiSuccess, apiError } from "@/lib/utils";
+import { revalidatePath } from "next/cache";
 
 async function checkPermission(permission: string) {
   const admin = await getAdminFromCookie();
@@ -55,6 +56,7 @@ export async function PUT(request: Request) {
       }
     }
 
+    revalidatePath("/", "layout");
     return apiSuccess({ message: "Settings updated" });
   } catch (error) {
     console.error("PUT /api/admin/settings error:", error instanceof Error ? error.message : "Unknown error");

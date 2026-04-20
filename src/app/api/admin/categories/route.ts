@@ -3,6 +3,7 @@ import { categories } from "@/lib/db/schema-pg";
 import { eq } from "drizzle-orm";
 import { getAdminFromCookie } from "@/lib/auth";
 import { apiSuccess, apiError } from "@/lib/utils";
+import { revalidatePath } from "next/cache";
 
 export async function GET() {
   const admin = await getAdminFromCookie();
@@ -45,6 +46,7 @@ export async function POST(request: Request) {
       sortOrder: maxSort + 1,
     }).returning();
 
+    revalidatePath("/", "layout");
     return apiSuccess(created);
   } catch (error) {
     console.error("POST /api/admin/categories error:", error instanceof Error ? error.message : "Unknown error");
@@ -79,6 +81,7 @@ export async function PUT(request: Request) {
       updatedAt: new Date().toISOString(),
     }).where(eq(categories.id, id)).returning();
 
+    revalidatePath("/", "layout");
     return apiSuccess(updated);
   } catch (error) {
     console.error("PUT /api/admin/categories error:", error instanceof Error ? error.message : "Unknown error");
@@ -103,6 +106,7 @@ export async function DELETE(request: Request) {
     }
 
     await db.delete(categories).where(eq(categories.id, id));
+    revalidatePath("/", "layout");
     return apiSuccess({ deleted: true });
   } catch (error) {
     console.error("DELETE /api/admin/categories error:", error instanceof Error ? error.message : "Unknown error");

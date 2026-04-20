@@ -8,6 +8,7 @@ import { hasPermission } from "@/constants/permissions";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { sendWelcomeEmail } from "@/lib/email";
 import { logAudit } from "@/lib/audit";
+import { revalidatePath } from "next/cache";
 
 export async function GET() {
   const admin = await getAdminFromCookie();
@@ -138,6 +139,7 @@ export async function POST(request: Request) {
       isTestData: requestingUser?.role === "tester",
     });
 
+    revalidatePath("/management", "layout");
     return apiSuccess({
       id: created.id,
       email: created.email,

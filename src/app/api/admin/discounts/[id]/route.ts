@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { getAdminFromCookie } from "@/lib/auth";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { logAudit, detectChanges } from "@/lib/audit";
+import { revalidatePath } from "next/cache";
 
 export async function GET(
   _request: Request,
@@ -112,6 +113,7 @@ export async function PUT(
       isTestData: requestingUser?.role === "tester",
     });
 
+    revalidatePath("/", "layout");
     return apiSuccess(updated);
   } catch (error) {
     console.error("PUT /api/admin/discounts/[id] error:", error instanceof Error ? error.message : "Unknown error");
@@ -164,6 +166,7 @@ export async function DELETE(
       isTestData: requestingUser?.role === "tester",
     });
 
+    revalidatePath("/", "layout");
     return apiSuccess({ message: "Discount code deleted" });
   } catch (error) {
     console.error("DELETE /api/admin/discounts/[id] error:", error instanceof Error ? error.message : "Unknown error");

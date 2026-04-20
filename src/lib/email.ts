@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { getSettings } from "@/lib/settings";
+import { logSystemEvent } from "@/lib/audit";
 
 function escapeHtml(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -171,7 +172,15 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
     });
     console.log("[EMAIL] Order confirmation sent to", data.customerEmail);
   } catch (error) {
-    console.error("[EMAIL] Failed to send order confirmation:", error instanceof Error ? error.message : "Unknown error");
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("[EMAIL] Failed to send order confirmation:", message);
+    await logSystemEvent({
+      action: "email_failed",
+      entityType: "email",
+      entityId: data.orderId,
+      entityName: data.orderNumber,
+      details: { kind: "order_confirmation", to: data.customerEmail, error: message },
+    });
   }
 }
 

@@ -10,10 +10,10 @@ export default function HomePage() {
       <section className="bg-green-900 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-36 flex items-center gap-12">
           <div className="flex-1">
-            <h1 className="text-2xl sm:text-3xl font-bold leading-tight mb-3">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-4">
               Teas & Coffees from the Best Corners of the World
             </h1>
-            <p className="text-sm text-green-200 mb-5">
+            <p className="text-base sm:text-lg text-green-200 mb-6 max-w-xl">
               Carefully selected, freshly packed, and delivered to your door.
             </p>
             <div className="flex gap-3">

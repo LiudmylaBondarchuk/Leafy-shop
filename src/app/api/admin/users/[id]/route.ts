@@ -6,6 +6,7 @@ import { getAdminFromCookie } from "@/lib/auth";
 import { hasPermission } from "@/constants/permissions";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { logAudit, detectChanges } from "@/lib/audit";
+import { revalidatePath } from "next/cache";
 
 export async function GET(
   _request: Request,
@@ -125,6 +126,7 @@ export async function PUT(
       isTestData: requestingUser?.role === "tester",
     });
 
+    revalidatePath("/management", "layout");
     return apiSuccess({ message: "User updated" });
   } catch (error) {
     console.error("PUT /api/admin/users/[id] error:", error instanceof Error ? error.message : "Unknown error");

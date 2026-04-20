@@ -249,7 +249,7 @@ export default function AdminProductsPage() {
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-6">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" aria-hidden="true" />
           <input
             type="text"
             value={search}
@@ -360,13 +360,13 @@ export default function AdminProductsPage() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-2">
-                        <Link href={`/management/products/${p.id}/edit`}>
-                          <Button variant="ghost" size="sm">
-                            <Pencil className="h-3.5 w-3.5" />
+                        <Link href={`/management/products/${p.id}/edit`} aria-label={`Edit ${p.name}`}>
+                          <Button variant="ghost" size="sm" aria-label={`Edit ${p.name}`}>
+                            <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
                           </Button>
                         </Link>
-                        <Button variant="ghost" size="sm" onClick={() => setDeleteModal({ id: p.id, name: p.name })}>
-                          <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                        <Button variant="ghost" size="sm" onClick={() => setDeleteModal({ id: p.id, name: p.name })} aria-label={`Delete ${p.name}`}>
+                          <Trash2 className="h-3.5 w-3.5 text-red-500" aria-hidden="true" />
                         </Button>
                       </div>
                     </td>

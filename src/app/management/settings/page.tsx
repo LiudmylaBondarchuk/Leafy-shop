@@ -150,12 +150,12 @@ export default function SettingsPage() {
     }
     setCleaning(true);
     try {
-      const res = await fetch("/api/cron/cleanup-test-data?token=" + (process.env.NEXT_PUBLIC_CRON_SECRET || ""));
+      const res = await fetch("/api/admin/cleanup", { method: "POST" });
       const json = await res.json();
       if (json.data) {
         toast.success(`Cleanup complete: ${json.data.products} products, ${json.data.discounts} discounts, ${json.data.orders} orders removed`);
       } else {
-        toast.error("Cleanup failed");
+        toast.error(json.error || "Cleanup failed");
       }
     } catch {
       toast.error("Cleanup failed");

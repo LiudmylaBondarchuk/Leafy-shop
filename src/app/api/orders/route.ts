@@ -12,6 +12,7 @@ import { NextRequest } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { startOfDayUtcIso, endOfDayUtcIso } from "@/lib/date-range";
 import { generateCancelToken } from "@/lib/cancel-token";
+import { expireStalePendingOrders } from "@/lib/expire-pending-paypal";
 
 export async function GET(request: NextRequest) {
   try {
@@ -68,6 +69,14 @@ export async function POST(request: NextRequest) {
     const ip = request.headers.get("x-forwarded-for") || "unknown";
     const { success } = rateLimit(`orders:${ip}`, 10, 60000);
     if (!success) return apiError("Too many requests. Please try again later.", 429);
+
+    // Opportunistic cleanup: release stock reserved by abandoned PayPal sessions past TTL.
+    // Awaited so this request sees the restored stock during validation.
+    try {
+      await expireStalePendingOrders();
+    } catch (err) {
+      console.error("[orders] expireStalePendingOrders failed:", err instanceof Error ? err.message : "Unknown error");
+    }
 
     const body = await request.json();
 

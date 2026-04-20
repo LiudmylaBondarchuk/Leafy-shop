@@ -1,14 +1,11 @@
 import { apiSuccess, apiError } from "@/lib/utils";
 import { NextRequest } from "next/server";
-import { db } from "@/lib/db";
-import { orders, orderItems, orderStatusHistory, productVariants } from "@/lib/db/schema-pg";
-import { and, eq, lt, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { expireStalePendingOrders } from "@/lib/expire-pending-paypal";
 
-// Expires PayPal pending_payment orders older than PENDING_TTL_MINUTES and restores reserved stock.
-// Scheduled via vercel.json crons.
-const PENDING_TTL_MINUTES = 30;
-
+// Daily safety-net cleanup for abandoned PayPal pending_payment orders.
+// Primary cleanup happens opportunistically on every POST to /api/orders and PayPal endpoints,
+// so this cron only matters for very low-traffic shops.
 export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get("authorization");
@@ -23,41 +20,7 @@ export async function GET(request: NextRequest) {
       return apiError("Invalid cron token", 401, "UNAUTHORIZED");
     }
 
-    const cutoff = new Date(Date.now() - PENDING_TTL_MINUTES * 60 * 1000).toISOString();
-
-    const stale = await db
-      .select({ id: orders.id, orderNumber: orders.orderNumber })
-      .from(orders)
-      .where(and(eq(orders.status, "pending_payment"), lt(orders.createdAt, cutoff)));
-
-    let expired = 0;
-    for (const s of stale) {
-      const updated = await db
-        .update(orders)
-        .set({ status: "cancelled", updatedAt: new Date().toISOString() })
-        .where(and(eq(orders.id, s.id), eq(orders.status, "pending_payment")))
-        .returning({ id: orders.id });
-
-      if (updated.length === 0) continue; // transitioned elsewhere between select and update
-
-      await db.insert(orderStatusHistory).values({
-        orderId: s.id,
-        fromStatus: "pending_payment",
-        toStatus: "cancelled",
-        changedBy: "system",
-        note: `Auto-expired: no PayPal capture within ${PENDING_TTL_MINUTES} minutes`,
-      });
-
-      const items = await db.select().from(orderItems).where(eq(orderItems.orderId, s.id));
-      for (const item of items) {
-        await db.update(productVariants)
-          .set({ stock: sql`${productVariants.stock} + ${item.quantity}` })
-          .where(eq(productVariants.id, item.variantId));
-      }
-
-      expired += 1;
-    }
-
+    const expired = await expireStalePendingOrders();
     if (expired > 0) revalidatePath("/", "layout");
     console.log(`[CRON] Expired ${expired} pending PayPal order(s)`);
     return apiSuccess({ expired });

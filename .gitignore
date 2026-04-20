@@ -9,5 +9,18 @@ out/
 dist/
 test-results/
 playwright-report/
-TEST-SCENARIOS.md
 vercel-env-vars.txt
+
+# Planning and working notes
+CLAUDE.md
+TEST-*.md
+PLAN-*.md
+*-plan.md
+*.plan.md
+docs/CANDIDATES-*.md
+docs/backlog-*.md
+docs/manual-test-*.md
+docs/*.code-workspace
+
+# Build artefacts
+tsconfig.tsbuildinfo

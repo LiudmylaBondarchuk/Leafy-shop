@@ -46,6 +46,7 @@ export default function CheckoutPage() {
   const [customerLoggedIn, setCustomerLoggedIn] = useState(false);
   const [emailAccountExists, setEmailAccountExists] = useState(false);
   const [showPostOrderSignup, setShowPostOrderSignup] = useState(false);
+  const [placedOrderNumber, setPlacedOrderNumber] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
   const [signupSubmitting, setSignupSubmitting] = useState(false);
   const [confirmEmail, setConfirmEmail] = useState("");
@@ -247,6 +248,7 @@ export default function CheckoutPage() {
 
       const json = await res.json();
       if (json.data?.orderNumber) {
+        setPlacedOrderNumber(json.data.orderNumber);
         setOrderPlaced(true);
         clearCart();
         if (!customerLoggedIn) {
@@ -293,6 +295,7 @@ export default function CheckoutPage() {
     } finally {
       setSignupSubmitting(false);
       setShowPostOrderSignup(false);
+      router.push(`/order/confirmation?number=${placedOrderNumber}&email=${encodeURIComponent(form.email)}`);
     }
   };
 
@@ -732,7 +735,7 @@ export default function CheckoutPage() {
                   className="flex-1"
                   onClick={() => {
                     setShowPostOrderSignup(false);
-                    router.push(`/order/confirmation?number=&email=${encodeURIComponent(form.email)}`);
+                    router.push(`/order/confirmation?number=${placedOrderNumber}&email=${encodeURIComponent(form.email)}`);
                   }}
                 >
                   Skip

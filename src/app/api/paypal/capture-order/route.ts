@@ -64,12 +64,12 @@ export async function POST(request: Request) {
       return apiError("Payment verification failed", 400, "PAYMENT_VERIFICATION_FAILED");
     }
 
-    // Payer email must match order customer email (blocks IDOR where attacker pays for victim's order via chargeback-rollback)
+    // Payer email logged for audit but not enforced — users routinely pay with a PayPal account
+    // tied to a different email than the one used on the checkout form, and this is not a PayPal
+    // requirement for a valid capture. Reference_id + amount + currency are sufficient verification.
     const payerEmail = captureData.payer?.email_address?.trim().toLowerCase();
-    if (!payerEmail || payerEmail !== order.customerEmail) {
-      console.error(`[PAYPAL] Payer email mismatch for order ${orderNumber}: expected ${order.customerEmail}, got ${payerEmail || "missing"}`);
-      await autoCancel(order.id, orderNumber, "PayPal payer email mismatch");
-      return apiError("Payment verification failed", 400, "PAYMENT_VERIFICATION_FAILED");
+    if (payerEmail && payerEmail !== order.customerEmail) {
+      console.log(`[PAYPAL] Payer email differs from order email for ${orderNumber}: payer=${payerEmail}, order=${order.customerEmail}`);
     }
 
     if (capture?.status !== "COMPLETED") {

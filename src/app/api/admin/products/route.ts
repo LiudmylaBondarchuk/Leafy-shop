@@ -5,6 +5,7 @@ import { apiSuccess, apiError, slugify } from "@/lib/utils";
 import { eq, and, isNull } from "drizzle-orm";
 import { logAudit } from "@/lib/audit";
 import { getSettings } from "@/lib/settings";
+import { revalidatePath } from "next/cache";
 
 export async function POST(request: Request) {
   const admin = await getAdminFromCookie();
@@ -99,6 +100,7 @@ export async function POST(request: Request) {
       isTestData: isTester,
     });
 
+    revalidatePath("/", "layout");
     return apiSuccess(product, 201);
   } catch (error) {
     console.error("POST /api/admin/products error:", error instanceof Error ? error.message : "Unknown error");

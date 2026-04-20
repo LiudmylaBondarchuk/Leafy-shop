@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { formatPrice, formatDate, formatDateShort } from "@/lib/utils";
+import { startOfDayUtc, endOfDayUtc } from "@/lib/date-range";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -93,8 +94,8 @@ export default function AdminDiscountsPage() {
       if (s.key !== statusFilter) return false;
     }
     if (dateFrom || dateTo) {
-      const filterStart = dateFrom ? new Date(dateFrom) : null;
-      const filterEnd = dateTo ? new Date(dateTo) : null;
+      const filterStart = startOfDayUtc(dateFrom);
+      const filterEnd = endOfDayUtc(dateTo);
       const codeStart = code.startsAt ? new Date(code.startsAt) : null;
       const codeEnd = code.expiresAt ? new Date(code.expiresAt) : null;
 
@@ -121,7 +122,7 @@ export default function AdminDiscountsPage() {
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-6">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-400" aria-hidden="true" />
           <input
             type="text"
             value={search}
@@ -219,8 +220,8 @@ export default function AdminDiscountsPage() {
                       </td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex justify-end gap-1">
-                          <Link href={`/management/discounts/${code.id}/edit`}>
-                            <Button variant="ghost" size="sm"><Pencil className="h-3.5 w-3.5" /></Button>
+                          <Link href={`/management/discounts/${code.id}/edit`} aria-label={`Edit ${code.code}`}>
+                            <Button variant="ghost" size="sm" aria-label={`Edit ${code.code}`}><Pencil className="h-3.5 w-3.5" aria-hidden="true" /></Button>
                           </Link>
                           <Button
                             variant="ghost"
@@ -231,8 +232,8 @@ export default function AdminDiscountsPage() {
                               {code.isActive ? "Deactivate" : "Activate"}
                             </span>
                           </Button>
-                          <Button variant="ghost" size="sm" onClick={() => setDeleteModal({ id: code.id, code: code.code })}>
-                            <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                          <Button variant="ghost" size="sm" onClick={() => setDeleteModal({ id: code.id, code: code.code })} aria-label={`Delete ${code.code}`}>
+                            <Trash2 className="h-3.5 w-3.5 text-red-500" aria-hidden="true" />
                           </Button>
                         </div>
                       </td>
@@ -271,8 +272,8 @@ export default function AdminDiscountsPage() {
                         {code.isActive ? "Deactivate" : "Activate"}
                       </span>
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => setDeleteModal({ id: code.id, code: code.code })}>
-                      <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                    <Button variant="ghost" size="sm" onClick={() => setDeleteModal({ id: code.id, code: code.code })} aria-label={`Delete ${code.code}`}>
+                      <Trash2 className="h-3.5 w-3.5 text-red-500" aria-hidden="true" />
                     </Button>
                   </div>
                 </div>

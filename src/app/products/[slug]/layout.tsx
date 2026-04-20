@@ -3,6 +3,8 @@ import { products } from "@/lib/db/schema-pg";
 import { eq } from "drizzle-orm";
 import { Metadata } from "next";
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://leafyshop.eu";
+
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -14,13 +16,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!product) return { title: "Product Not Found" };
 
+  const canonicalUrl = `${BASE_URL}/products/${product.slug}`;
+  const description = product.shortDescription || product.description?.slice(0, 160);
+
   return {
     title: `${product.name} — Leafy`,
-    description: product.shortDescription || product.description?.slice(0, 160),
+    description,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title: `${product.name} — Leafy Premium Teas & Coffees`,
-      description: product.shortDescription || product.description?.slice(0, 160),
-      images: product.imageUrl ? [{ url: product.imageUrl }] : [],
+      description,
+      url: canonicalUrl,
+      images: product.imageUrl
+        ? [{ url: product.imageUrl, width: 1200, height: 630, alt: product.name }]
+        : [],
       type: "website",
     },
   };

@@ -119,7 +119,7 @@ export default function CheckoutPage() {
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
-    if (mounted && items.length === 0 && !orderPlaced) router.push("/cart");
+    if (mounted && items.length === 0 && !orderPlaced) router.replace("/cart");
   }, [mounted, items.length, router, orderPlaced]);
 
   // Fetch server-calculated discount amount when discount code is present
@@ -170,7 +170,21 @@ export default function CheckoutPage() {
     return () => controller.abort();
   }, [mounted, discountCode, items, form.shippingMethod]);
 
-  if (!mounted || (items.length === 0 && !orderPlaced)) return null;
+  if (!mounted) return null;
+
+  if (items.length === 0 && !orderPlaced) {
+    return (
+      <div className="max-w-xl mx-auto px-4 py-16 text-center">
+        <h1 className="text-2xl font-semibold mb-3">Your cart is empty</h1>
+        <p className="text-gray-600 dark:text-gray-400 mb-6">
+          Add products before heading to checkout. Redirecting you to the cart…
+        </p>
+        <Link href="/cart" className="inline-flex items-center justify-center rounded-lg bg-green-700 text-white px-5 py-2.5 text-sm font-medium hover:bg-green-800 transition">
+          Go to cart
+        </Link>
+      </div>
+    );
+  }
 
   const updateField = (field: string, value: any) => {
     setForm((f) => ({ ...f, [field]: value }));

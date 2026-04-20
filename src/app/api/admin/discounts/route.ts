@@ -5,6 +5,7 @@ import { getAdminFromCookie } from "@/lib/auth";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { logAudit } from "@/lib/audit";
 import { getSettings } from "@/lib/settings";
+import { revalidatePath } from "next/cache";
 
 export async function POST(request: Request) {
   const admin = await getAdminFromCookie();
@@ -91,6 +92,7 @@ export async function POST(request: Request) {
       isTestData: isTester,
     });
 
+    revalidatePath("/", "layout");
     return apiSuccess(created, 201);
   } catch (error) {
     console.error("POST /api/admin/discounts error:", error instanceof Error ? error.message : "Unknown error");

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { formatPrice, formatDate } from "@/lib/utils";
+import { startOfDayUtc, endOfDayUtc } from "@/lib/date-range";
 import { FileText, ExternalLink, Search, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { TableSkeleton } from "@/components/ui/Skeleton";
@@ -57,14 +58,11 @@ export default function AdminInvoicesPage() {
       const s = getInvoiceStatus(order);
       if (s !== statusFilter) return false;
     }
-    if (dateFrom) {
-      const d = new Date(order.createdAt).toISOString().split("T")[0];
-      if (d < dateFrom) return false;
-    }
-    if (dateTo) {
-      const d = new Date(order.createdAt).toISOString().split("T")[0];
-      if (d > dateTo) return false;
-    }
+    const orderTime = new Date(order.createdAt).getTime();
+    const fromDate = startOfDayUtc(dateFrom);
+    const toDate = endOfDayUtc(dateTo);
+    if (fromDate && orderTime < fromDate.getTime()) return false;
+    if (toDate && orderTime > toDate.getTime()) return false;
     return true;
   });
 
@@ -101,7 +99,7 @@ export default function AdminInvoicesPage() {
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-6">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" aria-hidden="true" />
           <input
             type="text"
             value={search}

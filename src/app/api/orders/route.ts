@@ -10,6 +10,7 @@ import { getAdminFromCookie } from "@/lib/auth";
 import { getSettings } from "@/lib/settings";
 import { NextRequest } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
+import { startOfDayUtcIso, endOfDayUtcIso } from "@/lib/date-range";
 
 export async function GET(request: NextRequest) {
   try {
@@ -27,8 +28,10 @@ export async function GET(request: NextRequest) {
 
     const conditions = [];
     if (status) conditions.push(eq(orders.status, status));
-    if (from) conditions.push(sql`${orders.createdAt} >= ${from}`);
-    if (to) conditions.push(sql`${orders.createdAt} <= ${to + "T23:59:59"}`);
+    const fromIso = startOfDayUtcIso(from);
+    const toIso = endOfDayUtcIso(to);
+    if (fromIso) conditions.push(sql`${orders.createdAt} >= ${fromIso}`);
+    if (toIso) conditions.push(sql`${orders.createdAt} <= ${toIso}`);
     if (search) {
       conditions.push(
         or(

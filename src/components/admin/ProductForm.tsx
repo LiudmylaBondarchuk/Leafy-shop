@@ -91,7 +91,7 @@ export function ProductForm({ productId }: ProductFormProps) {
             isFeatured: p.isFeatured,
           });
           setVariants(
-            p.variants.map((v: any) => ({
+            (p.variants as Variant[]).map((v) => ({
               id: v.id,
               weightGrams: v.weightGrams,
               grindType: v.grindType || "",
@@ -115,31 +115,28 @@ export function ProductForm({ productId }: ProductFormProps) {
     return clean;
   };
 
-  // Map category to product type
   const getCategoryType = (catId: number): "tea" | "coffee" => {
-    const cat = categories.find((c: any) => c.id === catId);
+    const cat = categories.find((c) => c.id === catId);
     if (!cat) return "tea";
     const name = cat.name.toLowerCase();
     return name.includes("coffee") ? "coffee" : "tea";
   };
 
-  const updateForm = (field: string, value: any) => {
+  const updateForm = <K extends keyof typeof form>(field: K, value: (typeof form)[K]) => {
     setForm((f) => {
       const updated = { ...f, [field]: value };
-      // Auto-set type when category changes
       if (field === "categoryId") {
         updated.productType = getCategoryType(Number(value));
       }
       return updated;
     });
 
-    // Clear grind if switching to tea
     if (field === "categoryId" && getCategoryType(Number(value)) === "tea") {
       setVariants((vs) => vs.map((v) => ({ ...v, grindType: "" })));
     }
   };
 
-  const updateVariant = (index: number, field: string, value: any) => {
+  const updateVariant = <K extends keyof Variant>(index: number, field: K, value: Variant[K]) => {
     setVariants((vs) => vs.map((v, i) => (i === index ? { ...v, [field]: value } : v)));
   };
 
@@ -246,8 +243,8 @@ export function ProductForm({ productId }: ProductFormProps) {
         <h2 className="font-semibold text-gray-900">Category & Type</h2>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
-          <select value={form.categoryId} onChange={(e) => updateForm("categoryId", e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600">
-            {categories.map((c: any) => (
+          <select value={form.categoryId} onChange={(e) => updateForm("categoryId", Number(e.target.value))} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600">
+            {categories.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>

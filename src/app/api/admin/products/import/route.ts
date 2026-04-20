@@ -5,6 +5,7 @@ import { getAdminFromCookie } from "@/lib/auth";
 import { apiSuccess, apiError, slugify } from "@/lib/utils";
 import { logAudit } from "@/lib/audit";
 import { getSettings } from "@/lib/settings";
+import { revalidatePath } from "next/cache";
 
 interface CSVRow {
   name: string;
@@ -197,6 +198,7 @@ export async function POST(request: Request) {
       imported++;
     }
 
+    if (imported > 0) revalidatePath("/", "layout");
     return apiSuccess({ imported, skipped, errors });
   } catch (error) {
     console.error("POST /api/admin/products/import error:", error instanceof Error ? error.message : "Unknown error");

@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
         customerFirstName: orders.customerFirstName,
         customerLastName: orders.customerLastName,
         orderCount: sql<number>`count(*)`.as("order_count"),
-        totalSpent: sql<number>`coalesce(sum(case when ${orders.status} not in ('cancelled', 'returned') then ${orders.total} else 0 end), 0)`.as("total_spent"),
+        totalSpent: sql<number>`coalesce(sum(case when ${orders.status} not in ('cancelled', 'returned', 'pending_payment') then ${orders.total} else 0 end), 0)`.as("total_spent"),
         lastOrderDate: sql<string>`max(${orders.createdAt})`.as("last_order_date"),
       })
       .from(orders)

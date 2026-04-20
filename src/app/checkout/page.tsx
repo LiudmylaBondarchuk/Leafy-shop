@@ -4,7 +4,7 @@ import { useCartStore } from "@/store/cart-store";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { formatPrice } from "@/lib/utils";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Check, ChevronLeft, ChevronRight, Info, User, LogIn } from "lucide-react";
@@ -66,6 +66,36 @@ export default function CheckoutPage() {
   });
 
   const selectedCountry = getCountry(form.country);
+
+  // Tracks the pending_payment order created when the user starts PayPal checkout.
+  // Held in a ref so PayPal callbacks (which close over stale state) always see the latest value.
+  const [pendingOrder, setPendingOrder] = useState<{ orderNumber: string; cancelToken: string } | null>(null);
+  const pendingOrderRef = useRef<{ orderNumber: string; cancelToken: string } | null>(null);
+  useEffect(() => { pendingOrderRef.current = pendingOrder; }, [pendingOrder]);
+
+  const releasePendingOrder = useCallback(async (orderNumber: string, email: string, cancelToken: string) => {
+    try {
+      await fetch("/api/orders/cancel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderNumber, email: email.trim(), cancelToken }),
+      });
+    } catch (err) {
+      console.error("Failed to release pending order:", err);
+    }
+  }, []);
+
+  // Best-effort release on tab close while a PayPal session is pending
+  useEffect(() => {
+    const handler = () => {
+      const p = pendingOrderRef.current;
+      if (!p) return;
+      const payload = JSON.stringify({ orderNumber: p.orderNumber, email: form.email.trim(), cancelToken: p.cancelToken });
+      navigator.sendBeacon?.("/api/orders/cancel", new Blob([payload], { type: "application/json" }));
+    };
+    window.addEventListener("pagehide", handler);
+    return () => window.removeEventListener("pagehide", handler);
+  }, [form.email]);
 
   // Check if customer is logged in and auto-fill
   useEffect(() => {
@@ -609,43 +639,7 @@ export default function CheckoutPage() {
                   createOrder={async () => {
                     setSubmitting(true);
                     try {
-                      // Calculate total for PayPal (don't create order yet)
-                      const calcRes = await fetch("/api/cart/calculate", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          items: items.map((i) => ({ variant_id: i.variantId, quantity: i.quantity })),
-                          discount_code: discountCode || undefined,
-                          shipping_method: form.shippingMethod,
-                        }),
-                      });
-                      const calcJson = await calcRes.json();
-                      const totalForPaypal = calcJson.data?.total || total;
-
-                      // Create PayPal order only (no shop order yet)
-                      const ppRes = await fetch("/api/paypal/create-order", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ totalInCents: totalForPaypal, orderNumber: "PENDING" }),
-                      });
-                      const ppJson = await ppRes.json();
-
-                      if (ppJson.data?.paypalOrderId) {
-                        return ppJson.data.paypalOrderId;
-                      } else {
-                        toast.error("Failed to initialize PayPal");
-                        setSubmitting(false);
-                        return "";
-                      }
-                    } catch {
-                      toast.error("Something went wrong");
-                      setSubmitting(false);
-                      return "";
-                    }
-                  }}
-                  onApprove={async (data) => {
-                    try {
-                      // Step 1: Create order in our system
+                      // Step 1: create shop order in pending_payment status (reserves stock, no email yet)
                       const orderRes = await fetch("/api/orders", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -661,26 +655,64 @@ export default function CheckoutPage() {
                       });
                       const orderJson = await orderRes.json();
 
-                      if (!orderJson.data?.orderNumber) {
+                      if (!orderJson.data?.orderNumber || !orderJson.data?.cancelToken) {
                         toast.error(orderJson.message || "Failed to create order");
                         setSubmitting(false);
+                        return "";
+                      }
+
+                      setPendingOrder({
+                        orderNumber: orderJson.data.orderNumber,
+                        cancelToken: orderJson.data.cancelToken,
+                      });
+
+                      // Step 2: create PayPal session tied to the real orderNumber (reference_id)
+                      const ppRes = await fetch("/api/paypal/create-order", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ orderNumber: orderJson.data.orderNumber }),
+                      });
+                      const ppJson = await ppRes.json();
+
+                      if (ppJson.data?.paypalOrderId) {
+                        return ppJson.data.paypalOrderId;
+                      }
+
+                      // PayPal session failed — release the reservation we just made
+                      await releasePendingOrder(orderJson.data.orderNumber, form.email.trim(), orderJson.data.cancelToken);
+                      toast.error("Failed to initialize PayPal");
+                      setSubmitting(false);
+                      return "";
+                    } catch {
+                      toast.error("Something went wrong");
+                      setSubmitting(false);
+                      return "";
+                    }
+                  }}
+                  onApprove={async (data) => {
+                    try {
+                      const orderNumber = pendingOrderRef.current?.orderNumber;
+                      if (!orderNumber) {
+                        toast.error("Missing order reference");
                         return;
                       }
 
-                      // Step 2: Capture PayPal payment
                       const captureRes = await fetch("/api/paypal/capture-order", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ paypalOrderId: data.orderID, orderNumber: orderJson.data.orderNumber }),
+                        body: JSON.stringify({ paypalOrderId: data.orderID, orderNumber }),
                       });
                       const captureJson = await captureRes.json();
 
                       if (captureJson.data?.status === "COMPLETED") {
                         setOrderPlaced(true);
+                        setPendingOrder(null);
                         clearCart();
-                        router.push(`/order/confirmation?number=${orderJson.data.orderNumber}&email=${encodeURIComponent(form.email.trim())}`);
+                        router.push(`/order/confirmation?number=${orderNumber}&email=${encodeURIComponent(form.email.trim())}`);
                       } else {
-                        toast.error("Payment was not completed");
+                        // Capture failed — server auto-cancels and restores stock
+                        setPendingOrder(null);
+                        toast.error(captureJson.message || "Payment was not completed");
                       }
                     } catch {
                       toast.error("Failed to process payment");
@@ -688,12 +720,22 @@ export default function CheckoutPage() {
                       setSubmitting(false);
                     }
                   }}
-                  onCancel={() => {
-                    toast.info("Payment cancelled — no order was created");
+                  onCancel={async () => {
+                    const p = pendingOrderRef.current;
+                    if (p) {
+                      await releasePendingOrder(p.orderNumber, form.email.trim(), p.cancelToken);
+                      setPendingOrder(null);
+                    }
+                    toast.info("Payment cancelled — order released");
                     setSubmitting(false);
                   }}
-                  onError={(err) => {
+                  onError={async (err) => {
                     console.error("PayPal error:", err);
+                    const p = pendingOrderRef.current;
+                    if (p) {
+                      await releasePendingOrder(p.orderNumber, form.email.trim(), p.cancelToken);
+                      setPendingOrder(null);
+                    }
                     toast.error("PayPal encountered an error");
                     setSubmitting(false);
                   }}

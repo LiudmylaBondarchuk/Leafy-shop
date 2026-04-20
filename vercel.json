@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/cleanup-test-data?token=REDACTED",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-pending-paypal?token=REDACTED",
+      "schedule": "*/15 * * * *"
     }
   ]
 }

@@ -37,7 +37,7 @@ export async function GET(
         firstName: account.firstName,
         lastName: account.lastName,
         orderCount: customerOrders.length,
-        totalSpent: customerOrders.filter((o: any) => !["cancelled", "returned"].includes(o.status)).reduce((sum: number, o: any) => sum + o.total, 0),
+        totalSpent: customerOrders.filter((o: any) => !["cancelled", "returned", "pending_payment"].includes(o.status)).reduce((sum: number, o: any) => sum + o.total, 0),
         firstOrderDate: customerOrders.length > 0 ? customerOrders[customerOrders.length - 1].createdAt : account.createdAt,
         lastOrderDate: customerOrders.length > 0 ? customerOrders[0].createdAt : account.createdAt,
         hasAccount: true,
@@ -71,7 +71,7 @@ export async function GET(
     if (customerOrders.length === 0) return apiError("Customer not found", 404);
 
     const first = customerOrders[0];
-    const activeOrders = customerOrders.filter((o) => !["cancelled", "returned"].includes(o.status));
+    const activeOrders = customerOrders.filter((o) => !["cancelled", "returned", "pending_payment"].includes(o.status));
 
     // Find similar customers
     const similarCustomers: any[] = [];

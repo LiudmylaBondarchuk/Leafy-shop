@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { orders } from "@/lib/db/schema-pg";
 import { eq } from "drizzle-orm";
 import { rateLimit } from "@/lib/rate-limit";
+import { expireStalePendingOrders, isPendingOrderExpired } from "@/lib/expire-pending-paypal";
 
 export async function POST(request: Request) {
   try {
@@ -19,6 +20,13 @@ export async function POST(request: Request) {
       return apiError("Order number is required", 400);
     }
 
+    // Opportunistic cleanup before validating this order's state
+    try {
+      await expireStalePendingOrders();
+    } catch (err) {
+      console.error("[paypal/create-order] expireStalePendingOrders failed:", err instanceof Error ? err.message : "Unknown error");
+    }
+
     const order = await db.query.orders.findFirst({
       where: eq(orders.orderNumber, orderNumber),
     });
@@ -30,6 +38,10 @@ export async function POST(request: Request) {
     // Only orders created in the PayPal flow (awaiting capture) may initiate a PayPal session
     if (order.status !== "pending_payment") {
       return apiError("Order cannot be paid in this state", 400, "INVALID_STATE");
+    }
+
+    if (isPendingOrderExpired(order.createdAt)) {
+      return apiError("Order has expired. Please start a new checkout.", 410, "EXPIRED");
     }
 
     if (order.paymentMethod !== "paypal") {

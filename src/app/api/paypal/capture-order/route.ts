@@ -6,6 +6,7 @@ import { apiSuccess, apiError } from "@/lib/utils";
 import { revalidatePath } from "next/cache";
 import { sendOrderConfirmationEmail } from "@/lib/email";
 import { getSettings } from "@/lib/settings";
+import { isPendingOrderExpired } from "@/lib/expire-pending-paypal";
 
 export async function POST(request: Request) {
   try {
@@ -30,6 +31,12 @@ export async function POST(request: Request) {
 
     if (order.status !== "pending_payment") {
       return apiError("Order cannot be captured in this state", 400, "INVALID_STATE");
+    }
+
+    // Reject capture on orders past TTL even if opportunistic cleanup hasn't run yet
+    if (isPendingOrderExpired(order.createdAt)) {
+      await autoCancel(order.id, orderNumber, "Order expired before PayPal capture");
+      return apiError("Order has expired. Please start a new checkout.", 410, "EXPIRED");
     }
 
     const captureData = await capturePayPalOrder(paypalOrderId);

@@ -3,8 +3,8 @@
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
-import { Plus, Trash2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Plus, Trash2, Upload, X } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -29,7 +29,9 @@ export function ProductForm({ productId }: ProductFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [categories, setCategories] = useState<{ id: number; name: string; slug: string }[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -152,6 +154,45 @@ export function ProductForm({ productId }: ProductFormProps) {
     setVariants((vs) => vs.filter((_, i) => i !== index));
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (uploading) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image is too large (max 5MB)");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
+      const json = await res.json();
+      if (json.data?.url) {
+        updateForm("imageUrl", json.data.url);
+        toast.success("Image uploaded");
+      } else {
+        toast.error(json.message || "Upload failed");
+      }
+    } catch {
+      toast.error("Upload failed");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleRemoveImage = () => {
+    updateForm("imageUrl", "");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   const handleSubmit = async () => {
     // Validation
     if (!form.name.trim()) { toast.error("Product name is required"); return; }
@@ -230,12 +271,56 @@ export function ProductForm({ productId }: ProductFormProps) {
           <textarea value={form.description} onChange={(e) => updateForm("description", e.target.value)} rows={3} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600" placeholder="Full product description..." />
         </div>
         <Input label="Short description" id="shortDesc" value={form.shortDescription} onChange={(e) => updateForm("shortDescription", e.target.value)} placeholder="Brief summary for product cards" />
-        <Input label="Image URL" id="imageUrl" value={form.imageUrl} onChange={(e) => updateForm("imageUrl", e.target.value)} placeholder="https://images.unsplash.com/..." />
-        {form.imageUrl && (
-          <div className="w-24 h-24 rounded-lg overflow-hidden">
-            <img src={form.imageUrl} alt="Preview" className="w-full h-full object-cover" />
-          </div>
-        )}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Product image</label>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+          {form.imageUrl ? (
+            <div className="flex items-start gap-3">
+              <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200">
+                <img src={form.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  loading={uploading}
+                  disabled={uploading}
+                >
+                  Replace
+                </Button>
+                <button
+                  type="button"
+                  onClick={handleRemoveImage}
+                  disabled={uploading}
+                  className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-red-600 disabled:opacity-50"
+                >
+                  <X className="h-4 w-4" /> Remove
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className={cn(
+                "flex flex-col items-center justify-center gap-2 w-full max-w-xs h-32 rounded-lg border-2 border-dashed border-gray-300 text-gray-500 hover:border-green-600 hover:text-green-700 transition",
+                uploading && "opacity-50 cursor-not-allowed"
+              )}
+            >
+              <Upload className="h-5 w-5" />
+              <span className="text-sm">{uploading ? "Uploading..." : "Click to upload (JPG, PNG, WebP — max 5MB)"}</span>
+            </button>
+          )}
+        </div>
       </Card>
 
       {/* Category & Type */}

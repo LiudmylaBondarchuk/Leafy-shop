@@ -118,7 +118,7 @@ function OrderStatusContent() {
       {/* Search form */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 mb-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Input label="Order number" id="orderNum" value={orderNum} onChange={(e) => setOrderNum(e.target.value)} placeholder="LEA-20260320-0001" />
+          <Input label="Order number" id="orderNum" value={orderNum} onChange={(e) => setOrderNum(e.target.value)} placeholder="LEA-20260320-0001-a8f3k" />
           <Input label="Email address" id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="john@example.com" />
         </div>
         <Button className="mt-4 w-full sm:w-auto" onClick={fetchOrder} loading={loading}>

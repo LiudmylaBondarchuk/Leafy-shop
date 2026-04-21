@@ -7,6 +7,7 @@ import { SHIPPING_METHODS, FREE_SHIPPING_THRESHOLD, COD_SURCHARGE } from "@/cons
 import { generateOrderNumber, apiSuccess, apiError } from "@/lib/utils";
 import { sendOrderConfirmationEmail } from "@/lib/email";
 import { getAdminFromCookie } from "@/lib/auth";
+import { getCustomerFromCookie } from "@/lib/customer-auth";
 import { getSettings } from "@/lib/settings";
 import { NextRequest } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
@@ -88,6 +89,11 @@ export async function POST(request: NextRequest) {
     }
 
     const data = parsed.data;
+
+    // Link order to customer account when placed by a logged-in customer.
+    // Guest checkouts keep customerId = null and are matched by email on the account page.
+    const customerSession = await getCustomerFromCookie();
+    const loggedInCustomerId = customerSession ? Number(customerSession.sub) : null;
 
     // Check tester limits if logged-in tester
     let isTester = false;
@@ -231,6 +237,7 @@ export async function POST(request: NextRequest) {
           .values({
             orderNumber,
             status: initialStatus,
+            customerId: loggedInCustomerId,
             customerEmail: data.customer.email.trim().toLowerCase(),
             customerPhone: data.customer.phone,
             customerFirstName: data.customer.first_name.trim(),

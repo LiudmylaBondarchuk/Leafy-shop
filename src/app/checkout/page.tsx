@@ -315,6 +315,7 @@ export default function CheckoutPage() {
         }),
       });
       if (res.ok) {
+        window.dispatchEvent(new Event("customer:auth-changed"));
         toast.success("Account created! You can now track your orders.");
       } else {
         const json = await res.json();

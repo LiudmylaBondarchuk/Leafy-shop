@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { NextResponse } from "next/server";
+import { randomBytes } from "crypto";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -40,10 +41,22 @@ export function formatDateShort(date: string): string {
   return new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+// Unambiguous alphabet: no 0/o/1/l/i — avoids confusion when customer reads the number over the phone.
+const ORDER_SUFFIX_ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789";
+
+function randomSuffix(length = 5): string {
+  const bytes = randomBytes(length);
+  let out = "";
+  for (let i = 0; i < length; i++) {
+    out += ORDER_SUFFIX_ALPHABET[bytes[i] % ORDER_SUFFIX_ALPHABET.length];
+  }
+  return out;
+}
+
 export function generateOrderNumber(date: Date, sequence: number): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
   const d = String(date.getDate()).padStart(2, "0");
   const seq = String(sequence).padStart(4, "0");
-  return `LEA-${y}${m}${d}-${seq}`;
+  return `LEA-${y}${m}${d}-${seq}-${randomSuffix()}`;
 }

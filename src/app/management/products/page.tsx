@@ -122,7 +122,7 @@ export default function AdminProductsPage() {
       toast.success(`"${deleteModal.name}" deactivated`);
       fetchProducts();
     } else {
-      toast.error("Failed to deactivate product");
+      toast.error(json.message || "Failed to deactivate product");
     }
     setDeleteModal(null);
   };
@@ -180,14 +180,33 @@ export default function AdminProductsPage() {
   const handleBulkDeactivate = async () => {
     setBulkProcessing(true);
     let successCount = 0;
+    let blockedCount = 0;
+    let blockedMessage = "";
     for (const id of selectedIds) {
       try {
         const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
         const json = await res.json();
-        if (json.data) successCount++;
+        if (json.data) {
+          successCount++;
+        } else if (res.status === 403) {
+          blockedCount++;
+          if (!blockedMessage) blockedMessage = json.message || "";
+        }
       } catch {}
     }
-    toast.success(`${successCount} product(s) deactivated`);
+    if (successCount > 0) {
+      toast.success(`${successCount} product(s) deactivated`);
+    }
+    if (blockedCount > 0) {
+      toast.error(
+        blockedMessage
+          ? `${blockedCount} blocked: ${blockedMessage}`
+          : `${blockedCount} product(s) could not be deactivated`
+      );
+    }
+    if (successCount === 0 && blockedCount === 0) {
+      toast.error("Failed to deactivate products");
+    }
     setSelectedIds(new Set());
     setBulkDeactivateModal(false);
     setBulkProcessing(false);

@@ -65,6 +65,7 @@ export default function LoginPage() {
       const json = await res.json();
 
       if (res.ok && json.data) {
+        window.dispatchEvent(new Event("customer:auth-changed"));
         toast.success("Welcome back!");
         router.push("/account");
         router.refresh();

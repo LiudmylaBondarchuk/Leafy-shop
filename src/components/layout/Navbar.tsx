@@ -45,6 +45,12 @@ export function Navbar() {
     };
 
     checkAuth();
+
+    // Navbar lives in the root layout and never remounts, so re-check when
+    // login/register/logout flows broadcast an auth change.
+    const handleAuthChange = () => checkAuth();
+    window.addEventListener("customer:auth-changed", handleAuthChange);
+    return () => window.removeEventListener("customer:auth-changed", handleAuthChange);
   }, []);
 
   // Close user menu on outside click
@@ -67,6 +73,7 @@ export function Navbar() {
     try {
       await fetch("/api/customer/logout", { method: "POST" });
       setCustomer(null);
+      window.dispatchEvent(new Event("customer:auth-changed"));
       toast.success("You have been logged out");
       window.location.href = "/";
     } catch {

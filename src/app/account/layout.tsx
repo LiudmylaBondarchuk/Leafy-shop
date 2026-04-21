@@ -61,6 +61,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
     try {
       await fetch("/api/customer/logout", { method: "POST" });
       setLoggedIn(false);
+      window.dispatchEvent(new Event("customer:auth-changed"));
       toast.success("You have been logged out");
       window.location.href = "/account/login";
     } catch {

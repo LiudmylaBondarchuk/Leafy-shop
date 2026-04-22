@@ -24,3 +24,4 @@ docs/*.code-workspace
 
 # Build artefacts
 tsconfig.tsbuildinfo
+.vercel

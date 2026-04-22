@@ -42,8 +42,8 @@ export async function DELETE(request: Request) {
   }
 
   try {
-    const body = await request.json();
-    if (body?.confirm !== true) {
+    const body = await request.json().catch(() => ({}));
+    if ((body as { confirm?: boolean })?.confirm !== true) {
       return apiError("Confirmation required. Send { confirm: true } to delete all logs.", 400);
     }
 

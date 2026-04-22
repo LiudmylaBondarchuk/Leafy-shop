@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
 import { Spinner } from "@/components/ui/Spinner";
-import { formatPrice, cn } from "@/lib/utils";
+import { formatPrice, formatOrderNumber, cn } from "@/lib/utils";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from "@/constants/order-statuses";
 import type { OrderStatus } from "@/constants/order-statuses";
 import { Search, Check, Circle, Package, Truck, Home, XCircle, RotateCcw } from "lucide-react";
@@ -57,6 +57,23 @@ function OrderStatusContent() {
   const [error, setError] = useState("");
   const [cancelling, setCancelling] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+
+  // Pre-fill email for logged-in customers so they don't retype what we already know.
+  useEffect(() => {
+    if (email) return;
+    let cancelled = false;
+    fetch("/api/customer/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((json) => {
+        if (!cancelled && json?.data?.customer?.email) {
+          setEmail(json.data.customer.email);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchOrder = async () => {
     if (!orderNum.trim() || !email.trim()) {
@@ -118,7 +135,7 @@ function OrderStatusContent() {
       {/* Search form */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 mb-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Input label="Order number" id="orderNum" value={orderNum} onChange={(e) => setOrderNum(e.target.value)} placeholder="LEA-20260320-0001-a8f3k" />
+          <Input label="Order number" id="orderNum" value={orderNum} onChange={(e) => setOrderNum(e.target.value)} placeholder="LEA-20260320-0001" />
           <Input label="Email address" id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="john@example.com" />
         </div>
         <Button className="mt-4 w-full sm:w-auto" onClick={fetchOrder} loading={loading}>
@@ -141,7 +158,7 @@ function OrderStatusContent() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
               <div className="min-w-0">
                 <p className="text-sm text-gray-500 dark:text-gray-400">Order</p>
-                <p className="text-lg sm:text-xl font-mono font-bold break-all">{order.orderNumber}</p>
+                <p className="text-lg sm:text-xl font-mono font-bold break-all">{formatOrderNumber(order.orderNumber)}</p>
               </div>
               <Badge variant={order.status === "delivered" ? "success" : order.status === "cancelled" ? "error" : "info"} className={ORDER_STATUS_COLORS[order.status as OrderStatus]}>
                 {ORDER_STATUS_LABELS[order.status as OrderStatus] || order.status}
@@ -272,7 +289,7 @@ function OrderStatusContent() {
               <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-sm mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
                 <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-lg mb-2">Cancel this order?</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                  Are you sure you want to cancel order <strong>{order.orderNumber}</strong>?
+                  Are you sure you want to cancel order <strong>{formatOrderNumber(order.orderNumber)}</strong>?
                   {order.paymentMethod !== "cod" && " Your payment will be refunded within 5–10 business days."}
                 </p>
                 <div className="flex gap-3">

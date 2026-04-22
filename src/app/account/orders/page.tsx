@@ -6,10 +6,11 @@ import { Package, ChevronRight, ShoppingBag } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Spinner } from "@/components/ui/Spinner";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, formatOrderNumber } from "@/lib/utils";
 
 interface Order {
   orderNumber: string;
+  customerEmail: string;
   createdAt: string;
   status: string;
   total: number;
@@ -78,12 +79,12 @@ export default function OrdersPage() {
           {orders.map((order) => (
             <Link
               key={order.orderNumber}
-              href={`/order/status?number=${order.orderNumber}`}
+              href={`/order/status?number=${order.orderNumber}&email=${encodeURIComponent(order.customerEmail)}`}
               className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
             >
               <div className="min-w-0">
                 <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  {order.orderNumber}
+                  {formatOrderNumber(order.orderNumber)}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                   {new Date(order.createdAt).toLocaleDateString("en-US", {

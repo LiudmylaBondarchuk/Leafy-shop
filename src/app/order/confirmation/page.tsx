@@ -5,11 +5,13 @@ import { CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { formatOrderNumber } from "@/lib/utils";
 
 function ConfirmationContent() {
   const searchParams = useSearchParams();
   const orderNumber = searchParams.get("number") || "—";
   const email = searchParams.get("email") || "";
+  const displayNumber = orderNumber === "—" ? "—" : formatOrderNumber(orderNumber);
 
   return (
     <div className="max-w-lg mx-auto px-4 py-24 text-center">
@@ -19,7 +21,7 @@ function ConfirmationContent() {
         Your order number is:
       </p>
       <p className="text-xl sm:text-2xl font-mono font-bold text-green-800 dark:text-green-300 mb-4 break-all">
-        {orderNumber}
+        {displayNumber}
       </p>
       {email && (
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">

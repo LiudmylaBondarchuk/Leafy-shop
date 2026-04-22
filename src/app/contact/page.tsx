@@ -74,7 +74,7 @@ export default function ContactPage() {
         <h2 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Order Issues?</h2>
         <p className="text-sm text-gray-600 dark:text-gray-400">
           If you have questions about an existing order, please include your order number
-          (e.g., LEA-20260321-0001-a8f3k) in your email so we can help you faster. You can also
+          (e.g., LEA-20260321-0001) in your email so we can help you faster. You can also
           {" "}<a href="/order/status" className="text-green-700 dark:text-green-400 hover:text-green-800 underline">track your order here</a>.
         </p>
       </div>

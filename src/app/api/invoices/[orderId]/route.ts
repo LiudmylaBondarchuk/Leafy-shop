@@ -7,6 +7,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { getVatScenario, calculateInvoiceVat } from "@/constants/countries";
 import { getAdminFromCookie } from "@/lib/auth";
 import { getCustomerFromCookie } from "@/lib/customer-auth";
+import { formatOrderNumber } from "@/lib/utils";
 
 function escapeHtml(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -115,7 +116,7 @@ export async function GET(
         <h2 style="font-size:24px;color:#333;margin-bottom:8px">INVOICE</h2>
         <p style="font-size:13px;color:#666">${invoiceNumber}</p>
         <p style="font-size:13px;color:#666">Date: ${invoiceDate}</p>
-        <p style="font-size:13px;color:#666">Order: ${order.orderNumber}</p>
+        <p style="font-size:13px;color:#666">Order: ${formatOrderNumber(order.orderNumber)}</p>
       </div>
     </div>
 

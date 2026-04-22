@@ -231,7 +231,11 @@ export default function AdminLogsPage() {
             <div className="flex gap-3">
               <Button variant="secondary" size="sm" className="flex-1" onClick={() => setClearModal(false)}>Cancel</Button>
               <Button variant="destructive" size="sm" className="flex-1" onClick={async () => {
-                const res = await fetch("/api/admin/logs", { method: "DELETE" });
+                const res = await fetch("/api/admin/logs", {
+                  method: "DELETE",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ confirm: true }),
+                });
                 const json = await res.json();
                 if (json.data) {
                   toast.success("All logs cleared");

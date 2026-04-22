@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { orders, orderItems, creditNotes } from "@/lib/db/schema-pg";
 import { eq } from "drizzle-orm";
-import { apiError } from "@/lib/utils";
+import { apiError, formatOrderNumber } from "@/lib/utils";
 import { getSettings } from "@/lib/settings";
 import { NextResponse, NextRequest } from "next/server";
 import { getAdminFromCookie } from "@/lib/auth";
@@ -96,7 +96,7 @@ export async function GET(
         <h2 style="font-size:24px;color:#dc2626;margin-bottom:8px">CREDIT NOTE</h2>
         <p style="font-size:13px;color:#666">${escapeHtml(creditNote.creditNoteNumber)}</p>
         <p style="font-size:13px;color:#666">Date: ${creditNoteDate}</p>
-        <p style="font-size:13px;color:#666">Order: ${escapeHtml(order.orderNumber)}</p>
+        <p style="font-size:13px;color:#666">Order: ${escapeHtml(formatOrderNumber(order.orderNumber))}</p>
       </div>
     </div>
 

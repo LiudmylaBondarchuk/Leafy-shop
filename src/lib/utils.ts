@@ -60,3 +60,14 @@ export function generateOrderNumber(date: Date, sequence: number): string {
   const seq = String(sequence).padStart(4, "0");
   return `LEA-${y}${m}${d}-${seq}-${randomSuffix()}`;
 }
+
+// Full order number format: LEA-YYYYMMDD-NNNN-xxxxx (4 dash-segments).
+// The final segment is a random access suffix we keep out of user-facing UI —
+// it lives in URLs so the enumerate-by-sequence attack stays blocked.
+export function formatOrderNumber(fullNumber: string): string {
+  const parts = fullNumber.split("-");
+  if (parts.length >= 4 && parts[0] === "LEA") {
+    return parts.slice(0, 3).join("-");
+  }
+  return fullNumber;
+}

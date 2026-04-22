@@ -7,7 +7,7 @@ import { Package, ChevronRight, ShoppingBag } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Spinner } from "@/components/ui/Spinner";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, formatOrderNumber } from "@/lib/utils";
 
 interface CustomerProfile {
   firstName: string;
@@ -136,7 +136,7 @@ export default function AccountDashboardPage() {
               >
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {order.orderNumber}
+                    {formatOrderNumber(order.orderNumber)}
                   </p>
                   <p className="text-xs text-gray-500 mt-0.5">
                     {new Date(order.createdAt).toLocaleDateString("en-US", {

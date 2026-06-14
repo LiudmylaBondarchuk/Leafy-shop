@@ -73,6 +73,12 @@ export async function PUT(
       if (type && type !== "free_shipping" && (!value || value <= 0)) {
         return apiError("Value must be greater than 0", 400, "VALIDATION_ERROR");
       }
+      // Percentage upper bound — mirror POST validation. Without this, a PUT could set
+      // value > 10000 (>100%), producing discountAmount > subtotal and total floored to 0.
+      const effectiveType = type ?? oldDiscount?.type;
+      if (effectiveType === "percentage" && value !== undefined && (value < 1 || value > 10000)) {
+        return apiError("Percentage must be between 1 and 100 (value 100-10000)", 400, "VALIDATION_ERROR");
+      }
       if (expiresAt && startsAt && new Date(expiresAt) <= new Date(startsAt)) {
         return apiError("Expiry date must be after start date", 400, "VALIDATION_ERROR");
       }

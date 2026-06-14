@@ -64,8 +64,9 @@ export async function POST(request: Request) {
         .where(eq(productVariants.id, item.variantId));
     }
 
-    // Revert discount code usage (only if it was incremented — pending_payment never increments)
-    if (order.discountCodeId && !isPendingPayment) {
+    // Revert discount usage — reserved atomically at order creation for ALL flows,
+    // including pending_payment (PayPal reserves at creation, not at capture).
+    if (order.discountCodeId) {
       await db.update(discountCodes)
         .set({ usageCount: sql`GREATEST(${discountCodes.usageCount} - 1, 0)` })
         .where(eq(discountCodes.id, order.discountCodeId));

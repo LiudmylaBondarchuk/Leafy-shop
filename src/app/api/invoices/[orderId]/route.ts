@@ -187,7 +187,7 @@ export async function GET(
         ` : `
         <tr>
           <td style="padding:6px 0;color:#666">Subtotal (net)</td>
-          <td style="padding:6px 0;text-align:right">${formatPrice(vatBreakdown.netAmount)}</td>
+          <td style="padding:6px 0;text-align:right">${formatPrice(Math.round(order.subtotal / 1.23))}</td>
         </tr>
         ${order.discountAmount > 0 ? `
         <tr>

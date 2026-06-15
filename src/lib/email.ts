@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 import { getSettings } from "@/lib/settings";
 import { logSystemEvent } from "@/lib/audit";
+import { formatOrderNumber } from "@/lib/utils";
 
 function escapeHtml(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -120,7 +121,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
 
   const html = emailWrapper(`
     <h2 style="color:#1a4d1a;margin-top:0">${orderGreeting}</h2>
-    <p>Your order <strong>${escapeHtml(data.orderNumber)}</strong> has been ${isPaid ? "paid and confirmed" : "received"}.</p>
+    <p>Your order <strong>${escapeHtml(formatOrderNumber(data.orderNumber))}</strong> has been ${isPaid ? "paid and confirmed" : "received"}.</p>
 
     ${deliveryMessage}
 
@@ -158,7 +159,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
     </div>
     ` : ""}
 
-    <p style="color:#666;font-size:13px">You can track your order status at any time: <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://leafyshop.eu"}/order/status" style="color:#15803d">Track your order →</a></p>
+    <p style="color:#666;font-size:13px">You can track your order status at any time: <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://leafyshop.eu"}/order/status?number=${encodeURIComponent(data.orderNumber)}&email=${encodeURIComponent(data.customerEmail)}" style="color:#15803d">Track your order →</a></p>
   `, storeName, cfg["email.tpl.footer"]);
 
   try {
@@ -166,8 +167,8 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
       from: `Leafy <${ordersFrom}>`,
       to: data.customerEmail,
       subject: isPaid
-        ? `Payment Confirmed — Order ${data.orderNumber}`
-        : `Order Confirmed — ${data.orderNumber}`,
+        ? `Payment Confirmed — Order ${formatOrderNumber(data.orderNumber)}`
+        : `Order Confirmed — ${formatOrderNumber(data.orderNumber)}`,
       html,
     });
     console.log("[EMAIL] Order confirmation sent to", data.customerEmail);
@@ -209,29 +210,31 @@ export async function sendOrderStatusEmail(
 
   const shippingLabel = SHIPPING_LABELS[shippingMethod || "courier"] || shippingMethod;
 
+  const displayNumber = formatOrderNumber(orderNumber);
+
   // Read customizable templates from settings
   const tpl = (key: string, fallback: string) => (cfg[`email.tpl.${key}`] || fallback)
     .replace(/\{name\}/g, escapeHtml(customerName))
-    .replace(/\{orderNumber\}/g, escapeHtml(orderNumber))
+    .replace(/\{orderNumber\}/g, escapeHtml(displayNumber))
     .replace(/\{storeEmail\}/g, escapeHtml(storeEmail));
 
   const statusConfig: Record<string, { subject: string; heading: string; message: string; color: string; bgColor: string }> = {
     paid: {
-      subject: `Payment Confirmed — Order ${escapeHtml(orderNumber)}`,
+      subject: `Payment Confirmed — Order ${escapeHtml(displayNumber)}`,
       heading: "Payment Confirmed ✓",
       message: tpl("status_paid", "Your payment has been received. We'll start preparing your order shortly."),
       color: "#15803d",
       bgColor: "#f0fdf4",
     },
     processing: {
-      subject: `Order ${escapeHtml(orderNumber)} — Being Prepared`,
+      subject: `Order ${escapeHtml(displayNumber)} — Being Prepared`,
       heading: "Your Order is Being Prepared",
       message: tpl("status_processing", "Our team is carefully packing your teas and coffees. We'll notify you once it's shipped."),
       color: "#a16207",
       bgColor: "#fefce8",
     },
     shipped: {
-      subject: `Order ${escapeHtml(orderNumber)} — Shipped!`,
+      subject: `Order ${escapeHtml(displayNumber)} — Shipped!`,
       heading: "Your Order Has Been Shipped! 📦",
       message: tpl("status_shipped", shippingMethod === "inpost"
         ? `Your package is on its way to your InPost Parcel Locker. You'll receive a code to pick it up.`
@@ -242,14 +245,14 @@ export async function sendOrderStatusEmail(
       bgColor: "#f5f3ff",
     },
     delivered: {
-      subject: `Order ${escapeHtml(orderNumber)} — Delivered`,
+      subject: `Order ${escapeHtml(displayNumber)} — Delivered`,
       heading: "Your Order Has Been Delivered ✓",
       message: tpl("status_delivered", `We hope you enjoy your products! If you have any questions, don't hesitate to contact us at ${storeEmail}.`),
       color: "#15803d",
       bgColor: "#f0fdf4",
     },
     cancelled: {
-      subject: `Order ${escapeHtml(orderNumber)} — Cancelled`,
+      subject: `Order ${escapeHtml(displayNumber)} — Cancelled`,
       heading: "Your Order Has Been Cancelled",
       message: tpl("status_cancelled", paymentMethod === "cod"
         ? "Your order has been cancelled. Since no payment was made, no refund is needed. All reserved items have been returned to stock."
@@ -258,7 +261,7 @@ export async function sendOrderStatusEmail(
       bgColor: "#fef2f2",
     },
     returned: {
-      subject: `Order ${escapeHtml(orderNumber)} — Return Processed`,
+      subject: `Order ${escapeHtml(displayNumber)} — Return Processed`,
       heading: "Your Return Has Been Processed",
       message: tpl("status_returned", "We've received your return. Your refund will be processed within 5–10 business days."),
       color: "#ea580c",
@@ -271,7 +274,7 @@ export async function sendOrderStatusEmail(
 
   const html = emailWrapper(`
     <h2 style="color:#1a4d1a;margin-top:0">Hi ${escapeHtml(customerName)},</h2>
-    <p>Here's an update on your order <strong>${escapeHtml(orderNumber)}</strong>:</p>
+    <p>Here's an update on your order <strong>${escapeHtml(displayNumber)}</strong>:</p>
     <div style="background:${config.bgColor};padding:16px;border-radius:8px;text-align:center;margin:16px 0">
       <span style="font-size:20px;font-weight:bold;color:${config.color}">${config.heading}</span>
       <p style="margin:8px 0 0;font-size:14px;color:#666">${config.message}</p>
@@ -286,7 +289,7 @@ export async function sendOrderStatusEmail(
         ? `<p style="text-align:center;margin:16px 0">
             <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://leafyshop.eu"}/products" style="display:inline-block;background:#15803d;color:white;padding:10px 24px;border-radius:8px;text-decoration:none;font-weight:600">Browse More Products →</a>
           </p>`
-        : `<p style="color:#666;font-size:13px">Track your order: <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://leafyshop.eu"}/order/status" style="color:#15803d">Track your order →</a></p>`
+        : `<p style="color:#666;font-size:13px">Track your order: <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://leafyshop.eu"}/order/status?number=${encodeURIComponent(orderNumber)}&email=${encodeURIComponent(customerEmail)}" style="color:#15803d">Track your order →</a></p>`
     }
   `, storeName, cfg["email.tpl.footer"]);
 
@@ -369,7 +372,7 @@ export async function sendCreditNoteEmail(
 
   const html = emailWrapper(`
     <h2 style="color:#1a4d1a;margin-top:0">Hi ${escapeHtml(customerName)},</h2>
-    <p>A credit note has been issued for your order <strong>${escapeHtml(orderNumber)}</strong>.</p>
+    <p>A credit note has been issued for your order <strong>${escapeHtml(formatOrderNumber(orderNumber))}</strong>.</p>
 
     <div style="background:#fef2f2;border:1px solid #fecaca;padding:16px;border-radius:8px;margin:16px 0">
       <p style="margin:0 0 8px;font-weight:600;color:#dc2626">Credit Note: ${escapeHtml(creditNoteNumber)}</p>
@@ -392,7 +395,7 @@ export async function sendCreditNoteEmail(
     await resend.emails.send({
       from: `Leafy <${invoicesFrom}>`,
       to: customerEmail,
-      subject: `Credit Note ${creditNoteNumber} — Order ${orderNumber}`,
+      subject: `Credit Note ${creditNoteNumber} — Order ${formatOrderNumber(orderNumber)}`,
       html,
     });
     console.log("[EMAIL] Credit note email sent to", customerEmail);

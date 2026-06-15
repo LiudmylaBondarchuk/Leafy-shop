@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { orders, orderItems, orderStatusHistory, productVariants } from "./db/schema-pg";
+import { orders, orderItems, orderStatusHistory, productVariants, discountCodes } from "./db/schema-pg";
 import { and, eq, lt, sql } from "drizzle-orm";
 
 export const PENDING_PAYPAL_TTL_MINUTES = 30;
@@ -11,7 +11,7 @@ export async function expireStalePendingOrders(): Promise<number> {
   const cutoff = new Date(Date.now() - PENDING_PAYPAL_TTL_MINUTES * 60 * 1000).toISOString();
 
   const stale = await db
-    .select({ id: orders.id })
+    .select({ id: orders.id, discountCodeId: orders.discountCodeId })
     .from(orders)
     .where(and(eq(orders.status, "pending_payment"), lt(orders.createdAt, cutoff)));
 
@@ -38,6 +38,13 @@ export async function expireStalePendingOrders(): Promise<number> {
       await db.update(productVariants)
         .set({ stock: sql`${productVariants.stock} + ${item.quantity}` })
         .where(eq(productVariants.id, item.variantId));
+    }
+
+    // Revert the discount usage reserved when this pending order was created.
+    if (s.discountCodeId) {
+      await db.update(discountCodes)
+        .set({ usageCount: sql`GREATEST(${discountCodes.usageCount} - 1, 0)` })
+        .where(eq(discountCodes.id, s.discountCodeId));
     }
 
     expired += 1;

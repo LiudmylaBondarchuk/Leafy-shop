@@ -97,12 +97,7 @@ export async function POST(request: Request) {
       note: `PayPal payment captured. Transaction ID: ${capture.id}`,
     });
 
-    // Increment discount code usage now that payment is confirmed
-    if (order.discountCodeId) {
-      await db.update(discountCodes)
-        .set({ usageCount: sql`${discountCodes.usageCount} + 1` })
-        .where(eq(discountCodes.id, order.discountCodeId));
-    }
+    // Discount usage was already reserved at order creation — capture only confirms payment.
 
     // Load fresh order data with items for confirmation email
     const cfg = await getSettings();
@@ -172,6 +167,15 @@ async function autoCancel(orderId: number, orderNumber: string, reason: string) 
         .set({ stock: sql`${productVariants.stock} + ${item.quantity}` })
         .where(eq(productVariants.id, item.variantId));
     }
+
+    // Revert the discount usage reserved at order creation.
+    const cancelledOrder = await db.query.orders.findFirst({ where: eq(orders.id, orderId) });
+    if (cancelledOrder?.discountCodeId) {
+      await db.update(discountCodes)
+        .set({ usageCount: sql`GREATEST(${discountCodes.usageCount} - 1, 0)` })
+        .where(eq(discountCodes.id, cancelledOrder.discountCodeId));
+    }
+
     revalidatePath("/", "layout");
   } catch (err) {
     console.error(`[PAYPAL] autoCancel failed for order ${orderNumber}:`, err instanceof Error ? err.message : "Unknown error");

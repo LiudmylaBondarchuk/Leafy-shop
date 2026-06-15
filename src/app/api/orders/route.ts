@@ -333,6 +333,39 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Reserve discount usage atomically — a single conditional UPDATE is the real gate against
+    // exceeding usageLimit under concurrent orders (the validate→increment pair was not atomic).
+    // Reserved at creation for BOTH COD and PayPal; reverted on cancel/expire/auto-cancel.
+    if (discountCodeId) {
+      const reserved = await db.update(discountCodes)
+        .set({ usageCount: sql`${discountCodes.usageCount} + 1` })
+        .where(and(
+          eq(discountCodes.id, discountCodeId),
+          sql`(${discountCodes.usageLimit} IS NULL OR ${discountCodes.usageCount} < ${discountCodes.usageLimit})`
+        ))
+        .returning({ id: discountCodes.id });
+
+      if (reserved.length === 0) {
+        // Usage limit hit between validation and reservation — roll back order and stock.
+        for (const rb of variantRows) {
+          await db.update(productVariants)
+            .set({ stock: sql`${productVariants.stock} + ${rb.quantity}` })
+            .where(eq(productVariants.id, rb.id));
+        }
+        await db.update(orders)
+          .set({ status: "cancelled", updatedAt: new Date().toISOString() })
+          .where(eq(orders.id, order.id));
+        await db.insert(orderStatusHistory).values({
+          orderId: order.id,
+          fromStatus: initialStatus,
+          toStatus: "cancelled",
+          changedBy: "system",
+          note: "Auto-cancelled: discount usage limit reached",
+        });
+        return apiError("This discount code has reached its usage limit.", 409, "DISCOUNT_LIMIT");
+      }
+    }
+
     // Check for critical low stock and send instant alert
     checkCriticalStock(variantRows.map((v) => v.productId)).catch(() => {});
 
@@ -346,12 +379,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Increment discount code usage (COD path only; PayPal increments on capture)
-    if (discountCodeId) {
-      await db.update(discountCodes)
-        .set({ usageCount: sql`${discountCodes.usageCount} + 1` })
-        .where(eq(discountCodes.id, discountCodeId));
-    }
+    // Discount usage was already reserved atomically at order creation (see reservation above).
 
     // Send confirmation email (async, don't block response) — COD path only
     const emailCfg = await getSettings();

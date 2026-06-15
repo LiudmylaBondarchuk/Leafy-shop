@@ -7,6 +7,15 @@ import { logAudit } from "@/lib/audit";
 import { getSettings } from "@/lib/settings";
 import { revalidatePath } from "next/cache";
 
+// A date-only expiry (e.g. "2026-06-13") arrives as midnight UTC, which makes the code
+// expire at the START of that day. Normalize to end-of-day so it stays valid through the date.
+function toEndOfDayIso(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const d = new Date(value);
+  d.setUTCHours(23, 59, 59, 999);
+  return d.toISOString();
+}
+
 export async function POST(request: Request) {
   const admin = await getAdminFromCookie();
   if (!admin) return apiError("Unauthorized", 401, "UNAUTHORIZED");
@@ -74,7 +83,7 @@ export async function POST(request: Request) {
       categoryId: categoryId || null,
       usageLimit: usageLimit || null,
       startsAt: startsAt || new Date().toISOString(),
-      expiresAt: expiresAt || null,
+      expiresAt: toEndOfDayIso(expiresAt),
       isActive: isActive ?? true,
       isTestData: isTester,
       createdBy: Number(admin.sub),

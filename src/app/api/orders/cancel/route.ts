@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { orders, orderStatusHistory, productVariants, discountCodes } from "@/lib/db/schema-pg";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, sql, like } from "drizzle-orm";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { sendOrderStatusEmail, sendCreditNoteEmail } from "@/lib/email";
 import { generateCreditNote, markCreditNoteEmailSent } from "@/lib/credit-notes";
@@ -19,9 +19,13 @@ export async function POST(request: Request) {
       return apiError("Order number and email are required", 400);
     }
 
+    const trimmedNumber = orderNumber.trim();
+    const isBaseForm = trimmedNumber.split("-").length === 3;
     const order = await db.query.orders.findFirst({
       where: and(
-        eq(orders.orderNumber, orderNumber.trim()),
+        isBaseForm
+          ? like(orders.orderNumber, `${trimmedNumber}-%`)
+          : eq(orders.orderNumber, trimmedNumber),
         eq(orders.customerEmail, email.trim().toLowerCase())
       ),
       with: { items: true, statusHistory: true },
@@ -60,8 +64,9 @@ export async function POST(request: Request) {
         .where(eq(productVariants.id, item.variantId));
     }
 
-    // Revert discount code usage (only if it was incremented — pending_payment never increments)
-    if (order.discountCodeId && !isPendingPayment) {
+    // Revert discount usage — reserved atomically at order creation for ALL flows,
+    // including pending_payment (PayPal reserves at creation, not at capture).
+    if (order.discountCodeId) {
       await db.update(discountCodes)
         .set({ usageCount: sql`GREATEST(${discountCodes.usageCount} - 1, 0)` })
         .where(eq(discountCodes.id, order.discountCodeId));

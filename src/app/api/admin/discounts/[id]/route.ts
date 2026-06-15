@@ -6,6 +6,15 @@ import { apiSuccess, apiError } from "@/lib/utils";
 import { logAudit, detectChanges } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 
+// A date-only expiry (e.g. "2026-06-13") arrives as midnight UTC, which makes the code
+// expire at the START of that day. Normalize to end-of-day so it stays valid through the date.
+function toEndOfDayIso(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const d = new Date(value);
+  d.setUTCHours(23, 59, 59, 999);
+  return d.toISOString();
+}
+
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -64,6 +73,12 @@ export async function PUT(
       if (type && type !== "free_shipping" && (!value || value <= 0)) {
         return apiError("Value must be greater than 0", 400, "VALIDATION_ERROR");
       }
+      // Percentage upper bound — mirror POST validation. Without this, a PUT could set
+      // value > 10000 (>100%), producing discountAmount > subtotal and total floored to 0.
+      const effectiveType = type ?? oldDiscount?.type;
+      if (effectiveType === "percentage" && value !== undefined && (value < 1 || value > 10000)) {
+        return apiError("Percentage must be between 1 and 100 (value 100-10000)", 400, "VALIDATION_ERROR");
+      }
       if (expiresAt && startsAt && new Date(expiresAt) <= new Date(startsAt)) {
         return apiError("Expiry date must be after start date", 400, "VALIDATION_ERROR");
       }
@@ -89,7 +104,7 @@ export async function PUT(
     if (categoryId !== undefined) updateData.categoryId = categoryId || null;
     if (usageLimit !== undefined) updateData.usageLimit = usageLimit || null;
     if (startsAt !== undefined) updateData.startsAt = startsAt;
-    if (expiresAt !== undefined) updateData.expiresAt = expiresAt || null;
+    if (expiresAt !== undefined) updateData.expiresAt = toEndOfDayIso(expiresAt);
 
     await db.update(discountCodes).set(updateData).where(eq(discountCodes.id, parseInt(id)));
 

@@ -132,6 +132,7 @@ export async function POST(request: NextRequest) {
           stock: productVariants.stock,
           isActive: productVariants.isActive,
           productActive: products.isActive,
+          productDeleted: products.deletedAt,
         })
         .from(productVariants)
         .innerJoin(products, eq(products.id, productVariants.productId))
@@ -139,7 +140,8 @@ export async function POST(request: NextRequest) {
         .then((rows: any[]) => rows[0]);
 
       if (!v) return apiError(`Variant ${vid} not found`, 400, "VARIANT_NOT_FOUND");
-      if (!v.isActive || !v.productActive) return apiError(`${v.productName} is no longer available`, 400, "VARIANT_INACTIVE");
+      // Reject soft-deleted products even if is_active drifted to true (data can be inconsistent).
+      if (!v.isActive || !v.productActive || v.productDeleted) return apiError(`${v.productName} is no longer available`, 400, "VARIANT_INACTIVE");
 
       const requestedQty = data.items.find((i) => i.variant_id === vid)!.quantity;
       if (v.stock < requestedQty) {

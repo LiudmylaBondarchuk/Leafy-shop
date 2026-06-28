@@ -190,6 +190,11 @@ export async function DELETE(
       .set({ isActive: false, deletedAt: new Date().toISOString(), updatedAt: new Date().toISOString() })
       .where(eq(products.id, productId));
 
+    // Cascade soft-delete to variants: a deleted product must not leave active variants behind.
+    await db.update(productVariants)
+      .set({ isActive: false })
+      .where(eq(productVariants.productId, productId));
+
     // Audit log
     const requestingUser = await db.query.adminUsers.findFirst({
       where: eq(adminUsers.id, Number(admin.sub)),

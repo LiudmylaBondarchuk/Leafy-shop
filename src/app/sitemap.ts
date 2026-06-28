@@ -3,6 +3,10 @@ import { db } from "@/lib/db";
 import { products } from "@/lib/db/schema-pg";
 import { eq } from "drizzle-orm";
 
+// Render at request time, not at build: the product query must not run during
+// prerender (Preview builds without DATABASE_URL fall back to SQLite and crash).
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://www.leafyshop.eu";
 

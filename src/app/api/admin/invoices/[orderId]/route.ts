@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { apiError } from "@/lib/utils";
 import { getSettings } from "@/lib/settings";
 import { getAdminFromCookie } from "@/lib/auth";
+import { authorize } from "@/lib/require-permission";
 import { NextResponse } from "next/server";
 
 function escapeHtml(str: string): string {
@@ -27,6 +28,8 @@ export async function GET(
 ) {
   const admin = await getAdminFromCookie();
   if (!admin) return apiError("Unauthorized", 401, "UNAUTHORIZED");
+  const denied = await authorize("orders.view");
+  if (denied) return denied;
 
   try {
     const { orderId } = await params;

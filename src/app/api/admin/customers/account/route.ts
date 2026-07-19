@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { customers } from "@/lib/db/schema-pg";
 import { getAdminFromCookie } from "@/lib/auth";
+import { authorize } from "@/lib/require-permission";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { eq } from "drizzle-orm";
 import { randomBytes } from "crypto";
@@ -15,6 +16,8 @@ function escapeHtml(str: string): string {
 export async function GET(request: NextRequest) {
   const admin = await getAdminFromCookie();
   if (!admin) return apiError("Unauthorized", 401, "UNAUTHORIZED");
+  const denied = await authorize("customers.view");
+  if (denied) return denied;
 
   const id = request.nextUrl.searchParams.get("id");
   if (!id) return apiError("Account ID is required", 400);

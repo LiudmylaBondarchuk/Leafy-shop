@@ -1,11 +1,11 @@
 {
   "crons": [
     {
-      "path": "/api/cron/cleanup-test-data?token=REDACTED",
+      "path": "/api/cron/cleanup-test-data",
       "schedule": "0 3 * * *"
     },
     {
-      "path": "/api/cron/cleanup-pending-paypal?token=REDACTED",
+      "path": "/api/cron/cleanup-pending-paypal",
       "schedule": "0 3 * * *"
     }
   ]

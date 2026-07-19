@@ -38,7 +38,7 @@ export async function POST(request: Request) {
       return apiError("Reset token has expired", 400, "TOKEN_EXPIRED");
     }
 
-    const passwordHash = hashSync(password, 10);
+    const passwordHash = hashSync(password, 12);
 
     await db.update(customers).set({
       passwordHash,

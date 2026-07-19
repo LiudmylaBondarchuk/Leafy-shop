@@ -49,6 +49,7 @@ export default function CheckoutPage() {
   const [placedOrderNumber, setPlacedOrderNumber] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
   const [signupSubmitting, setSignupSubmitting] = useState(false);
+  const [signupError, setSignupError] = useState<string | null>(null);
   const [confirmEmail, setConfirmEmail] = useState("");
   const [calculatedDiscount, setCalculatedDiscount] = useState(0);
   const [effectiveShippingCost, setEffectiveShippingCost] = useState<number | null>(null);
@@ -300,11 +301,23 @@ export default function CheckoutPage() {
     }
   };
 
+  const goToConfirmation = () => {
+    setShowPostOrderSignup(false);
+    router.push(`/order/confirmation?number=${placedOrderNumber}&email=${encodeURIComponent(form.email)}`);
+  };
+
   const handlePostOrderSignup = async () => {
+    // Mirror the backend rules (api/customer/register) so the password is fixed
+    // here instead of hitting a confusing 400 after submit.
     if (!signupPassword || signupPassword.length < 8) {
-      toast.error("Password must be at least 8 characters");
+      setSignupError("Password must be at least 8 characters.");
       return;
     }
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(signupPassword)) {
+      setSignupError("Password must include an uppercase letter, a lowercase letter, and a number.");
+      return;
+    }
+    setSignupError(null);
     setSignupSubmitting(true);
     try {
       const res = await fetch("/api/customer/register", {
@@ -321,16 +334,17 @@ export default function CheckoutPage() {
       if (res.ok) {
         window.dispatchEvent(new Event("customer:auth-changed"));
         toast.success("Account created! You can now track your orders.");
+        goToConfirmation();
       } else {
-        const json = await res.json();
-        toast.error(json.message || "Could not create account");
+        // The order is already placed — keep the modal open on failure so the
+        // user can fix the password or skip, never silently proceed.
+        const json = await res.json().catch(() => ({}));
+        setSignupError(json.message || "Could not create account. Please try again or skip.");
       }
     } catch {
-      toast.error("Something went wrong");
+      setSignupError("Something went wrong. Please try again or skip.");
     } finally {
       setSignupSubmitting(false);
-      setShowPostOrderSignup(false);
-      router.push(`/order/confirmation?number=${placedOrderNumber}&email=${encodeURIComponent(form.email)}`);
     }
   };
 
@@ -774,9 +788,13 @@ export default function CheckoutPage() {
                 id="signupPassword"
                 type="password"
                 value={signupPassword}
-                onChange={(e) => setSignupPassword(e.target.value)}
-                placeholder="At least 8 characters"
+                onChange={(e) => { setSignupPassword(e.target.value); if (signupError) setSignupError(null); }}
+                placeholder="Min 8 chars, incl. a letter and a number"
+                error={signupError || undefined}
               />
+              <p className="text-xs text-gray-500 -mt-2">
+                At least 8 characters, including an uppercase letter, a lowercase letter, and a number.
+              </p>
               <div className="flex gap-3">
                 <Button
                   variant="secondary"

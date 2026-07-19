@@ -1,10 +1,13 @@
 import { db } from "@/lib/db";
 import { discountCodes, adminUsers } from "@/lib/db/schema-pg";
 import { desc, eq } from "drizzle-orm";
-import { getAdminFromCookie } from "@/lib/auth";
+import { authorize } from "@/lib/require-permission";
 import { apiSuccess, apiError } from "@/lib/utils";
 
 export async function GET() {
+  const denied = await authorize("discounts.view");
+  if (denied) return denied;
+
   try {
     // Join with admin_users to get creator name
     const codes = await db
@@ -32,25 +35,9 @@ export async function GET() {
       .leftJoin(adminUsers, eq(discountCodes.createdBy, adminUsers.id))
       .orderBy(desc(discountCodes.createdAt));
 
-    const admin = await getAdminFromCookie();
-    if (admin) {
-      const user = await db.query.adminUsers.findFirst({
-        where: eq(adminUsers.id, Number(admin.sub)),
-      });
-      if (user?.role === "tester") {
-        // Tester sees all codes (but can only edit/delete their own)
-        return apiSuccess(codes.filter((c: any) => !c.deletedAt));
-      }
-      // Admin and manager see ALL codes (including inactive/expired)
-      return apiSuccess(codes.filter((c: any) => !c.deletedAt));
-    }
-
-    // Unauthenticated requests only get active, non-expired, non-deleted codes — return only the code field
-    const now = new Date().toISOString();
-    return apiSuccess(codes
-      .filter((c: any) => c.isActive && !c.deletedAt && (!c.expiresAt || c.expiresAt > now))
-      .map((c: any) => ({ code: c.code }))
-    );
+    // Only staff with discounts.view reach here — return the full list.
+    // (Codes are never exposed to unauthenticated/storefront requests.)
+    return apiSuccess(codes.filter((c: any) => !c.deletedAt));
   } catch (error) {
     console.error("GET /api/discount-codes error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to fetch discount codes", 500);

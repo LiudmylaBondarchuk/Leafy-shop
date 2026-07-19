@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { orders, orderItems, orderStatusHistory } from "@/lib/db/schema-pg";
-import { eq, and, like } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { canTransition } from "@/lib/order-state-machine";
 import type { OrderStatus } from "@/constants/order-statuses";
 import { apiSuccess, apiError } from "@/lib/utils";
@@ -24,16 +24,12 @@ export async function GET(request: NextRequest) {
 
     const trimmedNumber = number.trim();
     const normalizedEmail = email.trim().toLowerCase();
-    // Accept both full numbers (with access suffix) and base numbers (3 segments).
-    // Base form lets users type what they see in emails/invoices while the full
-    // form in shared links bypasses enumeration.
-    const isBaseForm = trimmedNumber.split("-").length === 3;
-
+    // Require the exact full order number (including the random suffix). The base
+    // form is no longer accepted: the suffix is a capability token, so knowing
+    // only the email plus a guessable sequential base is not enough.
     const order = await db.query.orders.findFirst({
       where: and(
-        isBaseForm
-          ? like(orders.orderNumber, `${trimmedNumber}-%`)
-          : eq(orders.orderNumber, trimmedNumber),
+        eq(orders.orderNumber, trimmedNumber),
         eq(orders.customerEmail, normalizedEmail)
       ),
       with: {

@@ -173,6 +173,7 @@ export default function CheckoutPage() {
             items: items.map((i) => ({ variant_id: i.variantId, quantity: i.quantity })),
             discount_code: discountCode,
             shipping_method: form.shippingMethod,
+            payment_method: form.paymentMethod,
           }),
           signal: controller.signal,
         });
@@ -200,7 +201,7 @@ export default function CheckoutPage() {
     fetchDiscount();
 
     return () => controller.abort();
-  }, [mounted, discountCode, items, form.shippingMethod]);
+  }, [mounted, discountCode, items, form.shippingMethod, form.paymentMethod]);
 
   if (!mounted) return null;
 
@@ -240,6 +241,9 @@ export default function CheckoutPage() {
   if (form.paymentMethod === "cod") shippingCost += COD_SURCHARGE;
   // Use server-provided shipping cost when a discount code is active (handles free_shipping discounts)
   const finalShippingCost = discountCode && effectiveShippingCost !== null ? effectiveShippingCost : shippingCost;
+  // Split the COD surcharge out for display so shipping and COD are itemised separately.
+  const codFee = form.paymentMethod === "cod" ? COD_SURCHARGE : 0;
+  const baseShippingDisplay = Math.max(0, finalShippingCost - codFee);
   // All prices are gross (include 23% Polish VAT). Always show 23% VAT in cart since customer pays gross.
   // The invoice will show the correct VAT breakdown based on country/VAT ID.
   const vatRate = 23;
@@ -601,7 +605,8 @@ export default function CheckoutPage() {
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 text-sm space-y-2">
             <div className="flex justify-between"><span>Subtotal</span><span>{formatPrice(subtotal)}</span></div>
             <div className="flex justify-between text-gray-500 text-xs"><span>incl. VAT ({vatRate}%)</span><span>{formatPrice(vatAmount)}</span></div>
-            <div className="flex justify-between"><span>Shipping</span><span>{finalShippingCost === 0 ? "Free" : formatPrice(finalShippingCost)}</span></div>
+            <div className="flex justify-between"><span>Shipping</span><span>{baseShippingDisplay === 0 ? "Free" : formatPrice(baseShippingDisplay)}</span></div>
+            {codFee > 0 && <div className="flex justify-between"><span>Cash on Delivery</span><span>+{formatPrice(codFee)}</span></div>}
             {discountCode && calculatedDiscount > 0 && <div className="flex justify-between text-green-700"><span>Discount ({discountCode})</span><span>-{formatPrice(calculatedDiscount)}</span></div>}
             <div className="flex justify-between font-bold text-base border-t border-gray-200 dark:border-gray-700 pt-2">
               <span>Total</span><span className="text-green-800">{formatPrice(total)}</span>

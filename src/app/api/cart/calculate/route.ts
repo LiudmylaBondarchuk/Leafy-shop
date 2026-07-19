@@ -10,7 +10,7 @@ import { NextRequest } from "next/server";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { items, discount_code, shipping_method = "courier" } = body;
+    const { items, discount_code, shipping_method = "courier", payment_method } = body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return apiError("Cart is empty", 400, "EMPTY_CART");
@@ -137,8 +137,11 @@ export async function POST(request: NextRequest) {
       shippingCost = 0;
     }
 
-    // COD surcharge
-    // (handled at checkout, not here)
+    // COD surcharge — applied after the free-shipping logic to mirror the order
+    // route exactly, so the checkout preview matches the amount actually charged.
+    if (payment_method === "cod") {
+      shippingCost += COD_SURCHARGE;
+    }
 
     // VAT calculation (on subtotal after discount)
     const settingsData = await getSettings();

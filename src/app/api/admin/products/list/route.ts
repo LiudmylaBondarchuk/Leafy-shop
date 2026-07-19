@@ -2,11 +2,14 @@ import { db } from "@/lib/db";
 import { products, productVariants, categories } from "@/lib/db/schema-pg";
 import { eq, and, sql } from "drizzle-orm";
 import { getAdminFromCookie } from "@/lib/auth";
+import { authorize } from "@/lib/require-permission";
 import { apiSuccess, apiError } from "@/lib/utils";
 
 export async function GET() {
   const admin = await getAdminFromCookie();
   if (!admin) return apiError("Unauthorized", 401, "UNAUTHORIZED");
+  const denied = await authorize("products.view");
+  if (denied) return denied;
 
   try {
     const allProducts = await db

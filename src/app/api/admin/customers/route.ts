@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { orders, customers as customersTable } from "@/lib/db/schema-pg";
 import { getAdminFromCookie } from "@/lib/auth";
+import { authorize } from "@/lib/require-permission";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { NextRequest } from "next/server";
 import { sql, eq } from "drizzle-orm";
@@ -23,6 +24,8 @@ interface CustomerRecord {
 export async function GET(request: NextRequest) {
   const admin = await getAdminFromCookie();
   if (!admin) return apiError("Unauthorized", 401, "UNAUTHORIZED");
+  const denied = await authorize("customers.view");
+  if (denied) return denied;
 
   try {
     const search = request.nextUrl.searchParams.get("search") || "";

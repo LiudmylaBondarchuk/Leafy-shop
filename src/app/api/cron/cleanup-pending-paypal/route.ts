@@ -8,8 +8,10 @@ import { expireStalePendingOrders } from "@/lib/expire-pending-paypal";
 // so this cron only matters for very low-traffic shops.
 export async function GET(request: NextRequest) {
   try {
-    const authHeader = request.headers.get("authorization");
-    const token = authHeader?.replace("Bearer ", "") || request.nextUrl.searchParams.get("token");
+    // Vercel Cron automatically sends the CRON_SECRET as a Bearer token in the
+    // Authorization header. Token is never passed in the URL to keep it out of
+    // access logs and committed config.
+    const token = request.headers.get("authorization")?.replace("Bearer ", "");
     const expectedToken = process.env.CRON_SECRET;
     if (!expectedToken) {
       console.error("[CRON] CRON_SECRET env var not set");

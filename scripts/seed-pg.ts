@@ -130,7 +130,8 @@ async function seed() {
   // Admin
   console.log("  👤 Creating admin user...");
   const passwordHash = hashSync("Admin123!", 12);
-  await db.insert(schema.adminUsers).values({ email: "admin@leafy.pl", passwordHash, name: "Administrator" });
+  // Seeded credentials are a bootstrap only — force a password change on first login.
+  await db.insert(schema.adminUsers).values({ email: "admin@leafy.pl", passwordHash, name: "Administrator", mustChangePassword: true });
 
   console.log("✅ PostgreSQL seed complete!");
 }

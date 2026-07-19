@@ -346,7 +346,7 @@ async function seed() {
   }).run();
 
   console.log("✅ Seed complete!");
-  console.log("   Admin login: admin@leafy.pl / Admin123!");
+  console.log("   Admin login: admin@leafy.pl (see project setup notes for the seeded password)");
   console.log(`   Products: ${productsData.length}`);
   console.log(`   Categories: ${categoryData.length}`);
   console.log(`   Discount codes: ${discountData.length}`);

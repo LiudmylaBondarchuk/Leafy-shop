@@ -46,7 +46,11 @@ export async function GET(
 
     const availableTransitions = getTransitionsForOrder(order.status as OrderStatus, order.paymentMethod);
 
-    return apiSuccess({ ...order, availableTransitions });
+    // internalNotes is staff-only — never expose it to a customer viewing their own order.
+    const { internalNotes, ...customerSafeOrder } = order as typeof order & { internalNotes?: string };
+    const payload = admin ? order : customerSafeOrder;
+
+    return apiSuccess({ ...payload, availableTransitions });
   } catch (error) {
     console.error("GET /api/orders/[id] error:", error instanceof Error ? error.message : "Unknown error");
     return apiError("Failed to fetch order", 500);

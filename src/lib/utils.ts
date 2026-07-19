@@ -65,9 +65,8 @@ export function generateOrderNumber(date: Date, sequence: number): string {
 // The final segment is a random access suffix we keep out of user-facing UI —
 // it lives in URLs so the enumerate-by-sequence attack stays blocked.
 export function formatOrderNumber(fullNumber: string): string {
-  const parts = fullNumber.split("-");
-  if (parts.length >= 4 && parts[0] === "LEA") {
-    return parts.slice(0, 3).join("-");
-  }
+  // The full number — including the random access suffix — is shown to the
+  // customer, so lookups can require the exact number. This blocks targeted
+  // enumeration by anyone who knows the email + a guessable sequential base.
   return fullNumber;
 }

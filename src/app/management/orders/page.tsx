@@ -10,6 +10,7 @@ import { Search, Download, Upload } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { TableSkeleton } from "@/components/ui/Skeleton";
+import { Pagination } from "@/components/ui/Pagination";
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -19,6 +20,8 @@ export default function AdminOrdersPage() {
   const [dateTo, setDateTo] = useState("");
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   // Read URL params on mount
   useEffect(() => {
@@ -28,6 +31,12 @@ export default function AdminOrdersPage() {
     setMounted(true);
   }, []);
 
+  // Reset to the first page whenever the filters change.
+  useEffect(() => {
+    if (!mounted) return;
+    setPage(1);
+  }, [statusFilter, search, dateFrom, dateTo, mounted]);
+
   useEffect(() => {
     if (!mounted) return;
     setLoading(true);
@@ -36,14 +45,17 @@ export default function AdminOrdersPage() {
     if (search) params.set("search", search);
     if (dateFrom) params.set("from", dateFrom);
     if (dateTo) params.set("to", dateTo);
+    params.set("page", String(page));
+    params.set("limit", "20");
 
     fetch(`/api/orders?${params}`)
       .then((r) => r.json())
       .then((json) => {
         setOrders(json.data?.orders || []);
+        setTotalPages(json.data?.pagination?.totalPages || 1);
         setLoading(false);
       });
-  }, [statusFilter, search, dateFrom, dateTo, mounted]);
+  }, [statusFilter, search, dateFrom, dateTo, page, mounted]);
 
   const filtered = orders;
 
@@ -193,6 +205,12 @@ export default function AdminOrdersPage() {
               </Link>
             ))}
           </div>
+
+          {totalPages > 1 && (
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+            </div>
+          )}
           </>
         )}
       </Card>

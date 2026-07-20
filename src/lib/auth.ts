@@ -15,11 +15,16 @@ function getJwtSecret(): Uint8Array {
 
 const COOKIE_NAME = "admin_token";
 
-export async function signToken(payload: { sub: number; email: string; name: string }) {
+const DEFAULT_TOKEN_TTL_SECONDS = 60 * 60 * 24; // 24 hours
+
+export async function signToken(
+  payload: { sub: number; email: string; name: string },
+  ttlSeconds: number = DEFAULT_TOKEN_TTL_SECONDS
+) {
   return new SignJWT({ ...payload, sub: String(payload.sub) })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("24h")
+    .setExpirationTime(`${ttlSeconds}s`)
     .sign(getJwtSecret());
 }
 
@@ -39,14 +44,14 @@ export async function getAdminFromCookie() {
   return verifyToken(token);
 }
 
-export function createAuthCookie(token: string) {
+export function createAuthCookie(token: string, maxAgeSeconds: number = DEFAULT_TOKEN_TTL_SECONDS) {
   return {
     name: COOKIE_NAME,
     value: token,
     httpOnly: true,
     sameSite: "strict" as const,
     secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60 * 24, // 24 hours
+    maxAge: maxAgeSeconds,
     path: "/",
   };
 }

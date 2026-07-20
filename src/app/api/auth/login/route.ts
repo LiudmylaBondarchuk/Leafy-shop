@@ -1,8 +1,10 @@
 import { db } from "@/lib/db";
 import { adminUsers } from "@/lib/db/schema-pg";
 import { eq } from "drizzle-orm";
-import { compareSync } from "bcryptjs";
+import { compareSync, hashSync } from "bcryptjs";
+import { randomBytes } from "crypto";
 import { signToken, createAuthCookie } from "@/lib/auth";
+import { getSettings } from "@/lib/settings";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { cookies } from "next/headers";
 import { loginRateLimit, resetLoginRateLimit } from "@/lib/rate-limit";
@@ -55,11 +57,29 @@ export async function POST(request: Request) {
     // Update last login
     await db.update(adminUsers).set({ lastLoginAt: new Date().toISOString() }).where(eq(adminUsers.id, user.id));
 
-    const token = await signToken({ sub: user.id, email: user.email, name: user.name });
+    // Testers get a short session driven by the configurable tester.session_minutes
+    // setting; every other role keeps the default 24h.
+    let ttlSeconds: number | undefined;
+    if (user.role === "tester") {
+      const cfg = await getSettings();
+      const minutes = Math.max(1, parseInt(cfg["tester.session_minutes"] || "180", 10));
+      ttlSeconds = minutes * 60;
+    }
+
+    const token = await signToken({ sub: user.id, email: user.email, name: user.name }, ttlSeconds);
 
     const cookieStore = await cookies();
-    const cookie = createAuthCookie(token);
+    const cookie = createAuthCookie(token, ttlSeconds);
     cookieStore.set(cookie.name, cookie.value, cookie);
+
+    // A tester password is single-use: spend it on login so a new one must be
+    // generated for the next session. The current session stays valid via the
+    // cookie until it expires after tester.session_minutes.
+    if (user.role === "tester") {
+      await db.update(adminUsers)
+        .set({ passwordHash: hashSync(randomBytes(32).toString("hex"), 12) })
+        .where(eq(adminUsers.id, user.id));
+    }
 
     return apiSuccess({
       user: { id: user.id, email: user.email, name: user.name },

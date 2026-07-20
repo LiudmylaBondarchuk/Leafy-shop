@@ -30,6 +30,10 @@ export async function runTestDataCleanup(): Promise<CleanupSummary> {
 
   const testDiscounts = await db.select({ id: discountCodes.id }).from(discountCodes).where(eq(discountCodes.isTestData, true));
   for (const d of testDiscounts) {
+    // Release any orders that reference this code first, otherwise the FK
+    // constraint (orders.discount_code_id) aborts the entire cleanup. The order
+    // keeps its recorded discountAmount; only the link to the deleted code drops.
+    await db.update(orders).set({ discountCodeId: null }).where(eq(orders.discountCodeId, d.id));
     await db.delete(discountCodes).where(eq(discountCodes.id, d.id));
     cleanedDiscounts++;
   }

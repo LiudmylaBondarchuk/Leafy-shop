@@ -59,9 +59,29 @@ export default function AdminOrdersPage() {
 
   const filtered = orders;
 
-  const handleExportCSV = () => {
+  const handleExportCSV = async () => {
+    // Pull every matching order across all pages so the export is complete,
+    // not limited to the page currently shown.
+    const params = new URLSearchParams();
+    if (statusFilter) params.set("status", statusFilter);
+    if (search) params.set("search", search);
+    if (dateFrom) params.set("from", dateFrom);
+    if (dateTo) params.set("to", dateTo);
+    params.set("limit", "50");
+    const all: any[] = [];
+    let current = 1;
+    let pages = 1;
+    do {
+      params.set("page", String(current));
+      const res = await fetch(`/api/orders?${params}`);
+      const json = await res.json();
+      all.push(...(json.data?.orders || []));
+      pages = json.data?.pagination?.totalPages || 1;
+      current++;
+    } while (current <= pages);
+
     const headers = ["Order #", "Date", "First Name", "Last Name", "Email", "Status", "Payment", "Total"];
-    const rows = filtered.map((o) => [
+    const rows = all.map((o) => [
       o.orderNumber,
       new Date(o.createdAt).toISOString().split("T")[0],
       o.customerFirstName,
@@ -71,7 +91,7 @@ export default function AdminOrdersPage() {
       o.paymentMethod || "",
       (o.total / 100).toFixed(2),
     ]);
-    const csv = [headers, ...rows].map((r) => r.map((c: string) => `"${c}"`).join(",")).join("\n");
+    const csv = [headers, ...rows].map((r) => r.map((c: string) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

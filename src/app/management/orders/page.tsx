@@ -91,7 +91,14 @@ export default function AdminOrdersPage() {
       o.paymentMethod || "",
       (o.total / 100).toFixed(2),
     ]);
-    const csv = [headers, ...rows].map((r) => r.map((c: string) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    // Prefix cells that start with a formula character so spreadsheets treat
+    // them as text (CSV formula-injection guard), then escape quotes.
+    const csvCell = (c: string) => {
+      const s = String(c);
+      const safe = /^[=+\-@\t\r]/.test(s) ? `'${s}` : s;
+      return `"${safe.replace(/"/g, '""')}"`;
+    };
+    const csv = [headers, ...rows].map((r) => r.map(csvCell).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

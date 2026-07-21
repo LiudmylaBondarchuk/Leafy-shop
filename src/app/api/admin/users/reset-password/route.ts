@@ -29,6 +29,11 @@ export async function POST(request: Request) {
     });
     if (!targetUser) return apiError("User not found", 404);
 
+    // Testers may only reset tester accounts — never real staff.
+    if (requestingUser.role === "tester" && targetUser.role !== "tester") {
+      return apiError("Testers can only manage tester accounts", 403, "FORBIDDEN");
+    }
+
     // Can't reset admin password if you're not admin
     if (targetUser.role === "admin" && requestingUser.role !== "admin") {
       return apiError("Only admins can reset admin passwords", 403);

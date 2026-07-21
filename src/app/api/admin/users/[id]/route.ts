@@ -19,10 +19,22 @@ export async function GET(
     const { id } = await params;
     if (isNaN(parseInt(id))) return apiError("Invalid ID", 400);
 
+    const requestingUser = await db.query.adminUsers.findFirst({
+      where: eq(adminUsers.id, Number(admin.sub)),
+    });
+    if (!requestingUser || !hasPermission(requestingUser.role, JSON.parse(requestingUser.permissions || "[]"), "users.view")) {
+      return apiError("No permission", 403, "FORBIDDEN");
+    }
+
     const user = await db.query.adminUsers.findFirst({
       where: eq(adminUsers.id, parseInt(id)),
     });
     if (!user) return apiError("User not found", 404);
+
+    // Testers may only view tester accounts — never real staff.
+    if (requestingUser.role === "tester" && user.role !== "tester") {
+      return apiError("Testers can only view tester accounts", 403, "FORBIDDEN");
+    }
 
     return apiSuccess({
       id: user.id,
@@ -65,6 +77,12 @@ export async function PUT(
       where: eq(adminUsers.id, userId),
     });
     if (!targetUser) return apiError("User not found", 404);
+
+    // Testers may only manage tester accounts — never real staff. Without this,
+    // a tester (which has users.manage) could overwrite a manager's password.
+    if (requestingUser.role === "tester" && targetUser.role !== "tester") {
+      return apiError("Testers can only manage tester accounts", 403, "FORBIDDEN");
+    }
 
     // Can't edit admin if you're not admin
     if (targetUser.role === "admin" && requestingUser.role !== "admin") {

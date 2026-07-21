@@ -83,6 +83,7 @@ export async function POST(request: NextRequest) {
     // Validate discount code
     let discount = null;
     let discountAmount = 0;
+    let discountError: string | undefined;
 
     if (discount_code) {
       const categoryIds = [...new Set(calculatedItems.map((i) => i.categoryId))];
@@ -112,20 +113,15 @@ export async function POST(request: NextRequest) {
           amount: discountAmount,
         };
       } else {
-        return apiSuccess({
-          items: calculatedItems.map(({ categoryId, ...rest }) => rest),
-          subtotal,
-          discount: null,
-          discountError: validation.message,
-          shippingCost: 0,
-          total: subtotal,
-        });
+        // Invalid code: keep the real shipping/COD in the preview instead of
+        // zeroing them, so the displayed total matches what the order charges.
+        discountError = validation.message;
       }
     }
 
     // Calculate shipping
     const shippingConfig = SHIPPING_METHODS[shipping_method as keyof typeof SHIPPING_METHODS];
-    let shippingCost = shippingConfig?.cost || SHIPPING_METHODS.courier.cost;
+    let shippingCost = shippingConfig?.cost ?? SHIPPING_METHODS.courier.cost;
 
     // Free shipping threshold
     if (subtotal >= FREE_SHIPPING_THRESHOLD) {
@@ -157,6 +153,7 @@ export async function POST(request: NextRequest) {
       items: calculatedItems.map(({ categoryId, ...rest }) => rest),
       subtotal,
       discount,
+      discountError,
       vatRate,
       vatAmount,
       shippingCost,

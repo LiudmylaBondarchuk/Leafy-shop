@@ -188,7 +188,7 @@ export async function POST(request: NextRequest) {
 
     // Shipping
     const shippingMethod = data.shipping.method as keyof typeof SHIPPING_METHODS;
-    let shippingCost = SHIPPING_METHODS[shippingMethod]?.cost || SHIPPING_METHODS.courier.cost;
+    let shippingCost = SHIPPING_METHODS[shippingMethod]?.cost ?? SHIPPING_METHODS.courier.cost;
 
     if (subtotal >= FREE_SHIPPING_THRESHOLD) shippingCost = 0;
 

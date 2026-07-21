@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { products, productVariants, categories } from "@/lib/db/schema-pg";
-import { eq, and, like, or, gte, lte, sql, desc, asc } from "drizzle-orm";
+import { eq, and, ilike, or, gte, lte, sql, desc, asc } from "drizzle-orm";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { NextRequest } from "next/server";
 
@@ -36,8 +36,8 @@ export async function GET(request: NextRequest) {
     if (search) {
       conditions.push(
         or(
-          like(products.name, `%${search}%`),
-          like(products.description, `%${search}%`)
+          ilike(products.name, `%${search}%`),
+          ilike(products.description, `%${search}%`)
         )!
       );
     }

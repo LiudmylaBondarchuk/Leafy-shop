@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { products, productVariants, orders, orderItems, orderStatusHistory, discountCodes, auditLogs, adminUsers } from "@/lib/db/schema-pg";
+import { products, productVariants, orders, orderItems, orderStatusHistory, discountCodes, creditNotes, auditLogs, adminUsers } from "@/lib/db/schema-pg";
 import { eq, and, sql, isNull } from "drizzle-orm";
 import { Resend } from "resend";
 import { getSettings } from "@/lib/settings";
@@ -23,9 +23,17 @@ export async function runTestDataCleanup(): Promise<CleanupSummary> {
 
   const testProducts = await db.select({ id: products.id }).from(products).where(eq(products.isTestData, true));
   for (const p of testProducts) {
-    await db.delete(productVariants).where(eq(productVariants.productId, p.id));
-    await db.delete(products).where(eq(products.id, p.id));
-    cleanedProducts++;
+    try {
+      // order_items.product_id/variant_id have no ON DELETE cascade, so a test
+      // product still referenced by any order can't be hard-deleted. Skip it
+      // (it's removed on a later run once the referencing order is gone) rather
+      // than let one FK violation abort the whole cleanup.
+      await db.delete(productVariants).where(eq(productVariants.productId, p.id));
+      await db.delete(products).where(eq(products.id, p.id));
+      cleanedProducts++;
+    } catch (err) {
+      console.warn(`[CLEANUP] Skipped test product ${p.id} (still referenced by an order):`, err instanceof Error ? err.message : err);
+    }
   }
 
   const testDiscounts = await db.select({ id: discountCodes.id }).from(discountCodes).where(eq(discountCodes.isTestData, true));
@@ -82,6 +90,9 @@ export async function runTestDataCleanup(): Promise<CleanupSummary> {
   for (const o of testOrders) {
     await db.delete(orderStatusHistory).where(eq(orderStatusHistory.orderId, o.id));
     await db.delete(orderItems).where(eq(orderItems.orderId, o.id));
+    // credit_notes.order_id has no ON DELETE cascade — remove them before the
+    // order, otherwise the delete throws an FK violation and aborts cleanup.
+    await db.delete(creditNotes).where(eq(creditNotes.orderId, o.id));
     await db.delete(orders).where(eq(orders.id, o.id));
     cleanedOrders++;
   }

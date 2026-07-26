@@ -27,3 +27,5 @@ docs/*.code-workspace
 # Build artefacts
 tsconfig.tsbuildinfo
 .vercel
+
+CLAUDE.md

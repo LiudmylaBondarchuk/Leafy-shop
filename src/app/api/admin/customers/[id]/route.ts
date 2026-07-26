@@ -1,9 +1,60 @@
 import { db } from "@/lib/db";
-import { orders, customers as customersTable } from "@/lib/db/schema-pg";
-import { eq } from "drizzle-orm";
+import { orders, customers as customersTable, customerAccountLogs } from "@/lib/db/schema-pg";
+import { eq, desc } from "drizzle-orm";
 import { getAdminFromCookie } from "@/lib/auth";
 import { authorize } from "@/lib/require-permission";
 import { apiSuccess, apiError } from "@/lib/utils";
+
+const norm = (v: string | null | undefined) => (v || "").trim().toLowerCase();
+
+type OrderRow = typeof orders.$inferSelect;
+type AccountRow = typeof customersTable.$inferSelect;
+type LogRow = typeof customerAccountLogs.$inferSelect;
+
+async function accountLogs(accountId: number) {
+  const rows = await db
+    .select()
+    .from(customerAccountLogs)
+    .where(eq(customerAccountLogs.customerId, accountId))
+    .orderBy(desc(customerAccountLogs.createdAt));
+
+  return rows.map((l: LogRow) => ({
+    id: l.id,
+    actorType: l.actorType,
+    actorName: l.actorName,
+    actorRole: l.actorRole,
+    action: l.action,
+    changes: l.changes ? JSON.parse(l.changes) : null,
+    createdAt: l.createdAt,
+  }));
+}
+
+// Which live-account fields diverge from the latest order snapshot.
+// Only compared when the account actually holds a value — an empty account
+// phone/address is "not set", not a divergence.
+function mismatchFields(account: AccountRow, latestOrder: OrderRow | null): string[] {
+  if (!latestOrder) return [];
+  const fields: string[] = [];
+
+  if (
+    norm(account.firstName) !== norm(latestOrder.customerFirstName) ||
+    norm(account.lastName) !== norm(latestOrder.customerLastName)
+  ) {
+    fields.push("name");
+  }
+
+  if (account.phone && norm(account.phone) !== norm(latestOrder.customerPhone)) {
+    fields.push("phone");
+  }
+
+  if (account.shippingStreet) {
+    const accAddr = [account.shippingStreet, account.shippingCity, account.shippingZip, account.shippingCountry].map(norm).join("|");
+    const ordAddr = [latestOrder.shippingStreet, latestOrder.shippingCity, latestOrder.shippingZip, latestOrder.shippingCountry].map(norm).join("|");
+    if (accAddr !== ordAddr) fields.push("address");
+  }
+
+  return fields;
+}
 
 export async function GET(
   _request: Request,
@@ -29,10 +80,12 @@ export async function GET(
       if (!account) return apiError("Customer not found", 404);
 
       // Check if they have any orders by email
-      const allOrders: any[] = await db.select().from(orders);
+      const allOrders: OrderRow[] = await db.select().from(orders);
       const customerOrders = allOrders
         .filter((o) => o.customerEmail.toLowerCase() === account.email.toLowerCase())
         .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
+      const latestOrder = customerOrders[0] ?? null;
 
       return apiSuccess({
         email: account.email,
@@ -40,12 +93,14 @@ export async function GET(
         firstName: account.firstName,
         lastName: account.lastName,
         orderCount: customerOrders.length,
-        totalSpent: customerOrders.filter((o: any) => !["cancelled", "returned", "pending_payment"].includes(o.status)).reduce((sum: number, o: any) => sum + o.total, 0),
+        totalSpent: customerOrders.filter((o) => !["cancelled", "returned", "pending_payment"].includes(o.status)).reduce((sum, o) => sum + o.total, 0),
         firstOrderDate: customerOrders.length > 0 ? customerOrders[customerOrders.length - 1].createdAt : account.createdAt,
         lastOrderDate: customerOrders.length > 0 ? customerOrders[0].createdAt : account.createdAt,
         hasAccount: true,
         accountId: account.id,
-        orders: customerOrders.map((o: any) => ({
+        mismatchFields: mismatchFields(account, latestOrder),
+        accountLogs: await accountLogs(account.id),
+        orders: customerOrders.map((o) => ({
           id: o.id,
           orderNumber: o.orderNumber,
           status: o.status,
@@ -61,7 +116,7 @@ export async function GET(
 
     if (!email) return apiError("Customer not found", 404);
 
-    const allOrders: any[] = await db.select().from(orders);
+    const allOrders: OrderRow[] = await db.select().from(orders);
 
     // Find all orders matching this customer
     const customerOrders = allOrders.filter((o) =>
@@ -76,8 +131,14 @@ export async function GET(
     const first = customerOrders[0];
     const activeOrders = customerOrders.filter((o) => !["cancelled", "returned", "pending_payment"].includes(o.status));
 
+    // If this order-derived customer maps to a registered account, show the live
+    // account identity (name/phone) instead of the frozen order snapshot.
+    const account = await db.query.customers.findFirst({
+      where: eq(customersTable.email, email),
+    });
+
     // Find similar customers
-    const similarCustomers: any[] = [];
+    const similarCustomers: { id: string; email: string; firstName: string; lastName: string; phone: string; reason: string }[] = [];
     for (const o of allOrders) {
       const oEmail = o.customerEmail.toLowerCase();
       const oFirstName = o.customerFirstName.toLowerCase();
@@ -113,14 +174,18 @@ export async function GET(
 
     return apiSuccess({
       email: first.customerEmail,
-      phone: first.customerPhone,
-      firstName: first.customerFirstName,
-      lastName: first.customerLastName,
+      phone: account ? (account.phone || "") : first.customerPhone,
+      firstName: account ? account.firstName : first.customerFirstName,
+      lastName: account ? account.lastName : first.customerLastName,
       orderCount: customerOrders.length,
-      totalSpent: activeOrders.reduce((sum: number, o: any) => sum + o.total, 0),
+      totalSpent: activeOrders.reduce((sum, o) => sum + o.total, 0),
       firstOrderDate: customerOrders[customerOrders.length - 1].createdAt,
       lastOrderDate: customerOrders[0].createdAt,
-      orders: customerOrders.map((o: any) => ({
+      hasAccount: !!account,
+      accountId: account?.id ?? null,
+      mismatchFields: account ? mismatchFields(account, first) : [],
+      accountLogs: account ? await accountLogs(account.id) : [],
+      orders: customerOrders.map((o) => ({
         id: o.id,
         orderNumber: o.orderNumber,
         status: o.status,

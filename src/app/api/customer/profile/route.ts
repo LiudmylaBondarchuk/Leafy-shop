@@ -3,6 +3,17 @@ import { customers } from "@/lib/db/schema-pg";
 import { eq } from "drizzle-orm";
 import { getCustomerFromCookie } from "@/lib/customer-auth";
 import { apiSuccess, apiError } from "@/lib/utils";
+import { logCustomerChange, detectChanges, type AuditChanges } from "@/lib/customer-audit";
+
+const LOGGED_PROFILE_FIELDS = [
+  "firstName",
+  "lastName",
+  "phone",
+  "shippingStreet",
+  "shippingCity",
+  "shippingZip",
+  "shippingCountry",
+];
 
 export async function PUT(request: Request) {
   try {
@@ -10,6 +21,10 @@ export async function PUT(request: Request) {
     if (!payload) {
       return apiError("Not authenticated", 401, "UNAUTHORIZED");
     }
+
+    const customerId = Number(payload.sub);
+    const existing = await db.query.customers.findFirst({ where: eq(customers.id, customerId) });
+    if (!existing) return apiError("Account not found", 404);
 
     const body = await request.json();
     const { firstName, lastName, phone, shippingStreet, shippingCity, shippingZip, shippingCountry } = body;
@@ -26,7 +41,24 @@ export async function PUT(request: Request) {
     if (shippingZip !== undefined) updates.shippingZip = shippingZip?.trim() || null;
     if (shippingCountry !== undefined) updates.shippingCountry = shippingCountry?.trim() || null;
 
-    const [updated] = await db.update(customers).set(updates).where(eq(customers.id, Number(payload.sub))).returning();
+    const [updated] = await db.update(customers).set(updates).where(eq(customers.id, customerId)).returning();
+
+    const changes = detectChanges(
+      existing as Record<string, string | null>,
+      updates as Record<string, string | null>,
+      LOGGED_PROFILE_FIELDS,
+    ) as AuditChanges | undefined;
+    if (changes) {
+      await logCustomerChange({
+        customerId,
+        actorType: "customer",
+        actorId: customerId,
+        actorName: updated.email,
+        actorRole: "customer",
+        action: "update",
+        changes,
+      });
+    }
 
     return apiSuccess({
       customer: {

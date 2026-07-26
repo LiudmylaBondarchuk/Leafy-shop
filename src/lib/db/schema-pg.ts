@@ -243,6 +243,21 @@ export const auditLogs = pgTable("audit_logs", {
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
 });
 
+// Change history for a customer ACCOUNT (customers table). Kept separate from
+// audit_logs so admin-entity operations and customer-account edits never mix —
+// this feed is shown only on the customer detail page, not in global Activity Logs.
+export const customerAccountLogs = pgTable("customer_account_logs", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").notNull().references(() => customers.id),
+  actorType: text("actor_type").notNull(), // 'admin' | 'customer'
+  actorId: integer("actor_id"),
+  actorName: text("actor_name").notNull(),
+  actorRole: text("actor_role"), // 'admin' | 'manager' | 'customer'
+  action: text("action").notNull(), // 'update' | 'password_reset'
+  changes: text("changes"), // JSON: { field: { old, new } }
+  createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
+});
+
 // ============================================
 // SETTINGS (key-value store)
 // ============================================

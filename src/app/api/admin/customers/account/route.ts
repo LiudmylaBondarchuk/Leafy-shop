@@ -1,13 +1,30 @@
 import { db } from "@/lib/db";
-import { customers } from "@/lib/db/schema-pg";
+import { customers, adminUsers } from "@/lib/db/schema-pg";
 import { getAdminFromCookie } from "@/lib/auth";
 import { authorize } from "@/lib/require-permission";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { eq } from "drizzle-orm";
 import { randomBytes } from "crypto";
 import { Resend } from "resend";
+import { logCustomerChange, detectChanges } from "@/lib/customer-audit";
 
 import { NextRequest } from "next/server";
+
+const LOGGED_ACCOUNT_FIELDS = [
+  "firstName",
+  "lastName",
+  "email",
+  "phone",
+  "shippingStreet",
+  "shippingCity",
+  "shippingZip",
+  "shippingCountry",
+];
+
+async function adminActor(adminId: number) {
+  const user = await db.query.adminUsers.findFirst({ where: eq(adminUsers.id, adminId) });
+  return { id: adminId, name: user?.name || "Unknown admin", role: user?.role || "admin" };
+}
 
 function escapeHtml(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -42,6 +59,8 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: Request) {
   const admin = await getAdminFromCookie();
   if (!admin) return apiError("Unauthorized", 401, "UNAUTHORIZED");
+  const denied = await authorize("customers.edit");
+  if (denied) return denied;
 
   try {
     const body = await request.json();
@@ -60,20 +79,35 @@ export async function PUT(request: Request) {
       if (duplicate) return apiError("Another customer already uses this email", 409);
     }
 
+    const next = {
+      firstName: firstName ?? existing[0].firstName,
+      lastName: lastName ?? existing[0].lastName,
+      email: email ? email.trim().toLowerCase() : existing[0].email,
+      phone: phone ?? existing[0].phone,
+      shippingStreet: shippingStreet ?? existing[0].shippingStreet,
+      shippingCity: shippingCity ?? existing[0].shippingCity,
+      shippingZip: shippingZip ?? existing[0].shippingZip,
+      shippingCountry: shippingCountry ?? existing[0].shippingCountry,
+    };
+
     await db
       .update(customers)
-      .set({
-        firstName: firstName ?? existing[0].firstName,
-        lastName: lastName ?? existing[0].lastName,
-        email: email ? email.trim().toLowerCase() : existing[0].email,
-        phone: phone ?? existing[0].phone,
-        shippingStreet: shippingStreet ?? existing[0].shippingStreet,
-        shippingCity: shippingCity ?? existing[0].shippingCity,
-        shippingZip: shippingZip ?? existing[0].shippingZip,
-        shippingCountry: shippingCountry ?? existing[0].shippingCountry,
-        updatedAt: new Date().toISOString(),
-      })
+      .set({ ...next, updatedAt: new Date().toISOString() })
       .where(eq(customers.id, accountId));
+
+    const changes = detectChanges(existing[0], next, LOGGED_ACCOUNT_FIELDS);
+    if (changes) {
+      const actor = await adminActor(Number(admin.sub));
+      await logCustomerChange({
+        customerId: accountId,
+        actorType: "admin",
+        actorId: actor.id,
+        actorName: actor.name,
+        actorRole: actor.role,
+        action: "update",
+        changes,
+      });
+    }
 
     return apiSuccess({ id: accountId });
   } catch (error) {
@@ -85,6 +119,8 @@ export async function PUT(request: Request) {
 export async function POST(request: Request) {
   const admin = await getAdminFromCookie();
   if (!admin) return apiError("Unauthorized", 401, "UNAUTHORIZED");
+  const denied = await authorize("customers.edit");
+  if (denied) return denied;
 
   try {
     const body = await request.json();
@@ -137,6 +173,16 @@ export async function POST(request: Request) {
         `,
       });
     }
+
+    const actor = await adminActor(Number(admin.sub));
+    await logCustomerChange({
+      customerId: accountId,
+      actorType: "admin",
+      actorId: actor.id,
+      actorName: actor.name,
+      actorRole: actor.role,
+      action: "password_reset",
+    });
 
     return apiSuccess({ message: "Password reset link sent to " + customer.email });
   } catch (error) {

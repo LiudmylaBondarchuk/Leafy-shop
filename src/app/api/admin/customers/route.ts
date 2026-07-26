@@ -4,7 +4,7 @@ import { getAdminFromCookie } from "@/lib/auth";
 import { authorize } from "@/lib/require-permission";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { NextRequest } from "next/server";
-import { sql, eq } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 
 interface CustomerRecord {
   id: string; // composite key
@@ -160,6 +160,10 @@ export async function GET(request: NextRequest) {
       if (acc) {
         c.hasAccount = true;
         c.accountId = acc.id;
+        // Show the live account identity, not the frozen order snapshot.
+        c.firstName = acc.firstName;
+        c.lastName = acc.lastName;
+        c.phone = acc.phone || c.phone;
         matchedEmails.add(c.email.toLowerCase());
       }
     }

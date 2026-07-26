@@ -11,6 +11,29 @@ import type { OrderStatus } from "@/constants/order-statuses";
 import { ArrowLeft, Mail, Phone, ShoppingBag, DollarSign, Calendar, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 
+const FIELD_LABELS: Record<string, string> = {
+  firstName: "First name",
+  lastName: "Last name",
+  email: "Email",
+  phone: "Phone",
+  shippingStreet: "Street",
+  shippingCity: "City",
+  shippingZip: "Zip",
+  shippingCountry: "Country",
+};
+
+const MISMATCH_LABELS: Record<string, string> = {
+  name: "name",
+  phone: "phone",
+  address: "address",
+};
+
+function actorLabel(log: { actorType: string; actorName: string; actorRole: string | null }) {
+  if (log.actorType === "customer") return `${log.actorName} (customer)`;
+  const role = log.actorRole ? log.actorRole.charAt(0).toUpperCase() + log.actorRole.slice(1) : "Admin";
+  return `${log.actorName} (${role})`;
+}
+
 export default function CustomerDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [customer, setCustomer] = useState<any>(null);
@@ -38,6 +61,16 @@ export default function CustomerDetailPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{customer.firstName} {customer.lastName}</h1>
           <p className="text-sm text-gray-500">Customer since {formatDate(customer.firstOrderDate)}</p>
+          {customer.mismatchFields && customer.mismatchFields.length > 0 && (
+            <button
+              onClick={() => document.getElementById("change-history")?.scrollIntoView({ behavior: "smooth" })}
+              className="mt-2 inline-flex items-center gap-1 rounded-full bg-orange-50 border border-orange-200 px-2.5 py-0.5 text-xs font-medium text-orange-700 hover:bg-orange-100"
+              title={`Account differs from the latest order: ${customer.mismatchFields.map((f: string) => MISMATCH_LABELS[f] || f).join(", ")}`}
+            >
+              <AlertTriangle className="h-3 w-3" />
+              Account data differs from latest order
+            </button>
+          )}
         </div>
       </div>
 
@@ -165,6 +198,42 @@ export default function CustomerDetailPage() {
             )}
           </Card>
         </div>
+      </div>
+
+      {/* Change history — account edits only; never touches order snapshots */}
+      <div id="change-history" className="mt-6">
+      <Card className="p-5">
+        <h2 className="font-semibold text-gray-900 mb-1">Change history</h2>
+        <p className="text-xs text-gray-500 mb-4">Who changed this account and what — admins, managers and the customer themselves. Order snapshots are never affected.</p>
+        {(!customer.accountLogs || customer.accountLogs.length === 0) ? (
+          <p className="text-sm text-gray-400">No changes recorded yet.</p>
+        ) : (
+          <div className="space-y-3">
+            {customer.accountLogs.map((log: { id: number; actorType: string; actorName: string; actorRole: string | null; action: string; changes: Record<string, { old: string | null; new: string | null }> | null; createdAt: string }) => (
+              <div key={log.id} className="border-b border-gray-100 last:border-0 pb-3 last:pb-0">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-sm font-medium text-gray-900">{actorLabel(log)}</span>
+                  <span className="text-xs text-gray-400 whitespace-nowrap">{formatDate(log.createdAt)}</span>
+                </div>
+                {log.action === "password_reset" ? (
+                  <p className="text-xs text-gray-600 mt-1">Sent a password reset link</p>
+                ) : log.changes ? (
+                  <ul className="mt-1 space-y-0.5">
+                    {Object.entries(log.changes).map(([field, val]) => (
+                      <li key={field} className="text-xs text-gray-600">
+                        <span className="text-gray-500">{FIELD_LABELS[field] || field}:</span>{" "}
+                        <span className="line-through text-gray-400">{val.old || "—"}</span>{" "}
+                        <span className="text-gray-400">→</span>{" "}
+                        <span className="text-gray-800">{val.new || "—"}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
       </div>
     </div>
   );

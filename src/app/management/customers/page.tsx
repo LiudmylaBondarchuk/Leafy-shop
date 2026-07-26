@@ -218,7 +218,7 @@ export default function AdminCustomersPage() {
               {/* Shipping Address */}
               <hr className="border-gray-200 dark:border-gray-700" />
               <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Shipping Address</p>
-              <Input label="Street & number" id="editStreet" value={editModal.shippingStreet} onChange={(e) => setEditModal({ ...editModal, shippingStreet: e.target.value })} placeholder="ul. Marszałkowska 12/5" />
+              <Input label="Street & number" id="editStreet" value={editModal.shippingStreet} onChange={(e) => setEditModal({ ...editModal, shippingStreet: e.target.value })} placeholder="123 Tea Street, Apt 4" />
               <div className="grid grid-cols-2 gap-3">
                 <Input label="City" id="editCity" value={editModal.shippingCity} onChange={(e) => setEditModal({ ...editModal, shippingCity: e.target.value })} placeholder="Warsaw" />
                 <Input label="Zip code" id="editZip" value={editModal.shippingZip} onChange={(e) => setEditModal({ ...editModal, shippingZip: e.target.value })} placeholder="00-001" />

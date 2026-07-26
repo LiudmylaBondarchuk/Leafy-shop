@@ -163,7 +163,7 @@ export function UserForm({ userId }: UserFormProps) {
       <Card className="p-5 space-y-4">
         <h2 className="font-semibold text-gray-900">Account Details</h2>
         <Input label="Name *" id="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="John Smith" />
-        <Input label="Email *" id="email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="john@leafy.pl" disabled={!!userId} />
+        <Input label="Email *" id="email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="john@example.com" disabled={!!userId} />
         {!userId && (
           <p className="text-xs text-gray-500 bg-gray-50 rounded-lg p-3">
             A strong password will be generated automatically and sent to the user's email.

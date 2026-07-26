@@ -79,15 +79,16 @@ export async function PUT(request: Request) {
       if (duplicate) return apiError("Another customer already uses this email", 409);
     }
 
+    const blankToNull = (v: string | null | undefined): string | null => (v ? v : null);
     const next = {
       firstName: firstName ?? existing[0].firstName,
       lastName: lastName ?? existing[0].lastName,
       email: email ? email.trim().toLowerCase() : existing[0].email,
-      phone: phone ?? existing[0].phone,
-      shippingStreet: shippingStreet ?? existing[0].shippingStreet,
-      shippingCity: shippingCity ?? existing[0].shippingCity,
-      shippingZip: shippingZip ?? existing[0].shippingZip,
-      shippingCountry: shippingCountry ?? existing[0].shippingCountry,
+      phone: blankToNull(phone ?? existing[0].phone),
+      shippingStreet: blankToNull(shippingStreet ?? existing[0].shippingStreet),
+      shippingCity: blankToNull(shippingCity ?? existing[0].shippingCity),
+      shippingZip: blankToNull(shippingZip ?? existing[0].shippingZip),
+      shippingCountry: blankToNull(shippingCountry ?? existing[0].shippingCountry),
     };
 
     await db

@@ -66,13 +66,16 @@ export function detectChanges(
   fields: string[]
 ): AuditChanges | undefined {
   const changes: AuditChanges = {};
+  // null, undefined and "" all mean "empty" — going between them is not a change.
+  const isEmpty = (v: AuditChangeValue) => v === null || v === undefined || v === "";
 
   for (const field of fields) {
     const oldVal = oldObj[field];
     const newVal = newObj[field];
-    if (oldVal !== newVal && newVal !== undefined) {
-      changes[field] = { old: oldVal, new: newVal };
-    }
+    if (newVal === undefined) continue;
+    if (isEmpty(oldVal) && isEmpty(newVal)) continue;
+    if (oldVal === newVal) continue;
+    changes[field] = { old: oldVal, new: newVal };
   }
 
   return Object.keys(changes).length > 0 ? changes : undefined;

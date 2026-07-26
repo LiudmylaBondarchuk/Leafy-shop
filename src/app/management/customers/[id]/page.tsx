@@ -28,6 +28,16 @@ const MISMATCH_LABELS: Record<string, string> = {
   address: "address",
 };
 
+function formatLogTime(iso: string) {
+  return new Date(iso).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 function actorLabel(log: { actorType: string; actorName: string; actorRole: string | null }) {
   if (log.actorType === "customer") return `${log.actorName} (customer)`;
   const role = log.actorRole ? log.actorRole.charAt(0).toUpperCase() + log.actorRole.slice(1) : "Admin";
@@ -213,7 +223,7 @@ export default function CustomerDetailPage() {
               <div key={log.id} className="border-b border-gray-100 last:border-0 pb-3 last:pb-0">
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-sm font-medium text-gray-900">{actorLabel(log)}</span>
-                  <span className="text-xs text-gray-400 whitespace-nowrap">{formatDate(log.createdAt)}</span>
+                  <span className="text-xs text-gray-400 whitespace-nowrap">{formatLogTime(log.createdAt)}</span>
                 </div>
                 {log.action === "password_reset" ? (
                   <p className="text-xs text-gray-600 mt-1">Sent a password reset link</p>

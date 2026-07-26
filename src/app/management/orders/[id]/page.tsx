@@ -20,8 +20,10 @@ function toBase64Url(s: string) {
   return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-function customerAdminHref(o: { customerEmail: string; customerFirstName: string; customerLastName: string; customerPhone: string }) {
-  const key = `${o.customerEmail.toLowerCase()}|${o.customerFirstName.toLowerCase()}|${o.customerLastName.toLowerCase()}|${o.customerPhone}`;
+function customerAdminHref(o: { customerId?: number | null; customerEmail: string; customerFirstName: string; customerLastName: string; customerPhone: string }) {
+  const key = o.customerId
+    ? `account|${o.customerId}`
+    : `${o.customerEmail.toLowerCase()}|${o.customerFirstName.toLowerCase()}|${o.customerLastName.toLowerCase()}|${o.customerPhone}`;
   return `/management/customers/${toBase64Url(key)}`;
 }
 

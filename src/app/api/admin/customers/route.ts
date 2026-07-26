@@ -4,10 +4,11 @@ import { getAdminFromCookie } from "@/lib/auth";
 import { authorize } from "@/lib/require-permission";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { NextRequest } from "next/server";
-import { sql } from "drizzle-orm";
+
+type OrderRow = typeof orders.$inferSelect;
 
 interface CustomerRecord {
-  id: string; // composite key
+  id: string; // composite key (base64url)
   email: string;
   phone: string;
   firstName: string;
@@ -21,6 +22,8 @@ interface CustomerRecord {
   similarCustomers: { id: string; email: string; firstName: string; lastName: string; reason: string }[];
 }
 
+const isActive = (o: OrderRow) => !["cancelled", "returned", "pending_payment"].includes(o.status);
+
 export async function GET(request: NextRequest) {
   const admin = await getAdminFromCookie();
   if (!admin) return apiError("Unauthorized", 401, "UNAUTHORIZED");
@@ -30,82 +33,129 @@ export async function GET(request: NextRequest) {
   try {
     const search = request.nextUrl.searchParams.get("search") || "";
 
-    // Use SQL aggregation instead of loading all orders into memory
-    const aggregated = await db
+    const allOrders: OrderRow[] = await db.select().from(orders);
+    const allAccounts = await db
       .select({
-        customerEmail: orders.customerEmail,
-        customerPhone: orders.customerPhone,
-        customerFirstName: orders.customerFirstName,
-        customerLastName: orders.customerLastName,
-        orderCount: sql<number>`count(*)`.as("order_count"),
-        totalSpent: sql<number>`coalesce(sum(case when ${orders.status} not in ('cancelled', 'returned', 'pending_payment') then ${orders.total} else 0 end), 0)`.as("total_spent"),
-        lastOrderDate: sql<string>`max(${orders.createdAt})`.as("last_order_date"),
+        id: customersTable.id,
+        email: customersTable.email,
+        firstName: customersTable.firstName,
+        lastName: customersTable.lastName,
+        phone: customersTable.phone,
+        deletedAt: customersTable.deletedAt,
+        createdAt: customersTable.createdAt,
       })
-      .from(orders)
-      .groupBy(
-        orders.customerEmail,
-        orders.customerFirstName,
-        orders.customerLastName,
-        orders.customerPhone,
-      );
+      .from(customersTable);
 
-    // Build customer records
+    const accountsById = new Map<number, typeof allAccounts[number]>();
+    const accountsByEmail = new Map<string, typeof allAccounts[number]>();
+    for (const a of allAccounts) {
+      if (a.deletedAt) continue;
+      accountsById.set(a.id, a);
+      accountsByEmail.set(a.email.toLowerCase(), a);
+    }
+
+    // An order is owned by an account via its customerId link, or (fallback) via
+    // a matching email — the same rule the customer-facing side uses.
+    const ownerAccount = (o: OrderRow) => {
+      if (o.customerId && accountsById.has(o.customerId)) return accountsById.get(o.customerId)!;
+      return accountsByEmail.get(o.customerEmail.toLowerCase()) ?? null;
+    };
+
+    // Bucket orders: one bucket per account, or per snapshot identity for guests.
+    interface Bucket {
+      orders: OrderRow[];
+      account: typeof allAccounts[number] | null;
+      snapshot: { email: string; firstName: string; lastName: string; phone: string } | null;
+    }
+    const buckets = new Map<string, Bucket>();
+
+    for (const o of allOrders) {
+      const acc = ownerAccount(o);
+      const bucketKey = acc
+        ? `acct:${acc.id}`
+        : `snap:${o.customerEmail.toLowerCase()}|${o.customerFirstName.toLowerCase()}|${o.customerLastName.toLowerCase()}|${o.customerPhone}`;
+      let b = buckets.get(bucketKey);
+      if (!b) {
+        b = {
+          orders: [],
+          account: acc,
+          snapshot: acc ? null : { email: o.customerEmail, firstName: o.customerFirstName, lastName: o.customerLastName, phone: o.customerPhone },
+        };
+        buckets.set(bucketKey, b);
+      }
+      b.orders.push(o);
+    }
+
     const customers: CustomerRecord[] = [];
+    const accountsWithOrders = new Set<number>();
 
-    for (const row of aggregated) {
-      const key = `${row.customerEmail.toLowerCase()}|${row.customerFirstName.toLowerCase()}|${row.customerLastName.toLowerCase()}|${row.customerPhone}`;
+    for (const b of buckets.values()) {
+      const sorted = [...b.orders].sort((a, z) => z.createdAt.localeCompare(a.createdAt));
+      const last = sorted[0];
+      const totalSpent = b.orders.filter(isActive).reduce((sum, o) => sum + o.total, 0);
 
+      if (b.account) {
+        accountsWithOrders.add(b.account.id);
+        customers.push({
+          id: Buffer.from(`account|${b.account.id}`).toString("base64url"),
+          email: b.account.email,
+          phone: b.account.phone || "",
+          firstName: b.account.firstName,
+          lastName: b.account.lastName,
+          orderCount: b.orders.length,
+          totalSpent,
+          lastOrderDate: last.createdAt,
+          lastOrderNumber: last.orderNumber,
+          hasAccount: true,
+          accountId: b.account.id,
+          similarCustomers: [],
+        });
+      } else {
+        const s = b.snapshot!;
+        const key = `${s.email.toLowerCase()}|${s.firstName.toLowerCase()}|${s.lastName.toLowerCase()}|${s.phone}`;
+        customers.push({
+          id: Buffer.from(key).toString("base64url"),
+          email: s.email,
+          phone: s.phone,
+          firstName: s.firstName,
+          lastName: s.lastName,
+          orderCount: b.orders.length,
+          totalSpent,
+          lastOrderDate: last.createdAt,
+          lastOrderNumber: last.orderNumber,
+          hasAccount: false,
+          accountId: null,
+          similarCustomers: [],
+        });
+      }
+    }
+
+    // Registered accounts that have no orders at all.
+    for (const a of accountsById.values()) {
+      if (accountsWithOrders.has(a.id)) continue;
       customers.push({
-        id: Buffer.from(key).toString("base64url"),
-        email: row.customerEmail,
-        phone: row.customerPhone,
-        firstName: row.customerFirstName,
-        lastName: row.customerLastName,
-        orderCount: Number(row.orderCount),
-        totalSpent: Number(row.totalSpent),
-        lastOrderDate: row.lastOrderDate,
-        lastOrderNumber: "", // filled below
-        hasAccount: false,
-        accountId: null,
+        id: Buffer.from(`account|${a.id}`).toString("base64url"),
+        email: a.email,
+        phone: a.phone || "",
+        firstName: a.firstName,
+        lastName: a.lastName,
+        orderCount: 0,
+        totalSpent: 0,
+        lastOrderDate: a.createdAt,
+        lastOrderNumber: "",
+        hasAccount: true,
+        accountId: a.id,
         similarCustomers: [],
       });
     }
 
-    // Fetch last order number for each customer (one query for the latest order per group)
-    // We use a lightweight lookup: get orders sorted by createdAt desc, then match
-    const latestOrders = await db
-      .select({
-        customerEmail: orders.customerEmail,
-        customerFirstName: orders.customerFirstName,
-        customerLastName: orders.customerLastName,
-        customerPhone: orders.customerPhone,
-        orderNumber: orders.orderNumber,
-        createdAt: orders.createdAt,
-      })
-      .from(orders)
-      .orderBy(sql`${orders.createdAt} desc`);
-
-    const assignedKeys = new Set<string>();
-    for (const o of latestOrders) {
-      const key = `${o.customerEmail.toLowerCase()}|${o.customerFirstName.toLowerCase()}|${o.customerLastName.toLowerCase()}|${o.customerPhone}`;
-      if (assignedKeys.has(key)) continue;
-      assignedKeys.add(key);
-
-      const customer = customers.find((c) => c.id === Buffer.from(key).toString("base64url"));
-      if (customer) {
-        customer.lastOrderNumber = o.orderNumber;
-      }
-    }
-
-    // Detect similar customers using Maps for O(n) lookup
+    // Detect look-alikes (same email or phone, different details) across records.
     const emailMap = new Map<string, CustomerRecord[]>();
     const phoneMap = new Map<string, CustomerRecord[]>();
-
     for (const c of customers) {
       const emailKey = c.email.toLowerCase();
       if (!emailMap.has(emailKey)) emailMap.set(emailKey, []);
       emailMap.get(emailKey)!.push(c);
-
       if (c.phone) {
         if (!phoneMap.has(c.phone)) phoneMap.set(c.phone, []);
         phoneMap.get(c.phone)!.push(c);
@@ -113,8 +163,7 @@ export async function GET(request: NextRequest) {
     }
 
     for (const c of customers) {
-      const emailKey = c.email.toLowerCase();
-      const sameEmail = emailMap.get(emailKey) || [];
+      const sameEmail = emailMap.get(c.email.toLowerCase()) || [];
       for (const other of sameEmail) {
         if (c.id === other.id) continue;
         if (c.firstName !== other.firstName || c.lastName !== other.lastName) {
@@ -123,7 +172,6 @@ export async function GET(request: NextRequest) {
           }
         }
       }
-
       if (c.phone) {
         const samePhone = phoneMap.get(c.phone) || [];
         for (const other of samePhone) {
@@ -138,56 +186,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Match with customer accounts and add accounts without orders
-    const allAccounts = await db.select({
-      id: customersTable.id,
-      email: customersTable.email,
-      firstName: customersTable.firstName,
-      lastName: customersTable.lastName,
-      phone: customersTable.phone,
-      deletedAt: customersTable.deletedAt,
-      createdAt: customersTable.createdAt,
-    }).from(customersTable);
-
-    const accountMap = new Map<string, typeof allAccounts[number]>();
-    for (const a of allAccounts) {
-      if (!a.deletedAt) accountMap.set(a.email.toLowerCase(), a);
-    }
-
-    const matchedEmails = new Set<string>();
-    for (const c of customers) {
-      const acc = accountMap.get(c.email.toLowerCase());
-      if (acc) {
-        c.hasAccount = true;
-        c.accountId = acc.id;
-        // Show the live account identity, not the frozen order snapshot.
-        c.firstName = acc.firstName;
-        c.lastName = acc.lastName;
-        c.phone = acc.phone || c.phone;
-        matchedEmails.add(c.email.toLowerCase());
-      }
-    }
-
-    // Add registered accounts that have no orders
-    for (const [emailKey, acc] of accountMap) {
-      if (matchedEmails.has(emailKey)) continue;
-      customers.push({
-        id: Buffer.from(`account|${acc.id}`).toString("base64url"),
-        email: acc.email,
-        phone: acc.phone || "",
-        firstName: acc.firstName,
-        lastName: acc.lastName,
-        orderCount: 0,
-        totalSpent: 0,
-        lastOrderDate: acc.createdAt,
-        lastOrderNumber: "",
-        hasAccount: true,
-        accountId: acc.id,
-        similarCustomers: [],
-      });
-    }
-
-    // Filter by search
     let filtered = customers;
     if (search) {
       const q = search.toLowerCase();
@@ -199,7 +197,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Sort by last order date (newest first)
     filtered.sort((a, b) => b.lastOrderDate.localeCompare(a.lastOrderDate));
 
     return apiSuccess(filtered);

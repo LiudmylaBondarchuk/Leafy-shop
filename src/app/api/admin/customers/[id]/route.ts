@@ -3,6 +3,7 @@ import { orders, customers as customersTable, customerAccountLogs } from "@/lib/
 import { eq, desc } from "drizzle-orm";
 import { getAdminFromCookie } from "@/lib/auth";
 import { authorize } from "@/lib/require-permission";
+import { orderBelongsToCustomer } from "@/lib/customer-orders";
 import { apiSuccess, apiError } from "@/lib/utils";
 
 const norm = (v: string | null | undefined) => (v || "").trim().toLowerCase();
@@ -10,6 +11,17 @@ const norm = (v: string | null | undefined) => (v || "").trim().toLowerCase();
 type OrderRow = typeof orders.$inferSelect;
 type AccountRow = typeof customersTable.$inferSelect;
 type LogRow = typeof customerAccountLogs.$inferSelect;
+
+const mapOrder = (o: OrderRow) => ({
+  id: o.id,
+  orderNumber: o.orderNumber,
+  status: o.status,
+  total: o.total,
+  paymentMethod: o.paymentMethod,
+  createdAt: o.createdAt,
+});
+
+const isActive = (o: OrderRow) => !["cancelled", "returned", "pending_payment"].includes(o.status);
 
 async function accountLogs(accountId: number) {
   const rows = await db
@@ -67,84 +79,89 @@ export async function GET(
 
   try {
     const { id } = await params;
-
-    // Decode the base64url ID back to key
     const key = Buffer.from(id, "base64url").toString();
+    const allOrders: OrderRow[] = await db.select().from(orders);
 
-    // Handle account-only customers (no orders)
+    // Resolve the account this row represents (if any), and — for guest rows —
+    // the snapshot orders that define it.
+    let account: AccountRow | null = null;
+    let snapshotOrders: OrderRow[] = [];
+    let snapshotKey: { email: string; firstName: string; lastName: string; phone: string } | null = null;
+
     if (key.startsWith("account|")) {
       const accountId = parseInt(key.split("|")[1]);
-      const account = await db.query.customers.findFirst({
-        where: eq(customersTable.id, accountId),
-      });
+      account = (await db.query.customers.findFirst({ where: eq(customersTable.id, accountId) })) ?? null;
       if (!account) return apiError("Customer not found", 404);
+    } else {
+      const [email, firstName, lastName, phone] = key.split("|");
+      if (!email) return apiError("Customer not found", 404);
 
-      // Check if they have any orders by email
-      const allOrders: OrderRow[] = await db.select().from(orders);
-      const customerOrders = allOrders
-        .filter((o) => o.customerEmail.toLowerCase() === account.email.toLowerCase())
+      snapshotOrders = allOrders
+        .filter((o) =>
+          o.customerEmail.toLowerCase() === email &&
+          o.customerFirstName.toLowerCase() === firstName &&
+          o.customerLastName.toLowerCase() === lastName &&
+          o.customerPhone === phone
+        )
         .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
-      const latestOrder = customerOrders[0] ?? null;
+      if (snapshotOrders.length === 0) return apiError("Customer not found", 404);
+
+      // These snapshot orders may belong to a registered account — via a
+      // customerId link, or via the email. Resolve to that account if so.
+      const linkedId = snapshotOrders.find((o) => o.customerId)?.customerId;
+      if (linkedId) {
+        account = (await db.query.customers.findFirst({ where: eq(customersTable.id, linkedId) })) ?? null;
+      }
+      if (!account) {
+        account = (await db.query.customers.findFirst({ where: eq(customersTable.email, email) })) ?? null;
+      }
+      if (!account) {
+        snapshotKey = {
+          email: snapshotOrders[0].customerEmail,
+          firstName: snapshotOrders[0].customerFirstName,
+          lastName: snapshotOrders[0].customerLastName,
+          phone: snapshotOrders[0].customerPhone,
+        };
+      }
+    }
+
+    // Account row — orders resolved by the shared rule (customerId OR email).
+    if (account) {
+      const custOrders = allOrders
+        .filter((o) => orderBelongsToCustomer(o, account!))
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      const activeOrders = custOrders.filter(isActive);
+      const latest = custOrders[0] ?? null;
 
       return apiSuccess({
         email: account.email,
         phone: account.phone || "",
         firstName: account.firstName,
         lastName: account.lastName,
-        orderCount: customerOrders.length,
-        totalSpent: customerOrders.filter((o) => !["cancelled", "returned", "pending_payment"].includes(o.status)).reduce((sum, o) => sum + o.total, 0),
-        firstOrderDate: customerOrders.length > 0 ? customerOrders[customerOrders.length - 1].createdAt : account.createdAt,
-        lastOrderDate: customerOrders.length > 0 ? customerOrders[0].createdAt : account.createdAt,
+        orderCount: custOrders.length,
+        totalSpent: activeOrders.reduce((sum, o) => sum + o.total, 0),
+        firstOrderDate: custOrders.length > 0 ? custOrders[custOrders.length - 1].createdAt : account.createdAt,
+        lastOrderDate: custOrders.length > 0 ? custOrders[0].createdAt : account.createdAt,
         hasAccount: true,
         accountId: account.id,
-        mismatchFields: mismatchFields(account, latestOrder),
+        mismatchFields: mismatchFields(account, latest),
         accountLogs: await accountLogs(account.id),
-        orders: customerOrders.map((o) => ({
-          id: o.id,
-          orderNumber: o.orderNumber,
-          status: o.status,
-          total: o.total,
-          paymentMethod: o.paymentMethod,
-          createdAt: o.createdAt,
-        })),
+        orders: custOrders.map(mapOrder),
         similarCustomers: [],
       });
     }
 
-    const [email, firstName, lastName, phone] = key.split("|");
+    // Guest row — snapshot identity, no account/logs. Flag look-alikes.
+    const { email, firstName, lastName, phone } = snapshotKey!;
+    const activeOrders = snapshotOrders.filter(isActive);
 
-    if (!email) return apiError("Customer not found", 404);
-
-    const allOrders: OrderRow[] = await db.select().from(orders);
-
-    // Find all orders matching this customer
-    const customerOrders = allOrders.filter((o) =>
-      o.customerEmail.toLowerCase() === email &&
-      o.customerFirstName.toLowerCase() === firstName &&
-      o.customerLastName.toLowerCase() === lastName &&
-      o.customerPhone === phone
-    ).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-
-    if (customerOrders.length === 0) return apiError("Customer not found", 404);
-
-    const first = customerOrders[0];
-    const activeOrders = customerOrders.filter((o) => !["cancelled", "returned", "pending_payment"].includes(o.status));
-
-    // If this order-derived customer maps to a registered account, show the live
-    // account identity (name/phone) instead of the frozen order snapshot.
-    const account = await db.query.customers.findFirst({
-      where: eq(customersTable.email, email),
-    });
-
-    // Find similar customers
     const similarCustomers: { id: string; email: string; firstName: string; lastName: string; phone: string; reason: string }[] = [];
     for (const o of allOrders) {
       const oEmail = o.customerEmail.toLowerCase();
       const oFirstName = o.customerFirstName.toLowerCase();
       const oLastName = o.customerLastName.toLowerCase();
 
-      // Skip if same customer
       if (oEmail === email && oFirstName === firstName && oLastName === lastName && o.customerPhone === phone) continue;
 
       let reason = "";
@@ -173,26 +190,19 @@ export async function GET(
     }
 
     return apiSuccess({
-      email: first.customerEmail,
-      phone: account ? (account.phone || "") : first.customerPhone,
-      firstName: account ? account.firstName : first.customerFirstName,
-      lastName: account ? account.lastName : first.customerLastName,
-      orderCount: customerOrders.length,
+      email: snapshotOrders[0].customerEmail,
+      phone: snapshotOrders[0].customerPhone,
+      firstName: snapshotOrders[0].customerFirstName,
+      lastName: snapshotOrders[0].customerLastName,
+      orderCount: snapshotOrders.length,
       totalSpent: activeOrders.reduce((sum, o) => sum + o.total, 0),
-      firstOrderDate: customerOrders[customerOrders.length - 1].createdAt,
-      lastOrderDate: customerOrders[0].createdAt,
-      hasAccount: !!account,
-      accountId: account?.id ?? null,
-      mismatchFields: account ? mismatchFields(account, first) : [],
-      accountLogs: account ? await accountLogs(account.id) : [],
-      orders: customerOrders.map((o) => ({
-        id: o.id,
-        orderNumber: o.orderNumber,
-        status: o.status,
-        total: o.total,
-        paymentMethod: o.paymentMethod,
-        createdAt: o.createdAt,
-      })),
+      firstOrderDate: snapshotOrders[snapshotOrders.length - 1].createdAt,
+      lastOrderDate: snapshotOrders[0].createdAt,
+      hasAccount: false,
+      accountId: null,
+      mismatchFields: [],
+      accountLogs: [],
+      orders: snapshotOrders.map(mapOrder),
       similarCustomers,
     });
   } catch (error) {

@@ -6,6 +6,7 @@ import { getTransitionsForOrder } from "@/constants/order-statuses";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { getAdminFromCookie } from "@/lib/auth";
 import { getCustomerFromCookie } from "@/lib/customer-auth";
+import { orderBelongsToCustomer } from "@/lib/customer-orders";
 import { NextRequest } from "next/server";
 
 export async function GET(
@@ -39,8 +40,9 @@ export async function GET(
       return apiError("Order not found", 404, "NOT_FOUND");
     }
 
-    // Customers can only view their own orders
-    if (!admin && customer && order.customerEmail !== customer.email) {
+    // Customers can only view their own orders — match by the shared rule so a
+    // customer who changed their account email still reaches their past orders.
+    if (!admin && customer && !orderBelongsToCustomer(order, { id: Number(customer.sub), email: customer.email })) {
       return apiError("Forbidden", 403, "FORBIDDEN");
     }
 

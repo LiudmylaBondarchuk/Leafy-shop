@@ -13,6 +13,18 @@ import { toast } from "sonner";
 import Link from "next/link";
 import { ArrowLeft, Check, Circle, AlertTriangle } from "lucide-react";
 
+function toBase64Url(s: string) {
+  const bytes = new TextEncoder().encode(s);
+  let bin = "";
+  bytes.forEach((b) => (bin += String.fromCharCode(b)));
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function customerAdminHref(o: { customerEmail: string; customerFirstName: string; customerLastName: string; customerPhone: string }) {
+  const key = `${o.customerEmail.toLowerCase()}|${o.customerFirstName.toLowerCase()}|${o.customerLastName.toLowerCase()}|${o.customerPhone}`;
+  return `/management/customers/${toBase64Url(key)}`;
+}
+
 export default function AdminOrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [order, setOrder] = useState<any>(null);
@@ -191,7 +203,13 @@ export default function AdminOrderDetailPage() {
           <Card className="p-5">
             <h2 className="font-semibold mb-3">Customer</h2>
             <div className="text-sm space-y-1 text-gray-600 dark:text-gray-400">
-              <p className="font-medium text-gray-900 dark:text-gray-100">{order.customerFirstName} {order.customerLastName}</p>
+              <Link
+                href={customerAdminHref(order)}
+                className="font-medium text-green-700 hover:text-green-800 dark:text-green-500 hover:underline inline-flex items-center gap-1"
+              >
+                {order.customerFirstName} {order.customerLastName}
+                <ArrowLeft className="h-3 w-3 rotate-180" />
+              </Link>
               <p>{order.customerEmail}</p>
               <p>{order.customerPhone}</p>
               <div className="border-t border-gray-100 dark:border-gray-700 pt-2 mt-2">

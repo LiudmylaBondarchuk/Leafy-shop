@@ -31,6 +31,9 @@ export const ROLE_LABELS: Record<Role, string> = {
 // Admin has all permissions implicitly
 export function hasPermission(role: string, permissions: string[], permission: string): boolean {
   if (role === "admin") return true;
+  // Tester is strictly read-only — may hold only *.view permissions, never mutate,
+  // regardless of what was granted.
+  if (role === "tester" && !permission.endsWith(".view")) return false;
   return permissions.includes(permission);
 }
 

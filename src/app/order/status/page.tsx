@@ -23,7 +23,7 @@ const STATUS_ICONS: Record<string, React.ComponentType<{ className?: string }>> 
   returned: RotateCcw,
 };
 
-const STATUS_FLOW_PREPAID = ["new", "paid", "processing", "shipped", "delivered"];
+const STATUS_FLOW_PREPAID = ["pending_payment", "paid", "processing", "shipped", "delivered"];
 const STATUS_FLOW_COD = ["new", "processing", "shipped", "delivered", "paid"];
 
 interface OrderData {

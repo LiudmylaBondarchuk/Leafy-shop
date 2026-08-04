@@ -15,7 +15,7 @@ const SIDEBAR_LINKS = [
 ];
 
 // Pages that don't require authentication
-const PUBLIC_PAGES = ["/account/login", "/account/register", "/account/forgot-password"];
+const PUBLIC_PAGES = ["/account/login", "/account/register", "/account/forgot-password", "/account/reset-password"];
 
 export default function AccountLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();

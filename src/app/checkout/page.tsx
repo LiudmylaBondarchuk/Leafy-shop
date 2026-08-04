@@ -494,7 +494,7 @@ export default function CheckoutPage() {
               />
               {errors.zip && <p className="mt-1 text-xs text-red-600">{errors.zip}</p>}
             </div>
-            <Input label="City *" id="city" value={form.city} onChange={(e) => updateField("city", e.target.value)} error={errors.city} placeholder="Warsaw" maxLength={100} />
+            <Input label="City *" id="city" value={form.city} onChange={(e) => updateField("city", e.target.value)} error={errors.city} placeholder={selectedCountry.cityPlaceholder} maxLength={100} />
           </div>
 
           {/* Invoice */}
@@ -513,7 +513,7 @@ export default function CheckoutPage() {
                   </p>
                 )}
               </div>
-              <Input label="Company address *" id="invoiceAddress" value={form.invoiceAddress} onChange={(e) => updateField("invoiceAddress", e.target.value)} error={errors.invoiceAddress} placeholder="456 Business Ave, 00-002 Warsaw" />
+              <Input label="Company address *" id="invoiceAddress" value={form.invoiceAddress} onChange={(e) => updateField("invoiceAddress", e.target.value)} error={errors.invoiceAddress} placeholder={`456 Business Ave, ${selectedCountry.zipPlaceholder} ${selectedCountry.cityPlaceholder}`} />
             </div>
           )}
 

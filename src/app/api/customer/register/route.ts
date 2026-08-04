@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { customers } from "@/lib/db/schema-pg";
-import { eq, and, ne } from "drizzle-orm";
+import { eq, and, ne, isNull } from "drizzle-orm";
 import { hashSync } from "bcryptjs";
 import { signCustomerToken, createCustomerCookie } from "@/lib/customer-auth";
 import { apiSuccess, apiError } from "@/lib/utils";
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     const normalizedEmail = email.trim().toLowerCase();
 
     const existing = await db.query.customers.findFirst({
-      where: eq(customers.email, normalizedEmail),
+      where: and(eq(customers.email, normalizedEmail), isNull(customers.deletedAt)),
     });
     if (existing) {
       return apiError("An account with this email already exists", 409, "EMAIL_EXISTS");
@@ -42,7 +42,8 @@ export async function POST(request: Request) {
       const phoneConflict = await db.query.customers.findFirst({
         where: and(
           eq(customers.phone, phone.trim()),
-          ne(customers.email, normalizedEmail)
+          ne(customers.email, normalizedEmail),
+          isNull(customers.deletedAt)
         ),
       });
       if (phoneConflict) {

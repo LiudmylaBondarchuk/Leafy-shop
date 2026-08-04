@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { discountCodes, adminUsers } from "@/lib/db/schema-pg";
-import { eq } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 import { getAdminFromCookie } from "@/lib/auth";
 import { apiSuccess, apiError } from "@/lib/utils";
 import { logAudit, detectChanges } from "@/lib/audit";
@@ -84,7 +84,7 @@ export async function PUT(
       }
       if (code) {
         const existing = await db.query.discountCodes.findFirst({
-          where: eq(discountCodes.code, code.trim().toUpperCase()),
+          where: and(eq(discountCodes.code, code.trim().toUpperCase()), isNull(discountCodes.deletedAt)),
         });
         if (existing && existing.id !== parseInt(id)) {
           return apiError("A discount code with this name already exists", 409, "DUPLICATE");

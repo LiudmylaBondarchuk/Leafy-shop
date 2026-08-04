@@ -3,7 +3,7 @@ import { customers, adminUsers } from "@/lib/db/schema-pg";
 import { getAdminFromCookie } from "@/lib/auth";
 import { authorize } from "@/lib/require-permission";
 import { apiSuccess, apiError } from "@/lib/utils";
-import { eq } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 import { randomBytes } from "crypto";
 import { Resend } from "resend";
 import { logCustomerChange, detectChanges } from "@/lib/customer-audit";
@@ -74,7 +74,7 @@ export async function PUT(request: Request) {
     // If email changed, check for duplicates
     if (email && email.trim().toLowerCase() !== existing[0].email.toLowerCase()) {
       const duplicate = await db.query.customers.findFirst({
-        where: eq(customers.email, email.trim().toLowerCase()),
+        where: and(eq(customers.email, email.trim().toLowerCase()), isNull(customers.deletedAt)),
       });
       if (duplicate) return apiError("Another customer already uses this email", 409);
     }

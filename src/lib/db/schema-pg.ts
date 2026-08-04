@@ -1,5 +1,5 @@
 import { pgTable, text, integer, boolean, serial, timestamp, uniqueIndex, index } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 
 export const categories = pgTable("categories", {
   id: serial("id").primaryKey(),
@@ -20,7 +20,7 @@ export const products = pgTable("products", {
   id: serial("id").primaryKey(),
   categoryId: integer("category_id").notNull().references(() => categories.id),
   name: text("name").notNull(),
-  slug: text("slug").notNull().unique(),
+  slug: text("slug").notNull(),
   description: text("description").notNull(),
   shortDescription: text("short_description"),
   imageUrl: text("image_url"),
@@ -40,7 +40,9 @@ export const products = pgTable("products", {
   deletedAt: text("deleted_at"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
   updatedAt: text("updated_at").notNull().$defaultFn(() => new Date().toISOString()),
-});
+}, (t) => [
+  uniqueIndex("products_slug_active_unq").on(t.slug).where(sql`${t.deletedAt} is null`),
+]);
 
 export const productsRelations = relations(products, ({ one, many }) => ({
   category: one(categories, { fields: [products.categoryId], references: [categories.id] }),
@@ -70,7 +72,7 @@ export const productVariantsRelations = relations(productVariants, ({ one }) => 
 // ============================================
 export const customers = pgTable("customers", {
   id: serial("id").primaryKey(),
-  email: text("email").notNull().unique(),
+  email: text("email").notNull(),
   passwordHash: text("password_hash").notNull(),
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
@@ -84,7 +86,9 @@ export const customers = pgTable("customers", {
   deletedAt: text("deleted_at"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
   updatedAt: text("updated_at").notNull().$defaultFn(() => new Date().toISOString()),
-});
+}, (t) => [
+  uniqueIndex("customers_email_active_unq").on(t.email).where(sql`${t.deletedAt} is null`),
+]);
 
 export const customersRelations = relations(customers, ({ many }) => ({
   orders: many(orders),
@@ -166,7 +170,7 @@ export const orderStatusHistoryRelations = relations(orderStatusHistory, ({ one 
 
 export const discountCodes = pgTable("discount_codes", {
   id: serial("id").primaryKey(),
-  code: text("code").notNull().unique(),
+  code: text("code").notNull(),
   description: text("description"),
   type: text("type").notNull(),
   value: integer("value").notNull(),
@@ -182,7 +186,9 @@ export const discountCodes = pgTable("discount_codes", {
   createdBy: integer("created_by"),
   deletedAt: text("deleted_at"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
-});
+}, (t) => [
+  uniqueIndex("discount_codes_code_active_unq").on(t.code).where(sql`${t.deletedAt} is null`),
+]);
 
 export const discountCodesRelations = relations(discountCodes, ({ one }) => ({
   category: one(categories, { fields: [discountCodes.categoryId], references: [categories.id] }),
@@ -190,7 +196,7 @@ export const discountCodesRelations = relations(discountCodes, ({ one }) => ({
 
 export const adminUsers = pgTable("admin_users", {
   id: serial("id").primaryKey(),
-  email: text("email").notNull().unique(),
+  email: text("email").notNull(),
   passwordHash: text("password_hash").notNull(),
   name: text("name").notNull(),
   role: text("role").notNull().default("manager"),
@@ -200,7 +206,9 @@ export const adminUsers = pgTable("admin_users", {
   lastLoginAt: text("last_login_at"),
   deletedAt: text("deleted_at"),
   createdAt: text("created_at").notNull().$defaultFn(() => new Date().toISOString()),
-});
+}, (t) => [
+  uniqueIndex("admin_users_email_active_unq").on(t.email).where(sql`${t.deletedAt} is null`),
+]);
 
 // ============================================
 // CREDIT NOTES (faktury korygujące)

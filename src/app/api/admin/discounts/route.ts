@@ -38,7 +38,7 @@ export async function POST(request: Request) {
 
     // Check unique code
     const existing = await db.query.discountCodes.findFirst({
-      where: eq(discountCodes.code, code.trim().toUpperCase()),
+      where: and(eq(discountCodes.code, code.trim().toUpperCase()), isNull(discountCodes.deletedAt)),
     });
     if (existing) {
       return apiError("A discount code with this name already exists", 409, "DUPLICATE");

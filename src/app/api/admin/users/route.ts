@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { adminUsers } from "@/lib/db/schema-pg";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and, isNull } from "drizzle-orm";
 import { hashSync } from "bcryptjs";
 import crypto from "crypto";
 import { getAdminFromCookie } from "@/lib/auth";
@@ -100,7 +100,7 @@ export async function POST(request: Request) {
 
     // Check unique email
     const existing = await db.query.adminUsers.findFirst({
-      where: eq(adminUsers.email, email.trim().toLowerCase()),
+      where: and(eq(adminUsers.email, email.trim().toLowerCase()), isNull(adminUsers.deletedAt)),
     });
     if (existing) {
       return apiError("An account with this email already exists", 409, "DUPLICATE");

@@ -52,6 +52,7 @@ export default function CheckoutPage() {
   const [signupError, setSignupError] = useState<string | null>(null);
   const [confirmEmail, setConfirmEmail] = useState("");
   const [calculatedDiscount, setCalculatedDiscount] = useState(0);
+  const [storeVatRate, setStoreVatRate] = useState(23);
   const [effectiveShippingCost, setEffectiveShippingCost] = useState<number | null>(null);
 
   const [form, setForm] = useState<CheckoutFormInput>({
@@ -155,6 +156,13 @@ export default function CheckoutPage() {
     if (mounted && items.length === 0 && !orderPlaced) router.replace("/cart");
   }, [mounted, items.length, router, orderPlaced]);
 
+  useEffect(() => {
+    fetch("/api/settings/public")
+      .then((r) => r.json())
+      .then((j) => { if (typeof j.data?.vatRate === "number") setStoreVatRate(j.data.vatRate); })
+      .catch(() => {});
+  }, []);
+
   // Fetch server-calculated discount amount when discount code is present
   useEffect(() => {
     if (!mounted || !discountCode || items.length === 0) {
@@ -245,9 +253,8 @@ export default function CheckoutPage() {
   // Split the COD surcharge out for display so shipping and COD are itemised separately.
   const codFee = form.paymentMethod === "cod" ? COD_SURCHARGE : 0;
   const baseShippingDisplay = Math.max(0, finalShippingCost - codFee);
-  // All prices are gross (include 23% Polish VAT). Always show 23% VAT in cart since customer pays gross.
-  // The invoice will show the correct VAT breakdown based on country/VAT ID.
-  const vatRate = 23;
+  // Prices are gross (VAT included); the summary breakdown uses the store VAT rate.
+  const vatRate = storeVatRate;
   const discountedSubtotal = subtotal - calculatedDiscount;
   const vatAmount = Math.round(discountedSubtotal - discountedSubtotal / (1 + vatRate / 100));
   const total = Math.max(0, discountedSubtotal + finalShippingCost); // VAT already in prices

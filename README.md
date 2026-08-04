@@ -36,14 +36,24 @@ An e-commerce store — catalog, cart, checkout with PayPal, VAT invoices, order
       <br><b>Checkout</b> — multi-step with country validation
     </td>
     <td align="center">
-      <img src="./docs/screenshots/dashboard.png" alt="Admin dashboard" width="100%">
-      <br><b>Admin dashboard</b> — stats, orders, alerts (dark mode)
+      <img src="./docs/screenshots/customer-account.png" alt="Customer account" width="100%">
+      <br><b>Customer account</b> — order history and profile
     </td>
   </tr>
   <tr>
     <td align="center">
-      <img src="./docs/screenshots/order-tracking-dark.png" alt="Order tracking" width="100%">
+      <img src="./docs/screenshots/order-tracking.png" alt="Order tracking" width="100%">
       <br><b>Order tracking</b> — timeline, status history
+    </td>
+    <td align="center">
+      <img src="./docs/screenshots/invoice.png" alt="VAT invoice" width="100%">
+      <br><b>VAT invoice</b> — net/gross breakdown, EU reverse charge
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="./docs/screenshots/credit-note.png" alt="Credit note" width="100%">
+      <br><b>Credit note</b> — for returns and corrections
     </td>
     <td align="center">
       <img src="./docs/screenshots/user-permissions.png" alt="User permissions" width="100%">
@@ -53,7 +63,7 @@ An e-commerce store — catalog, cart, checkout with PayPal, VAT invoices, order
   <tr>
     <td align="center">
       <img src="./docs/screenshots/mobile.png" alt="Mobile view" width="40%">
-      <br><b>Mobile</b> — responsive product catalog
+      <br><b>Mobile</b> — responsive product page
     </td>
     <td align="center">
       <img src="./docs/screenshots/settings-mobile.png" alt="Settings mobile" width="40%">

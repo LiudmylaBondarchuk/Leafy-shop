@@ -7,7 +7,7 @@
 [![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
-A production-ready e-commerce application demonstrating full-stack development with Next.js — complete order flow, PayPal integration, VAT invoices, role-based admin panel, and customer accounts. Built as a demo project.
+An e-commerce store — catalog, cart, checkout with PayPal, VAT invoices, order tracking, customer accounts, and a role-based admin panel. Built as a demo project.
 
 🔗 **Live demo:** [leafyshop.eu](https://leafyshop.eu) · **Admin panel:** [leafyshop.eu/management](https://leafyshop.eu/management)
 
@@ -123,8 +123,6 @@ A production-ready e-commerce application demonstrating full-stack development w
 ### Key architectural decisions
 - **Drizzle ORM over Prisma** — better edge runtime support, no client generation on migrations
 - **Neon PostgreSQL** — serverless Postgres with built-in connection pooling, ideal for Vercel
-- **Prices in cents (integer)** — avoids floating-point precision issues in financial calculations
-- **Two-step PayPal checkout** — order created first, then captured after payment (prevents duplicates)
 - **JWT over NextAuth** — separate tokens for admins and customers, full control over sessions and permissions
 - **Resend over Nodemailer** — reliable email delivery without managing an SMTP server
 
@@ -145,8 +143,7 @@ src/
 
 - Input validation (Zod) on all API endpoints
 - HTML escaping in invoices — XSS protection
-- Rate limiting on login and sensitive endpoints
-- Granular permission checks at API level
+- Granular permission checks at the API level, enforced in each handler
 - Atomic stock checks — prevents overselling on concurrent orders
 - Order ownership verification on PayPal capture
 - Tracking ID format validation before DOM injection
@@ -156,8 +153,8 @@ src/
 ## Local development
 
 ```bash
-git clone https://github.com/LiudmylaBondarchuk/Leafy-shop.git
-cd Leafy-shop
+git clone https://github.com/LiudmylaBondarchuk/leafy-shop.git
+cd leafy-shop
 npm install
 cp .env.example .env.local
 # Fill in the variables in .env.local

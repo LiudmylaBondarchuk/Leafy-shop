@@ -211,7 +211,7 @@ export const adminUsers = pgTable("admin_users", {
 ]);
 
 // ============================================
-// CREDIT NOTES (faktury korygujące)
+// CREDIT NOTES
 // ============================================
 export const creditNotes = pgTable("credit_notes", {
   id: serial("id").primaryKey(),

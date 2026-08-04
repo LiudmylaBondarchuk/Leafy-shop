@@ -206,7 +206,7 @@ export const discountCodesRelations = relations(discountCodes, ({ one }) => ({
 }));
 
 // ============================================
-// CREDIT NOTES (faktury korygujące)
+// CREDIT NOTES
 // ============================================
 export const creditNotes = sqliteTable("credit_notes", {
   id: integer("id").primaryKey({ autoIncrement: true }),
